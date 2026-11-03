@@ -1,0 +1,4746 @@
+{
+  "version": "2026.10.09.43",
+  "ships": [
+    {
+      "id": "pickle",
+      "name": "Pickle",
+      "image": "/reference/ships/ship-images/mPickle.png",
+      "type": "Fast ships",
+      "level": 7,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 700.0,
+        "armor": 1.6,
+        "speed": 9.2,
+        "maneuverability": 94.0,
+        "cargo": 6000.0,
+        "crew": 66.0,
+        "guns": 12.0
+      }
+    },
+    {
+      "id": "le-cerf",
+      "name": "Le Cerf",
+      "image": "/reference/ships/ship-images/mLe-Cerf.png",
+      "type": "Fast ships",
+      "level": 6,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 900.0,
+        "armor": 1.8,
+        "speed": 10.0,
+        "maneuverability": 97.0,
+        "cargo": 8000.0,
+        "crew": 78.0,
+        "guns": 18.0
+      }
+    },
+    {
+      "id": "la-creole",
+      "name": "La Creole",
+      "image": "/reference/ships/ship-images/mLa-Creole.png",
+      "type": "Fast ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1400.0,
+        "armor": 2.0,
+        "speed": 11.0,
+        "maneuverability": 100.0,
+        "cargo": 11000.0,
+        "crew": 96.0,
+        "guns": 28.0
+      }
+    },
+    {
+      "id": "surprise",
+      "name": "Surprise",
+      "image": "/reference/ships/ship-images/mSurprise.png",
+      "type": "Fast ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1680.0,
+        "armor": 2.4,
+        "speed": 10.5,
+        "maneuverability": 105.0,
+        "cargo": 13000.0,
+        "crew": 112.0,
+        "guns": 38.0
+      }
+    },
+    {
+      "id": "poltava",
+      "name": "Poltava",
+      "image": "/reference/ships/ship-images/mPoltava.png",
+      "type": "Fast ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2100.0,
+        "armor": 2.8,
+        "speed": 9.6,
+        "maneuverability": 95.0,
+        "cargo": 15500.0,
+        "crew": 132.0,
+        "guns": 50.0
+      }
+    },
+    {
+      "id": "ingermanland",
+      "name": "Ingermanland",
+      "image": "/reference/ships/ship-images/mIngermanland.png",
+      "type": "Fast ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2340.0,
+        "armor": 3.2,
+        "speed": 9.0,
+        "maneuverability": 87.0,
+        "cargo": 17500.0,
+        "crew": 152.0,
+        "guns": 68.0
+      }
+    },
+    {
+      "id": "horizon",
+      "name": "Horizon",
+      "image": "/reference/ships/ship-images/mHorizon.png",
+      "type": "Combat ships",
+      "level": 7,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 850.0,
+        "armor": 3.2,
+        "speed": 8.4,
+        "maneuverability": 80.0,
+        "cargo": 7000.0,
+        "crew": 78.0,
+        "guns": 18.0
+      }
+    },
+    {
+      "id": "la-salamandre",
+      "name": "La Salamandre",
+      "image": "/reference/ships/ship-images/mLa-Salamandre.png",
+      "type": "Combat ships",
+      "level": 6,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1160.0,
+        "armor": 3.6,
+        "speed": 8.8,
+        "maneuverability": 82.0,
+        "cargo": 9500.0,
+        "crew": 96.0,
+        "guns": 22.0
+      }
+    },
+    {
+      "id": "black-wind",
+      "name": "Black Wind",
+      "image": "/reference/ships/ship-images/mBlack-Wind.png",
+      "type": "Combat ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1820.0,
+        "armor": 4.0,
+        "speed": 9.4,
+        "maneuverability": 84.0,
+        "cargo": 13000.0,
+        "crew": 116.0,
+        "guns": 36.0
+      }
+    },
+    {
+      "id": "essex",
+      "name": "Essex",
+      "image": "/reference/ships/ship-images/mEssex.png",
+      "type": "Combat ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2160.0,
+        "armor": 4.8,
+        "speed": 8.9,
+        "maneuverability": 88.0,
+        "cargo": 15500.0,
+        "crew": 136.0,
+        "guns": 46.0
+      }
+    },
+    {
+      "id": "anson",
+      "name": "Anson",
+      "image": "/reference/ships/ship-images/mAnson.png",
+      "type": "Combat ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2700.0,
+        "armor": 5.6,
+        "speed": 8.2,
+        "maneuverability": 80.0,
+        "cargo": 18500.0,
+        "crew": 160.0,
+        "guns": 66.0
+      }
+    },
+    {
+      "id": "sans-pareil",
+      "name": "Sans Pareil",
+      "image": "/reference/ships/ship-images/mSans-Pareil.png",
+      "type": "Combat ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3000.0,
+        "armor": 6.4,
+        "speed": 7.7,
+        "maneuverability": 74.0,
+        "cargo": 21500.0,
+        "crew": 184.0,
+        "guns": 82.0
+      }
+    },
+    {
+      "id": "victory",
+      "name": "Victory",
+      "image": "/reference/ships/ship-images/mVictory.png",
+      "type": "Combat ships",
+      "level": 1,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3740.0,
+        "armor": 8.0,
+        "speed": 7.1,
+        "maneuverability": 66.0,
+        "cargo": 25000.0,
+        "crew": 204.0,
+        "guns": 106.0
+      }
+    },
+    {
+      "id": "friede",
+      "name": "Friede",
+      "image": "/reference/ships/ship-images/mFriede.png",
+      "type": "Cargo ships",
+      "level": 7,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 750.0,
+        "armor": 2.2,
+        "speed": 8.8,
+        "maneuverability": 86.0,
+        "cargo": 11000.0,
+        "crew": 72.0,
+        "guns": 16.0
+      }
+    },
+    {
+      "id": "mercury",
+      "name": "Mercury",
+      "image": "/reference/ships/ship-images/mMercury.png",
+      "type": "Cargo ships",
+      "level": 6,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1040.0,
+        "armor": 2.5,
+        "speed": 9.2,
+        "maneuverability": 89.0,
+        "cargo": 15500.0,
+        "crew": 88.0,
+        "guns": 20.0
+      }
+    },
+    {
+      "id": "russia",
+      "name": "Russia",
+      "image": "/reference/ships/ship-images/mRussia.png",
+      "type": "Cargo ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1600.0,
+        "armor": 2.7,
+        "speed": 9.9,
+        "maneuverability": 91.0,
+        "cargo": 22000.0,
+        "crew": 108.0,
+        "guns": 30.0
+      }
+    },
+    {
+      "id": "falmouth",
+      "name": "Falmouth",
+      "image": "/reference/ships/ship-images/mFalmouth.png",
+      "type": "Cargo ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1920.0,
+        "armor": 3.3,
+        "speed": 9.4,
+        "maneuverability": 96.0,
+        "cargo": 27500.0,
+        "crew": 126.0,
+        "guns": 40.0
+      }
+    },
+    {
+      "id": "mordaunt",
+      "name": "Mordaunt",
+      "image": "/reference/ships/ship-images/mMordaunt.png",
+      "type": "Cargo ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2380.0,
+        "armor": 3.9,
+        "speed": 8.7,
+        "maneuverability": 87.0,
+        "cargo": 34000.0,
+        "crew": 148.0,
+        "guns": 56.0
+      }
+    },
+    {
+      "id": "la-sirene",
+      "name": "La Sirene",
+      "image": "/reference/ships/ship-images/mLaSirene.png",
+      "type": "Cargo ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2660.0,
+        "armor": 4.4,
+        "speed": 8.1,
+        "maneuverability": 80.0,
+        "cargo": 43000.0,
+        "crew": 170.0,
+        "guns": 68.0
+      }
+    },
+    {
+      "id": "la-couronne",
+      "name": "La Couronne",
+      "image": "/reference/ships/ship-images/mLaCouronne.png",
+      "type": "Cargo ships",
+      "level": 1,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3500.0,
+        "armor": 5.5,
+        "speed": 7.6,
+        "maneuverability": 72.0,
+        "cargo": 50000.0,
+        "crew": 188.0,
+        "guns": 64.0
+      }
+    },
+    {
+      "id": "phoenix",
+      "name": "Phoenix",
+      "image": "/reference/ships/ship-images/mPhoenix.png",
+      "type": "Heavy ships",
+      "level": 6,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1380.0,
+        "armor": 4.5,
+        "speed": 8.2,
+        "maneuverability": 75.0,
+        "cargo": 12500.0,
+        "crew": 104.0,
+        "guns": 24.0
+      }
+    },
+    {
+      "id": "san-martin",
+      "name": "San Martin",
+      "image": "/reference/ships/ship-images/mSanMartin.png",
+      "type": "Heavy ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2140.0,
+        "armor": 5.0,
+        "speed": 8.5,
+        "maneuverability": 72.0,
+        "cargo": 17500.0,
+        "crew": 126.0,
+        "guns": 40.0
+      }
+    },
+    {
+      "id": "constitution",
+      "name": "Constitution",
+      "image": "/reference/ships/ship-images/mConstitution.png",
+      "type": "Heavy ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2560.0,
+        "armor": 6.0,
+        "speed": 8.0,
+        "maneuverability": 68.0,
+        "cargo": 21500.0,
+        "crew": 148.0,
+        "guns": 52.0
+      }
+    },
+    {
+      "id": "bellona",
+      "name": "Bellona",
+      "image": "/reference/ships/ship-images/mBellona.png",
+      "type": "Heavy ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3180.0,
+        "armor": 7.0,
+        "speed": 7.5,
+        "maneuverability": 62.0,
+        "cargo": 26000.0,
+        "crew": 174.0,
+        "guns": 70.0
+      }
+    },
+    {
+      "id": "redoutable",
+      "name": "Redoutable",
+      "image": "/reference/ships/ship-images/mRedoutable.png",
+      "type": "Heavy ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3540.0,
+        "armor": 8.0,
+        "speed": 7.0,
+        "maneuverability": 57.0,
+        "cargo": 30500.0,
+        "crew": 198.0,
+        "guns": 86.0
+      }
+    },
+    {
+      "id": "12-apostolov",
+      "name": "12 Apostolov",
+      "image": "/reference/ships/ship-images/m12Apostolov.png",
+      "type": "Heavy ships",
+      "level": 1,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 4400.0,
+        "armor": 10.0,
+        "speed": 6.2,
+        "maneuverability": 49.0,
+        "cargo": 36000.0,
+        "crew": 220.0,
+        "guns": 118.0
+      }
+    },
+    {
+      "id": "polacca",
+      "name": "Polacca",
+      "image": "/reference/ships/ship-images/mPolacca.png",
+      "type": "Siege ships",
+      "level": 6,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 980.0,
+        "armor": 2.9,
+        "speed": 9.0,
+        "maneuverability": 102.0,
+        "cargo": 9000.0,
+        "crew": 74.0,
+        "guns": 14.0
+      }
+    },
+    {
+      "id": "le-requin",
+      "name": "Le Requin",
+      "image": "/reference/ships/ship-images/mLeRequin.png",
+      "type": "Siege ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1520.0,
+        "armor": 3.2,
+        "speed": 9.6,
+        "maneuverability": 105.0,
+        "cargo": 12500.0,
+        "crew": 88.0,
+        "guns": 26.0
+      }
+    },
+    {
+      "id": "kobukson",
+      "name": "Kobukson",
+      "image": "/reference/ships/ship-images/mKobukson.png",
+      "type": "Siege ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2000.0,
+        "armor": 4.6,
+        "speed": 8.0,
+        "maneuverability": 85.0,
+        "cargo": 18000.0,
+        "crew": 124.0,
+        "guns": 30.0
+      }
+    },
+    {
+      "id": "adventure",
+      "name": "Adventure",
+      "image": "/reference/ships/ship-images/mAdventure.png",
+      "type": "Siege ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2660.0,
+        "armor": 5.2,
+        "speed": 8.2,
+        "maneuverability": 92.0,
+        "cargo": 21000.0,
+        "crew": 140.0,
+        "guns": 42.0
+      }
+    },
+    {
+      "id": "la-royale",
+      "name": "La Royale",
+      "image": "/reference/ships/ship-images/mLaRoyale.png",
+      "type": "Siege ships",
+      "level": 1,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2900.0,
+        "armor": 6.5,
+        "speed": 7.4,
+        "maneuverability": 83.0,
+        "cargo": 24000.0,
+        "crew": 156.0,
+        "guns": 42.0
+      }
+    },
+    {
+      "id": "balloon",
+      "name": "Balloon",
+      "image": "/reference/ships/ship-images/mBalloon.png",
+      "type": "Imperial ships",
+      "level": 6,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 200.0,
+        "armor": 1.0,
+        "speed": 21.0,
+        "maneuverability": 50.0,
+        "cargo": 1000.0,
+        "crew": 8.0,
+        "guns": 0.0
+      }
+    },
+    {
+      "id": "black-prince",
+      "name": "Black Prince",
+      "image": "/reference/ships/ship-images/mBlackPrince.png",
+      "type": "Imperial ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1700.0,
+        "armor": 3.0,
+        "speed": 9.9,
+        "maneuverability": 90.0,
+        "cargo": 14500.0,
+        "crew": 120.0,
+        "guns": 34.0
+      }
+    },
+    {
+      "id": "devourer",
+      "name": "Devourer",
+      "image": "/reference/ships/ship-images/mDevourer.png",
+      "type": "Imperial ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1760.0,
+        "armor": 5.5,
+        "speed": 7.5,
+        "maneuverability": 110.0,
+        "cargo": 17000.0,
+        "crew": 144.0,
+        "guns": 42.0
+      }
+    },
+    {
+      "id": "deadfish",
+      "name": "Deadfish",
+      "image": "/reference/ships/ship-images/mDeadfish.png",
+      "type": "Imperial ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3000.0,
+        "armor": 8.0,
+        "speed": 6.6,
+        "maneuverability": 66.0,
+        "cargo": 27000.0,
+        "crew": 166.0,
+        "guns": 59.0
+      }
+    },
+    {
+      "id": "octopus",
+      "name": "Octopus",
+      "image": "/reference/ships/ship-images/mOctopus.png",
+      "type": "Imperial ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2760.0,
+        "armor": 6.8,
+        "speed": 8.3,
+        "maneuverability": 75.0,
+        "cargo": 23000.0,
+        "crew": 176.0,
+        "guns": 82.0
+      }
+    },
+    {
+      "id": "huracan",
+      "name": "Huracan",
+      "image": "/reference/ships/ship-images/mHuracan.png",
+      "type": "Imperial ships",
+      "level": 1,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 8000.0,
+        "armor": 11.5,
+        "speed": 5.5,
+        "maneuverability": 42.0,
+        "cargo": 54000.0,
+        "crew": 288.0,
+        "guns": 172.0
+      }
+    },
+    {
+      "id": "savannah",
+      "name": "Savannah",
+      "image": "/reference/ships/ship-images/mSavannah.png",
+      "type": "Fast ships",
+      "level": 6,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1000.0,
+        "armor": 3.0,
+        "speed": 10.8,
+        "maneuverability": 92.0,
+        "cargo": 10000.0,
+        "crew": 94.0,
+        "guns": 18.0
+      }
+    },
+    {
+      "id": "golden-apostle",
+      "name": "Golden Apostle",
+      "image": "/reference/ships/ship-images/mGoldenApostle.png",
+      "type": "Siege ships",
+      "level": 6,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 900.0,
+        "armor": 2.2,
+        "speed": 9.5,
+        "maneuverability": 120.0,
+        "cargo": 8500.0,
+        "crew": 96.0,
+        "guns": 14.0
+      }
+    },
+    {
+      "id": "shunsen",
+      "name": "Shunsen",
+      "image": "/reference/ships/ship-images/mShunsen.png",
+      "type": "Combat ships",
+      "level": 6,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1000.0,
+        "armor": 3.0,
+        "speed": 8.5,
+        "maneuverability": 90.0,
+        "cargo": 11000.0,
+        "crew": 92.0,
+        "guns": 20.0
+      }
+    },
+    {
+      "id": "eagle",
+      "name": "Eagle",
+      "image": "/reference/ships/ship-images/mEagle.png",
+      "type": "Siege ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1600.0,
+        "armor": 2.2,
+        "speed": 9.4,
+        "maneuverability": 110.0,
+        "cargo": 14000.0,
+        "crew": 84.0,
+        "guns": 20.0
+      }
+    },
+    {
+      "id": "axel-thorsen",
+      "name": "Axel Thorsen",
+      "image": "/reference/ships/ship-images/mAxelThorsen.png",
+      "type": "Fast ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 880.0,
+        "armor": 5.0,
+        "speed": 9.8,
+        "maneuverability": 110.0,
+        "cargo": 7500.0,
+        "crew": 66.0,
+        "guns": 1.0
+      }
+    },
+    {
+      "id": "kwee-song",
+      "name": "Kwee Song",
+      "image": "/reference/ships/ship-images/mKweeSong.png",
+      "type": "Combat ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1360.0,
+        "armor": 4.5,
+        "speed": 7.9,
+        "maneuverability": 105.0,
+        "cargo": 12500.0,
+        "crew": 108.0,
+        "guns": 30.0
+      }
+    },
+    {
+      "id": "southampton",
+      "name": "Southampton",
+      "image": "/reference/ships/ship-images/mSouthampton.png",
+      "type": "Cargo ships",
+      "level": 5,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1760.0,
+        "armor": 3.2,
+        "speed": 9.7,
+        "maneuverability": 88.0,
+        "cargo": 20500.0,
+        "crew": 102.0,
+        "guns": 32.0
+      }
+    },
+    {
+      "id": "red-arrow",
+      "name": "Red Arrow",
+      "image": "/reference/ships/ship-images/mRedArrow.png",
+      "type": "Combat ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1940.0,
+        "armor": 5.5,
+        "speed": 8.6,
+        "maneuverability": 95.0,
+        "cargo": 18000.0,
+        "crew": 140.0,
+        "guns": 36.0
+      }
+    },
+    {
+      "id": "sparrow",
+      "name": "Sparrow",
+      "image": "/reference/ships/ship-images/mSparrow.png",
+      "type": "Siege ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1000.0,
+        "armor": 1.5,
+        "speed": 9.1,
+        "maneuverability": 95.0,
+        "cargo": 10000.0,
+        "crew": 72.0,
+        "guns": 8.0
+      }
+    },
+    {
+      "id": "friedrich-wilhelm",
+      "name": "Friedrich Wilhelm",
+      "image": "/reference/ships/ship-images/mFriedrichWilhelm.png",
+      "type": "Cargo ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2020.0,
+        "armor": 3.5,
+        "speed": 9.4,
+        "maneuverability": 96.0,
+        "cargo": 26000.0,
+        "crew": 120.0,
+        "guns": 50.0
+      }
+    },
+    {
+      "id": "flying-cloud",
+      "name": "Flying Cloud",
+      "image": "/reference/ships/ship-images/mFlyingCloud.png",
+      "type": "Cargo ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 1800.0,
+        "armor": 2.9,
+        "speed": 11.5,
+        "maneuverability": 58.0,
+        "cargo": 30000.0,
+        "crew": 100.0,
+        "guns": 32.0
+      }
+    },
+    {
+      "id": "three-hierarchs",
+      "name": "Three Hierarchs",
+      "image": "/reference/ships/ship-images/mThreeHierarchs.png",
+      "type": "Heavy ships",
+      "level": 4,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2420.0,
+        "armor": 5.6,
+        "speed": 8.4,
+        "maneuverability": 72.0,
+        "cargo": 21000.0,
+        "crew": 152.0,
+        "guns": 54.0
+      }
+    },
+    {
+      "id": "prins-willem",
+      "name": "Prins Willem",
+      "image": "/reference/ships/ship-images/mPrinsWillem.png",
+      "type": "Cargo ships",
+      "level": 3,
+      "upgrades": 7,
+      "sails": 1,
+      "stats": {
+        "durability": 2440.0,
+        "armor": 4.8,
+        "speed": 8.5,
+        "maneuverability": 78.0,
+        "cargo": 45000.0,
+        "crew": 170.0,
+        "guns": 62.0
+      }
+    },
+    {
+      "id": "le-saint-louis",
+      "name": "Le Saint Louis",
+      "image": "/reference/ships/ship-images/mLeSaintLouis.png",
+      "type": "Combat ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2700.0,
+        "armor": 5.6,
+        "speed": 7.9,
+        "maneuverability": 78.0,
+        "cargo": 20000.0,
+        "crew": 170.0,
+        "guns": 64.0
+      }
+    },
+    {
+      "id": "azov",
+      "name": "Azov",
+      "image": "/reference/ships/ship-images/mAzov.png",
+      "type": "Heavy ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3000.0,
+        "armor": 6.7,
+        "speed": 7.7,
+        "maneuverability": 65.0,
+        "cargo": 26000.0,
+        "crew": 174.0,
+        "guns": 84.0
+      }
+    },
+    {
+      "id": "shen",
+      "name": "Shen",
+      "image": "/reference/ships/ship-images/mShen.png",
+      "type": "Siege ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2160.0,
+        "armor": 5.2,
+        "speed": 7.9,
+        "maneuverability": 85.0,
+        "cargo": 19000.0,
+        "crew": 158.0,
+        "guns": 45.0
+      }
+    },
+    {
+      "id": "iberia",
+      "name": "Iberia",
+      "image": "/reference/ships/ship-images/mIberia.png",
+      "type": "Fast ships",
+      "level": 3,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2220.0,
+        "armor": 3.1,
+        "speed": 9.3,
+        "maneuverability": 92.0,
+        "cargo": 16500.0,
+        "crew": 140.0,
+        "guns": 52.0
+      }
+    },
+    {
+      "id": "firestorm",
+      "name": "Firestorm",
+      "image": "/reference/ships/ship-images/mFirestorm.png",
+      "type": "Fast ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2600.0,
+        "armor": 4.2,
+        "speed": 8.7,
+        "maneuverability": 85.0,
+        "cargo": 20000.0,
+        "crew": 170.0,
+        "guns": 69.0
+      }
+    },
+    {
+      "id": "neptuno",
+      "name": "Neptuno",
+      "image": "/reference/ships/ship-images/mNeptuno.png",
+      "type": "Combat ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2900.0,
+        "armor": 5.8,
+        "speed": 8.2,
+        "maneuverability": 80.0,
+        "cargo": 28000.0,
+        "crew": 194.0,
+        "guns": 80.0
+      }
+    },
+    {
+      "id": "vasa",
+      "name": "Vasa",
+      "image": "/reference/ships/ship-images/mVasa.png",
+      "type": "Heavy ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 4040.0,
+        "armor": 7.5,
+        "speed": 6.6,
+        "maneuverability": 64.0,
+        "cargo": 35000.0,
+        "crew": 206.0,
+        "guns": 68.0
+      }
+    },
+    {
+      "id": "st-pavel",
+      "name": "St. Pavel",
+      "image": "/reference/ships/ship-images/mStPavel.png",
+      "type": "Heavy ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3260.0,
+        "armor": 7.3,
+        "speed": 7.3,
+        "maneuverability": 64.0,
+        "cargo": 33500.0,
+        "crew": 190.0,
+        "guns": 90.0
+      }
+    },
+    {
+      "id": "montanes",
+      "name": "Montanes",
+      "image": "/reference/ships/ship-images/mMontanes.png",
+      "type": "Combat ships",
+      "level": 2,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 2940.0,
+        "armor": 7.2,
+        "speed": 7.5,
+        "maneuverability": 71.0,
+        "cargo": 23500.0,
+        "crew": 194.0,
+        "guns": 86.0
+      }
+    },
+    {
+      "id": "santisima-trinidad",
+      "name": "Santisima Trinidad",
+      "image": "/reference/ships/ship-images/mSantisimaTrinidad.png",
+      "type": "Heavy ships",
+      "level": 1,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 4160.0,
+        "armor": 9.0,
+        "speed": 6.4,
+        "maneuverability": 54.0,
+        "cargo": 39500.0,
+        "crew": 212.0,
+        "guns": 130.0
+      }
+    },
+    {
+      "id": "de-zeven-provincien",
+      "name": "De Zeven Provincien",
+      "image": "/reference/ships/ship-images/mDeZevenProvincien.png",
+      "type": "Combat ships",
+      "level": 1,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3320.0,
+        "armor": 8.6,
+        "speed": 7.7,
+        "maneuverability": 75.0,
+        "cargo": 26000.0,
+        "crew": 188.0,
+        "guns": 92.0
+      }
+    },
+    {
+      "id": "sovereign",
+      "name": "Sovereign",
+      "image": "/reference/ships/ship-images/mSovereign.png",
+      "type": "Combat ships",
+      "level": 1,
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": 3600.0,
+        "armor": 7.0,
+        "speed": 7.4,
+        "maneuverability": 70.0,
+        "cargo": 26500.0,
+        "crew": 192.0,
+        "guns": 88.0
+      }
+    },
+    {
+      "id": "tie-long",
+      "name": "Tie Long",
+      "level": 5,
+      "type": "Other ships",
+      "image": "",
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": null,
+        "armor": null,
+        "speed": null,
+        "maneuverability": null,
+        "cargo": null,
+        "crew": null,
+        "guns": 20
+      },
+      "stats_incomplete": true
+    },
+    {
+      "id": "qing-long",
+      "name": "Qing Long",
+      "level": 4,
+      "type": "Other ships",
+      "image": "",
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": null,
+        "armor": null,
+        "speed": null,
+        "maneuverability": null,
+        "cargo": null,
+        "crew": null,
+        "guns": 22
+      },
+      "stats_incomplete": true
+    },
+    {
+      "id": "san-juan-nepomuceno",
+      "name": "San Juan Nepomuceno",
+      "level": 3,
+      "type": "Other ships",
+      "image": "",
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": null,
+        "armor": null,
+        "speed": null,
+        "maneuverability": null,
+        "cargo": null,
+        "crew": null,
+        "guns": 35
+      },
+      "stats_incomplete": true
+    },
+    {
+      "id": "bonhomme-richard",
+      "name": "Bonhomme Richard",
+      "level": 2,
+      "type": "Cargo ships",
+      "image": "",
+      "upgrades": 6,
+      "sails": 1,
+      "stats": {
+        "durability": null,
+        "armor": null,
+        "speed": null,
+        "maneuverability": null,
+        "cargo": null,
+        "crew": null,
+        "guns": 38
+      },
+      "stats_incomplete": true
+    }
+  ],
+  "items": [
+    {
+      "id": "consumable-wooden-patches",
+      "name": "Wooden Patches",
+      "kind": "consumable",
+      "group": "Repair",
+      "description": "Adds 150 points of temporary durability and absorbs damage.",
+      "image": "/build-assets/consumable-wooden-patches.png",
+      "effects": [
+        {
+          "stat": "Temporary durability",
+          "value": 150,
+          "unit": "points",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "cooldown": 120,
+      "duration": 12
+    },
+    {
+      "id": "consumable-iron-patches",
+      "name": "Iron Patches",
+      "kind": "consumable",
+      "group": "Repair",
+      "description": "Adds 250 temporary durability to absorb incoming damage.",
+      "image": "/build-assets/consumable-iron-patches.png",
+      "effects": [
+        {
+          "stat": "Temporary durability",
+          "value": 250,
+          "unit": "points",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 120,
+      "duration": 12,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-bronze-patches",
+      "name": "Bronze Patches",
+      "kind": "consumable",
+      "group": "Repair",
+      "description": "Adds 400 temporary durability to absorb incoming damage.",
+      "image": "/build-assets/consumable-bronze-patches.png",
+      "effects": [
+        {
+          "stat": "Temporary durability",
+          "value": 400,
+          "unit": "points",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "Equipment recording 2026-10-08",
+      "cooldown": 120,
+      "duration": 12,
+      "confidence": "recorded tooltip"
+    },
+    {
+      "id": "consumable-wreckage-patches",
+      "name": "Wreckage Patches",
+      "kind": "consumable",
+      "group": "Repair",
+      "description": "Adds 200 temporary durability for a very short burst of protection.",
+      "image": "/build-assets/consumable-wreckage-patches.png",
+      "effects": [
+        {
+          "stat": "Temporary durability",
+          "value": 200,
+          "unit": "points",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "Equipment recording 2026-10-08",
+      "cooldown": 65,
+      "duration": 1,
+      "confidence": "recorded tooltip"
+    },
+    {
+      "id": "consumable-wooden-repair-kit",
+      "name": "Wooden Repair Kit",
+      "kind": "consumable",
+      "group": "Repair",
+      "description": "Temporary consumable effects are listed below.",
+      "image": "/build-assets/consumable-wooden-repair-kit.png",
+      "effects": [
+        {
+          "stat": "Durability restored",
+          "value": 100,
+          "unit": "points",
+          "condition": "active"
+        },
+        {
+          "stat": "Sails restored",
+          "value": 8,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 120,
+      "duration": 10,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-iron-repair-kit",
+      "name": "Iron Repair Kit",
+      "kind": "consumable",
+      "group": "Repair",
+      "description": "Repairs 150 durability and 12% of sails. The ship takes more damage while repairs are active; press again to interrupt.",
+      "image": "/build-assets/consumable-iron-repair-kit.png",
+      "effects": [
+        {
+          "stat": "Durability restored",
+          "value": 150,
+          "unit": "points",
+          "condition": "active"
+        },
+        {
+          "stat": "Sails restored",
+          "value": 12,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "Equipment recording 2026-10-08",
+      "cooldown": 120,
+      "duration": 10,
+      "confidence": "recorded tooltip"
+    },
+    {
+      "id": "consumable-bronze-repair-kit",
+      "name": "Bronze Repair Kit",
+      "kind": "consumable",
+      "group": "Repair",
+      "description": "Temporary consumable effects are listed below.",
+      "image": "/build-assets/consumable-bronze-repair-kit.png",
+      "effects": [
+        {
+          "stat": "Durability restored",
+          "value": 230,
+          "unit": "points",
+          "condition": "active"
+        },
+        {
+          "stat": "Sails restored",
+          "value": 15,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 120,
+      "duration": 10,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-field-kit",
+      "name": "Field Kit",
+      "kind": "consumable",
+      "group": "Repair",
+      "description": "Full effect details have not been verified.",
+      "image": "/build-assets/consumable-field-kit.png",
+      "effects": [],
+      "verified": false,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "consumable-small-additional-sails",
+      "name": "Small Additional Sails",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Temporary consumable effects are listed below.",
+      "image": "/build-assets/consumable-small-additional-sails.png",
+      "effects": [
+        {
+          "stat": "Speed",
+          "value": 1,
+          "unit": "knots",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 60,
+      "duration": 30,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-large-additional-sails",
+      "name": "Large Additional Sails",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Temporary consumable effects are listed below.",
+      "image": "/build-assets/consumable-large-additional-sails.png",
+      "effects": [
+        {
+          "stat": "Speed",
+          "value": 1.5,
+          "unit": "knots",
+          "condition": "active"
+        },
+        {
+          "stat": "Incoming sail damage",
+          "value": 100,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 60,
+      "duration": 30,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-small-plates",
+      "name": "Small Plates",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Temporary consumable effects are listed below.",
+      "image": "/build-assets/consumable-small-plates.png",
+      "effects": [
+        {
+          "stat": "Defense",
+          "value": 2.5,
+          "unit": "points",
+          "condition": "active"
+        },
+        {
+          "stat": "Maneuverability",
+          "value": -6,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 40,
+      "duration": 30,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-large-plates",
+      "name": "Large Plates",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Temporary consumable effects are listed below.",
+      "image": "/build-assets/consumable-large-plates.png",
+      "effects": [
+        {
+          "stat": "Defense",
+          "value": 4,
+          "unit": "points",
+          "condition": "active"
+        },
+        {
+          "stat": "Maneuverability",
+          "value": -10,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 50,
+      "duration": 30,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-smoke-bomb",
+      "name": "Smoke Bomb",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Temporary consumable effects are listed below.",
+      "image": "/build-assets/consumable-smoke-bomb.png",
+      "effects": [
+        {
+          "stat": "Incoming damage",
+          "value": -15,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 25,
+      "duration": 45,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-smoke-screen",
+      "name": "Smoke Screen",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Reduces all damage by 25%, including damage to sails and crew. Disperses quickly.",
+      "image": "/build-assets/consumable-smoke-screen.png",
+      "effects": [
+        {
+          "stat": "Incoming damage",
+          "value": -25,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "cooldown": 60,
+      "duration": 25
+    },
+    {
+      "id": "consumable-bribery",
+      "name": "Bribery",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Nearby NPC ships join your squadron temporarily.",
+      "image": "/build-assets/consumable-bribery.png",
+      "effects": [],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "duration": 240,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-black-double-powder",
+      "name": "Black Double Powder",
+      "kind": "consumable",
+      "group": "General",
+      "description": "+2.5 ammo penetration and +15% mortar damage. Reloading takes 9% longer. Press again to interrupt.",
+      "image": "/build-assets/consumable-black-double-powder.png",
+      "effects": [
+        {
+          "stat": "Ammo penetration",
+          "value": 2.5,
+          "unit": "points",
+          "condition": "active"
+        },
+        {
+          "stat": "Mortar damage",
+          "value": 15,
+          "unit": "%",
+          "condition": "active"
+        },
+        {
+          "stat": "Reload time",
+          "value": 9,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "cooldown": 30,
+      "duration": 50
+    },
+    {
+      "id": "consumable-red-double-powder",
+      "name": "Red Double Powder",
+      "kind": "consumable",
+      "group": "General",
+      "description": "+25% gun and mortar damage against structures; +30% swivel gun reload speed. Press again to interrupt.",
+      "image": "/build-assets/consumable-red-double-powder.png",
+      "effects": [
+        {
+          "stat": "Gun and mortar damage",
+          "value": 25,
+          "unit": "%",
+          "condition": "active against structures"
+        },
+        {
+          "stat": "Swivel reload speed",
+          "value": 30,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "cooldown": 30,
+      "duration": 50
+    },
+    {
+      "id": "consumable-white-double-powder",
+      "name": "White Double Powder",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Temporary consumable effects are listed below.",
+      "image": "/build-assets/consumable-white-double-powder.png",
+      "effects": [
+        {
+          "stat": "Gun and mortar range",
+          "value": 10,
+          "unit": "points",
+          "condition": "active"
+        },
+        {
+          "stat": "Accuracy",
+          "value": 20,
+          "unit": "%",
+          "condition": "active"
+        },
+        {
+          "stat": "Speed",
+          "value": -1,
+          "unit": "knots",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 30,
+      "duration": 50,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-rum-ration",
+      "name": "Rum Ration",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Crew load guns 20% faster but work slower with sails. Ship speed decreases by 8%.",
+      "image": "/build-assets/consumable-rum-ration.png",
+      "effects": [
+        {
+          "stat": "Gun reload speed",
+          "value": 20,
+          "unit": "%",
+          "condition": "active"
+        },
+        {
+          "stat": "Speed",
+          "value": -8,
+          "unit": "%",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "cooldown": 80,
+      "duration": 60
+    },
+    {
+      "id": "consumable-filling-ration",
+      "name": "Filling Ration",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Improves crew handling, item reloads, repairs and recovery at sea. Press again to interrupt.",
+      "image": "/build-assets/consumable-filling-ration.png",
+      "effects": [
+        {
+          "stat": "Maneuverability",
+          "value": 5,
+          "unit": "%",
+          "condition": "active"
+        },
+        {
+          "stat": "Other item reload speed",
+          "value": 30,
+          "unit": "%",
+          "condition": "active"
+        },
+        {
+          "stat": "Sail handling speed",
+          "value": 10,
+          "unit": "%",
+          "condition": "active"
+        },
+        {
+          "stat": "Ammunition swap speed",
+          "value": 30,
+          "unit": "%",
+          "condition": "active"
+        },
+        {
+          "stat": "Repair speed at sea",
+          "value": 30,
+          "unit": "%",
+          "condition": "active"
+        },
+        {
+          "stat": "Item retrieval at sea",
+          "value": 50,
+          "unit": "%",
+          "condition": "active"
+        },
+        {
+          "stat": "Rowing speed",
+          "value": 1.6,
+          "unit": "knots",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "Equipment recording 2026-10-08",
+      "cooldown": 60,
+      "duration": 120,
+      "confidence": "recorded tooltip"
+    },
+    {
+      "id": "consumable-phosphorus",
+      "name": "Phosphorus",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Slows targets; reduces firing angle. Cannot cancel. Incompatible with gunpowder.",
+      "image": "/build-assets/consumable-phosphorus.png",
+      "effects": [
+        {
+          "stat": "Penetration",
+          "value": 2,
+          "unit": "points",
+          "condition": "active"
+        }
+      ],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 30,
+      "duration": 60,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-poseidon-s-hook",
+      "name": "Poseidon's Hook",
+      "kind": "consumable",
+      "group": "General",
+      "description": "Doubles weapon drops from sunken NPC ships.",
+      "image": "/build-assets/consumable-poseidon-s-hook.png",
+      "effects": [],
+      "verified": true,
+      "source": "https://wosbguide.com/consumables",
+      "cooldown": 180,
+      "duration": 90,
+      "confidence": "community reference"
+    },
+    {
+      "id": "consumable-blue-signal-flare",
+      "name": "Blue Signal Flare",
+      "kind": "consumable",
+      "group": "Group",
+      "description": "Full effect details have not been verified.",
+      "image": "/build-assets/consumable-blue-signal-flare.png",
+      "effects": [],
+      "verified": false,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "consumable-red-signal-flare",
+      "name": "Red Signal Flare",
+      "kind": "consumable",
+      "group": "Group",
+      "description": "Full effect details have not been verified.",
+      "image": "/build-assets/consumable-red-signal-flare.png",
+      "effects": [],
+      "verified": false,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "sails-cheap-sails",
+      "name": "Cheap Sails",
+      "kind": "sails",
+      "group": "Sails",
+      "description": "Cruise maximum speed +2. ",
+      "image": "/build-assets/sails-cheap-sails.png",
+      "effects": [
+        {
+          "stat": "Cruise maximum speed",
+          "value": 2,
+          "unit": "points",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "sails-stitched-sails",
+      "name": "Stitched Sails",
+      "kind": "sails",
+      "group": "Sails",
+      "description": "Cruise maximum speed +2.4. ",
+      "image": "/build-assets/sails-stitched-sails.png",
+      "effects": [
+        {
+          "stat": "Cruise maximum speed",
+          "value": 2.4,
+          "unit": "points",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "sails-ultra-light-sails",
+      "name": "Ultra-light Sails",
+      "kind": "sails",
+      "group": "Sails",
+      "description": "Cruise maximum speed +2.4. Cruise maneuverability +15%; speed penalty when turning at cruise speed -30%.",
+      "image": "/build-assets/sails-ultra-light-sails.png",
+      "effects": [
+        {
+          "stat": "Cruise maximum speed",
+          "value": 2.4,
+          "unit": "points",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "sails-storm-sails",
+      "name": "Storm Sails",
+      "kind": "sails",
+      "group": "Sails",
+      "description": "Cruise maximum speed +2.7. Cruising speed bonus from strong wind +2.5.",
+      "image": "/build-assets/sails-storm-sails.png",
+      "effects": [
+        {
+          "stat": "Cruise maximum speed",
+          "value": 2.7,
+          "unit": "points",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "sails-elite-sails",
+      "name": "Elite Sails",
+      "kind": "sails",
+      "group": "Sails",
+      "description": "Cruise maximum speed +2.8. ",
+      "image": "/build-assets/sails-elite-sails.png",
+      "effects": [
+        {
+          "stat": "Cruise maximum speed",
+          "value": 2.8,
+          "unit": "points",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "sails-tacking-sails",
+      "name": "Tacking Sails",
+      "kind": "sails",
+      "group": "Sails",
+      "description": "Cruise maximum speed +2.8. Additional turning effects need verification.",
+      "image": "/build-assets/sails-tacking-sails.png",
+      "effects": [
+        {
+          "stat": "Cruise maximum speed",
+          "value": 2.8,
+          "unit": "points",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "sails-reefed-sails",
+      "name": "Reefed Sails",
+      "kind": "sails",
+      "group": "Sails",
+      "description": "Cruise maximum speed +2.9. Additional load and strong-wind effects need verification.",
+      "image": "/build-assets/sails-reefed-sails.png",
+      "effects": [
+        {
+          "stat": "Cruise maximum speed",
+          "value": 2.9,
+          "unit": "points",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "sails-tarpaulin-sails",
+      "name": "Tarpaulin Sails",
+      "kind": "sails",
+      "group": "Sails",
+      "description": "Cruise maximum speed +3. Maneuverability -2.",
+      "image": "/build-assets/sails-tarpaulin-sails.png",
+      "effects": [
+        {
+          "stat": "Cruise maximum speed",
+          "value": 3,
+          "unit": "points",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "sails-raiding-sails",
+      "name": "Raiding Sails",
+      "kind": "sails",
+      "group": "Sails",
+      "description": "Cruise maximum speed +4.1. Cruise maneuverability -20%; cruising speed gain -20%.",
+      "image": "/build-assets/sails-raiding-sails.png",
+      "effects": [
+        {
+          "stat": "Cruise maximum speed",
+          "value": 4.1,
+          "unit": "points",
+          "condition": "passive"
+        },
+        {
+          "stat": "Cruise maneuverability",
+          "value": -20,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Cruising speed gain",
+          "value": -20,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "cost": {
+        "Sailcloth": 121,
+        "Voodoo Skull": 8,
+        "Gold": 2932
+      }
+    },
+    {
+      "id": "upgrade-lightweight-construction",
+      "name": "Lightweight Construction",
+      "kind": "upgrade",
+      "group": "Mortar",
+      "description": "Mortar reload speed +40%; hold +25%; mortar damage -25%.",
+      "image": "/build-assets/upgrade-lightweight-construction.png",
+      "effects": [
+        {
+          "stat": "Mortar reload speed",
+          "value": 40,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Hold",
+          "value": 25,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Mortar damage",
+          "value": -25,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "upgrade-swivel-mortars",
+      "name": "Swivel Mortars",
+      "kind": "upgrade",
+      "group": "Mortar",
+      "description": "Mortar damage +12%; mortar turn 25 degrees each direction (50 total); mortar aiming speed -25%.",
+      "image": "/build-assets/upgrade-swivel-mortars.png",
+      "effects": [
+        {
+          "stat": "Mortar damage",
+          "value": 12,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Mortar angle",
+          "value": 50,
+          "unit": "degrees",
+          "condition": "passive"
+        },
+        {
+          "stat": "Mortar aiming speed",
+          "value": -25,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "cost": {
+        "Plate": 10,
+        "Rum": 425,
+        "Gold": 2199
+      },
+      "wear": {
+        "amount": 330,
+        "unit": "Mortar volleys"
+      }
+    },
+    {
+      "id": "upgrade-long-range-mortars",
+      "name": "Long-Range Mortars",
+      "kind": "upgrade",
+      "group": "Mortar",
+      "description": "Range +10; maneuverability -8%.",
+      "image": "/build-assets/upgrade-long-range-mortars.png",
+      "effects": [
+        {
+          "stat": "Mortar range",
+          "value": 10,
+          "unit": "points",
+          "condition": "passive"
+        },
+        {
+          "stat": "Maneuverability",
+          "value": -8,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "upgrade-reinforced-centre-line",
+      "name": "Reinforced centre-line",
+      "kind": "upgrade",
+      "group": "Mortar",
+      "description": "Mortar aiming speed +40%; dead-zone reduction +30%.",
+      "image": "/build-assets/upgrade-reinforced-centre-line.png",
+      "effects": [
+        {
+          "stat": "Mortar aiming speed",
+          "value": 40,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Dead-zone reduction",
+          "value": 30,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "upgrade-maneuverable-helm",
+      "name": "Maneuverable Helm",
+      "kind": "upgrade",
+      "group": "Speed",
+      "description": "Maneuverability +8%. Turning speed-penalty modifier is obscured.",
+      "image": "/build-assets/upgrade-maneuverable-helm.png",
+      "effects": [
+        {
+          "stat": "Maneuverability",
+          "value": 8,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "upgrade-reinforced-masts",
+      "name": "Reinforced Masts",
+      "kind": "upgrade",
+      "group": "Speed",
+      "description": "Speed +0.4 knots; additional sail effectiveness +0.8.",
+      "image": "/build-assets/upgrade-reinforced-masts.png",
+      "effects": [
+        {
+          "stat": "Speed",
+          "value": 0.4,
+          "unit": "knots",
+          "condition": "passive"
+        },
+        {
+          "stat": "Additional sail effectiveness",
+          "value": 0.8,
+          "unit": "points",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "upgrade-lightweight-hull",
+      "name": "Lightweight Hull",
+      "kind": "upgrade",
+      "group": "Speed",
+      "description": "Maneuverability +5%; speed +4%; armor -15%.",
+      "image": "/build-assets/upgrade-lightweight-hull.png",
+      "effects": [
+        {
+          "stat": "Maneuverability",
+          "value": 5,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Speed",
+          "value": 4,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Armor",
+          "value": -15,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "upgrade-small-hooks",
+      "name": "Small Hooks",
+      "kind": "upgrade",
+      "group": "Expeditionary",
+      "description": "Item collection speed +250%; fishing speed +30%; boarding range +15%.",
+      "image": "/build-assets/upgrade-small-hooks.png",
+      "effects": [
+        {
+          "stat": "Item collection speed",
+          "value": 250,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Fishing speed",
+          "value": 30,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Boarding range",
+          "value": 15,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "upgrade-sturdy-frames",
+      "name": "Sturdy Frames",
+      "kind": "upgrade",
+      "group": "Expeditionary",
+      "description": "Durability +10%; hold +12%; speed change -15%.",
+      "image": "/build-assets/upgrade-sturdy-frames.png",
+      "effects": [
+        {
+          "stat": "Durability",
+          "value": 10,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Hold",
+          "value": 12,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Speed change",
+          "value": -15,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "lantern-blue-lantern",
+      "name": "Blue Lantern",
+      "kind": "lantern",
+      "group": "Lanterns",
+      "description": "Speed +6%.",
+      "image": "/build-assets/lantern-blue-lantern.png",
+      "effects": [
+        {
+          "stat": "Speed",
+          "value": 6,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "name_verified": false
+    },
+    {
+      "id": "lantern-bright-lantern",
+      "name": "Bright Lantern",
+      "kind": "lantern",
+      "group": "Lanterns",
+      "description": "Hold +12%.",
+      "image": "/build-assets/lantern-bright-lantern.png",
+      "effects": [
+        {
+          "stat": "Hold",
+          "value": 12,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "name_verified": true
+    },
+    {
+      "id": "lantern-red-lantern",
+      "name": "Red Lantern",
+      "kind": "lantern",
+      "group": "Lanterns",
+      "description": "Maneuverability +5%; damage +5%; experience/loot +7%.",
+      "image": "/build-assets/lantern-red-lantern.png",
+      "effects": [
+        {
+          "stat": "Maneuverability",
+          "value": 5,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Damage",
+          "value": 5,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Experience/loot",
+          "value": 7,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "name_verified": true
+    },
+    {
+      "id": "lantern-yellow-lantern",
+      "name": "Yellow Lantern",
+      "kind": "lantern",
+      "group": "Lanterns",
+      "description": "Damage +7%.",
+      "image": "/build-assets/lantern-yellow-lantern.png",
+      "effects": [
+        {
+          "stat": "Damage",
+          "value": 7,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "name_verified": true
+    },
+    {
+      "id": "lantern-white-lantern",
+      "name": "White Lantern",
+      "kind": "lantern",
+      "group": "Lanterns",
+      "description": "Experience/loot +10%.",
+      "image": "/build-assets/lantern-white-lantern.png",
+      "effects": [
+        {
+          "stat": "Experience/loot",
+          "value": 10,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "name_verified": true
+    },
+    {
+      "id": "lantern-green-lantern",
+      "name": "Green Lantern",
+      "kind": "lantern",
+      "group": "Lanterns",
+      "description": "Durability +7%.",
+      "image": "/build-assets/lantern-green-lantern.png",
+      "effects": [
+        {
+          "stat": "Durability",
+          "value": 7,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "name_verified": true
+    },
+    {
+      "id": "lantern-lilac-lantern",
+      "name": "Lilac Lantern",
+      "kind": "lantern",
+      "group": "Lanterns",
+      "description": "Maneuverability +7%.",
+      "image": "/build-assets/lantern-lilac-lantern.png",
+      "effects": [
+        {
+          "stat": "Maneuverability",
+          "value": 7,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "name_verified": true
+    },
+    {
+      "id": "lantern-golden-lantern",
+      "name": "Golden Lantern",
+      "kind": "lantern",
+      "group": "Lanterns",
+      "description": "Speed, armor and damage +5%.",
+      "image": "/build-assets/lantern-golden-lantern.png",
+      "effects": [
+        {
+          "stat": "Speed",
+          "value": 5,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Armor",
+          "value": 5,
+          "unit": "%",
+          "condition": "passive"
+        },
+        {
+          "stat": "Damage",
+          "value": 5,
+          "unit": "%",
+          "condition": "passive"
+        }
+      ],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "name_verified": true
+    },
+    {
+      "id": "specialist-midshipman",
+      "name": "Midshipman",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "During boarding, Musketeers start defending.",
+      "image": "/build-assets/specialist-midshipman.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-watchman",
+      "name": "Watchman",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Fire extinguishing speed +40%.",
+      "image": "/build-assets/specialist-watchman.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-junior-provost",
+      "name": "Junior provost",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Large fire damage -50%.",
+      "image": "/build-assets/specialist-junior-provost.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-provost",
+      "name": "Provost",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Microfire extinguishing speed +25%.",
+      "image": "/build-assets/specialist-provost.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-surgeon",
+      "name": "Surgeon",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Half the crew wounded by cannonfire is healed during repairs.",
+      "image": "/build-assets/specialist-surgeon.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-sub-lieutenant",
+      "name": "Sub-lieutenant",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Bonus for each sailor: items reload +0.1%.",
+      "image": "/build-assets/specialist-sub-lieutenant.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-naval-cadet",
+      "name": "Naval Cadet",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Grapeshot damage against NPCs +33%.",
+      "image": "/build-assets/specialist-naval-cadet.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-commodore",
+      "name": "Commodore",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Weapon aiming speed +20%. Military and Pirates conflict and work less effectively.",
+      "image": "/build-assets/specialist-commodore.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Military"
+    },
+    {
+      "id": "specialist-commander",
+      "name": "Commander",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Bonus for each sailor: ammo type switch speed +0.2%.",
+      "image": "/build-assets/specialist-commander.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-gunner",
+      "name": "Gunner",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Reload speed +4%.",
+      "image": "/build-assets/specialist-gunner.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-armorer",
+      "name": "Armorer",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Next reload after a single cannon shot is faster by 20%.",
+      "image": "/build-assets/specialist-armorer.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-master-gunner",
+      "name": "Master Gunner",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Conditional bonus when durability is below 50%; full effect needs verification.",
+      "image": "/build-assets/specialist-master-gunner.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-artillerist",
+      "name": "Artillerist",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Mortar aiming speed +25%.",
+      "image": "/build-assets/specialist-artillerist.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-bombardier",
+      "name": "Bombardier",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Mortar reload speed +10% if cannons are loaded.",
+      "image": "/build-assets/specialist-bombardier.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-pilot",
+      "name": "Pilot",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Speed penalty when turning at cruise speed -25%.",
+      "image": "/build-assets/specialist-pilot.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-first-mate",
+      "name": "First Mate",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Bonus for each sailor: speed change +0.2%.",
+      "image": "/build-assets/specialist-first-mate.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-sail-handler",
+      "name": "Sail Handler",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Speed +4%.",
+      "image": "/build-assets/specialist-sail-handler.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-helmsman",
+      "name": "Helmsman",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Maneuverability in place and on first speed +4.",
+      "image": "/build-assets/specialist-helmsman.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-purser",
+      "name": "Purser",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Lower speed penalty when overloaded +30%.",
+      "image": "/build-assets/specialist-purser.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-butcher",
+      "name": "Butcher",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Animal slaughter for food is available.",
+      "image": "/build-assets/specialist-butcher.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-cook",
+      "name": "Cook",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Food nutrition +33%.",
+      "image": "/build-assets/specialist-cook.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-clerk",
+      "name": "Clerk",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Decreases the chance of weapons blowing up +40%.",
+      "image": "/build-assets/specialist-clerk.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-fisherman",
+      "name": "Fisherman",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "For each boarder: whale hunting and fishing catch +0.5%.",
+      "image": "/build-assets/specialist-fisherman.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-boatman",
+      "name": "Boatman",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "For each sailor: fishing speed +1%.",
+      "image": "/build-assets/specialist-boatman.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-corsair",
+      "name": "Corsair",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "All experience +6%.",
+      "image": "/build-assets/specialist-corsair.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-scribe",
+      "name": "Scribe",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Experience into ship branches and upgrades +20%.",
+      "image": "/build-assets/specialist-scribe.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-mastman",
+      "name": "Mastman",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Visibility range +10%.",
+      "image": "/build-assets/specialist-mastman.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-navigator",
+      "name": "Navigator",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Item visibility distance on the minimap +40%.",
+      "image": "/build-assets/specialist-navigator.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-quartermaster",
+      "name": "Quartermaster",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "One random target is selected at the start of boarding.",
+      "image": "/build-assets/specialist-quartermaster.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-harpooner",
+      "name": "Harpooner",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Boarding hook reload speed +60%.",
+      "image": "/build-assets/specialist-harpooner.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-skipper",
+      "name": "Skipper",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Cargo captured from boarding scales with boarders; full magnitude needs verification.",
+      "image": "/build-assets/specialist-skipper.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-swimmer",
+      "name": "Swimmer",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Item pickup range +40%.",
+      "image": "/build-assets/specialist-swimmer.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-daredevil",
+      "name": "Daredevil",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Crew will not die during raids.",
+      "image": "/build-assets/specialist-daredevil.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-doctor",
+      "name": "Doctor",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Boarding company survivability during shelling +40%.",
+      "image": "/build-assets/specialist-doctor.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-senior-doctor",
+      "name": "Senior doctor",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Crew healing after boarding +20%.",
+      "image": "/build-assets/specialist-senior-doctor.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "specialist-recruiter",
+      "name": "Recruiter",
+      "kind": "specialist",
+      "group": "Specialists",
+      "description": "Crew limit above threshold when picking up at sea and boarding +10.",
+      "image": "/build-assets/specialist-recruiter.png",
+      "effects": [],
+      "verified": true,
+      "source": "Provided equipment demo",
+      "faction": "Unverified"
+    },
+    {
+      "id": "crew-sailor",
+      "name": "Sailor",
+      "kind": "crew",
+      "group": "Crew",
+      "description": "Full effect details have not been verified.",
+      "image": "/build-assets/crew-sailor.png",
+      "effects": [],
+      "verified": false,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "crew-musketeer",
+      "name": "Musketeer",
+      "kind": "crew",
+      "group": "Crew",
+      "description": "Full effect details have not been verified.",
+      "image": "/build-assets/crew-musketeer.png",
+      "effects": [],
+      "verified": false,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "crew-soldier",
+      "name": "Soldier",
+      "kind": "crew",
+      "group": "Crew",
+      "description": "Full effect details have not been verified.",
+      "image": "/build-assets/crew-soldier.png",
+      "effects": [],
+      "verified": false,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "crew-mercenary",
+      "name": "Mercenary",
+      "kind": "crew",
+      "group": "Crew",
+      "description": "Full effect details have not been verified.",
+      "image": "/build-assets/crew-mercenary.png",
+      "effects": [],
+      "verified": false,
+      "source": "Provided equipment demo"
+    },
+    {
+      "id": "weapon-6-pdr-rusty-cannon",
+      "name": "6-pdr Rusty Cannon",
+      "kind": "weapon",
+      "group": "Cannon",
+      "description": "Cannon. Light weapon; fits ship ranks 7\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-6-pdr-rusty-cannon.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Gold": 50
+      },
+      "caliber": "Light",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-8-pdr-cannon",
+      "name": "8-pdr Cannon",
+      "kind": "weapon",
+      "group": "Cannon",
+      "description": "Light cannons are versatile: they reload quickly, have medium range and decent penetration.",
+      "image": "/build-assets/weapon-8-pdr-cannon.png",
+      "effects": [],
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "cost": {
+        "Iron": 160,
+        "Rum": 40
+      },
+      "caliber": "Light",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "combat": [
+        {
+          "label": "Penetration",
+          "value": 14,
+          "unit": ""
+        },
+        {
+          "label": "Loading",
+          "value": 9,
+          "unit": "sec"
+        },
+        {
+          "label": "Range",
+          "value": 130,
+          "unit": ""
+        },
+        {
+          "label": "Maximum angle",
+          "value": 31,
+          "unit": "degrees"
+        },
+        {
+          "label": "Accuracy spread",
+          "value": 9.5,
+          "unit": ""
+        }
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-16-pdr-cannon",
+      "name": "16-pdr Cannon",
+      "kind": "weapon",
+      "group": "Cannon",
+      "description": "Cannon. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-16-pdr-cannon.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Gold": 200
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-18-pdr-cannon",
+      "name": "18-pdr Cannon",
+      "kind": "weapon",
+      "group": "Cannon",
+      "description": "Cannon. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-18-pdr-cannon.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 303,
+        "Rum": 50,
+        "Copper": 23
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-20-pdr-admiral",
+      "name": "20-pdr Admiral",
+      "kind": "weapon",
+      "group": "Cannon",
+      "description": "Cannon. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-20-pdr-admiral.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 40
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-36-pdr-inrog",
+      "name": "36-pdr Inrog",
+      "kind": "weapon",
+      "group": "Cannon",
+      "description": "Cannon. Heavy weapon; fits ship ranks 2\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-36-pdr-inrog.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 100
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-32-pdr-cannon",
+      "name": "32-pdr Cannon",
+      "kind": "weapon",
+      "group": "Cannon",
+      "description": "Cannon. Heavy weapon; fits ship ranks 2\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-32-pdr-cannon.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 593,
+        "Volcanic Ore": 36,
+        "Battle Mark": 4,
+        "Bronze": 6
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-6-pdr-culverin",
+      "name": "6-pdr Culverin",
+      "kind": "weapon",
+      "group": "Long Cannon",
+      "description": "Long Cannon. Light weapon; fits ship ranks 7\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-6-pdr-culverin.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Gold": 150
+      },
+      "caliber": "Light",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-8-pdr-culverin",
+      "name": "8-pdr Culverin",
+      "kind": "weapon",
+      "group": "Long Cannon",
+      "description": "Long Cannon. Light weapon; fits ship ranks 7\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-8-pdr-culverin.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 240,
+        "Rum": 60
+      },
+      "caliber": "Light",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-16-pdr-culverin",
+      "name": "16-pdr Culverin",
+      "kind": "weapon",
+      "group": "Long Cannon",
+      "description": "Long Cannon. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-16-pdr-culverin.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Gold": 300
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-18-pdr-long-cannon",
+      "name": "18-pdr Long Cannon",
+      "kind": "weapon",
+      "group": "Long Cannon",
+      "description": "Long Cannon. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-18-pdr-long-cannon.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 450,
+        "Rum": 75,
+        "Copper": 35
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-22-pdr-scorcher",
+      "name": "22-pdr Scorcher",
+      "kind": "weapon",
+      "group": "Long Cannon",
+      "description": "Long Cannon. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-22-pdr-scorcher.png",
+      "effects": [],
+      "verified": true,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 60
+      },
+      "stats": {
+        "penetration": 19,
+        "loading": 26,
+        "range": 148,
+        "max_angle": 9,
+        "accuracy_spread": 9.5
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-32-pdr-long-cannon",
+      "name": "32-pdr Long Cannon",
+      "kind": "weapon",
+      "group": "Long Cannon",
+      "description": "Long Cannon. Heavy weapon; fits ship ranks 2\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-32-pdr-long-cannon.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 593,
+        "Volcanic Ore": 36,
+        "Battle Mark": 4,
+        "Bronze": 6
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-38-pdr-jericho",
+      "name": "38-pdr Jericho",
+      "kind": "weapon",
+      "group": "Long Cannon",
+      "description": "Long Cannon. Heavy weapon; fits ship ranks 2\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-38-pdr-jericho.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 150
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-12-pdr-carronade",
+      "name": "12-pdr Carronade",
+      "kind": "weapon",
+      "group": "Carronade",
+      "description": "Carronade. Light weapon; fits ship ranks 7\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-12-pdr-carronade.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Gold": 200
+      },
+      "caliber": "Light",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-16-pdr-carronade",
+      "name": "16-pdr Carronade",
+      "kind": "weapon",
+      "group": "Carronade",
+      "description": "Carronade. Light weapon; fits ship ranks 7\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-16-pdr-carronade.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 320,
+        "Rum": 80
+      },
+      "caliber": "Light",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-24-pdr-carronade",
+      "name": "24-pdr Carronade",
+      "kind": "weapon",
+      "group": "Carronade",
+      "description": "Carronade. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-24-pdr-carronade.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Gold": 400
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-28-pdr-carronade",
+      "name": "28-pdr Carronade",
+      "kind": "weapon",
+      "group": "Carronade",
+      "description": "Carronade. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-28-pdr-carronade.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 607,
+        "Rum": 100,
+        "Copper": 46
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-32-pdr-stormbringer",
+      "name": "32-pdr Stormbringer",
+      "kind": "weapon",
+      "group": "Carronade",
+      "description": "Carronade. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-32-pdr-stormbringer.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 80
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-42-pdr-carronade",
+      "name": "42-pdr Carronade",
+      "kind": "weapon",
+      "group": "Carronade",
+      "description": "Carronade. Heavy weapon; fits ship ranks 2\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-42-pdr-carronade.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 617,
+        "Volcanic Ore": 48,
+        "Battle Mark": 6,
+        "Bronze": 9
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-48-pdr-colossus",
+      "name": "48-pdr Colossus",
+      "kind": "weapon",
+      "group": "Carronade",
+      "description": "Carronade. Heavy weapon; fits ship ranks 2\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-48-pdr-colossus.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 200
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-basilisk",
+      "name": "Basilisk",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombard. Light weapon; fits ship ranks 7\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-basilisk.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 45
+      },
+      "caliber": "Light",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-poseidon",
+      "name": "Poseidon",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombard. Light weapon; fits ship ranks 7\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-poseidon.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 55
+      },
+      "caliber": "Light",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-twin-6-pdr",
+      "name": "Twin 6-pdr",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombard. Light weapon; fits ship ranks 7\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-twin-6-pdr.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 480,
+        "Rum": 120
+      },
+      "caliber": "Light",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-zeus",
+      "name": "Zeus",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombard. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-zeus.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 120
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-onager",
+      "name": "Onager",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombards are heavy artillery with long reload times but devastating damage output. Only for the bow or stern.",
+      "image": "/build-assets/weapon-onager.png",
+      "effects": [],
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "cost": {
+        "Pirate Token": 150
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "combat": [
+        {
+          "label": "Penetration",
+          "value": 28,
+          "unit": ""
+        },
+        {
+          "label": "Loading",
+          "value": 20.5,
+          "unit": "sec"
+        },
+        {
+          "label": "Range",
+          "value": 85,
+          "unit": ""
+        },
+        {
+          "label": "Maximum angle",
+          "value": 25,
+          "unit": "degrees"
+        },
+        {
+          "label": "Accuracy spread",
+          "value": 13.5,
+          "unit": ""
+        }
+      ],
+      "mount_sides": [
+        "bow",
+        "stern"
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-twin-14-pdr",
+      "name": "Twin 14-pdr",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombard. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-twin-14-pdr.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 900,
+        "Rum": 150,
+        "Copper": 70
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-triple-10-pdr",
+      "name": "Triple 10-pdr",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombard. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-triple-10-pdr.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 1131,
+        "Rum": 187,
+        "Copper": 87
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-gilgamesh",
+      "name": "Gilgamesh",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombards are heavy artillery with long reload times but devastating damage output. Only for the bow or stern.",
+      "image": "/build-assets/weapon-gilgamesh.png",
+      "effects": [],
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "cost": {
+        "Pirate Token": 300
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "combat": [
+        {
+          "label": "Penetration",
+          "value": 22,
+          "unit": ""
+        },
+        {
+          "label": "Loading",
+          "value": 25,
+          "unit": "sec"
+        },
+        {
+          "label": "Range",
+          "value": 160,
+          "unit": ""
+        },
+        {
+          "label": "Maximum angle",
+          "value": 16,
+          "unit": "degrees"
+        },
+        {
+          "label": "Accuracy spread",
+          "value": 6,
+          "unit": ""
+        }
+      ],
+      "mount_sides": [
+        "bow",
+        "stern"
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-triple-16-pdr",
+      "name": "Triple 16-pdr",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombard. Heavy weapon; fits ship ranks 2\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-triple-16-pdr.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 1157,
+        "Volcanic Ore": 90,
+        "Battle Mark": 11,
+        "Bronze": 17
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-twin-20-pdr",
+      "name": "Twin 20-pdr",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombard. Heavy weapon; fits ship ranks 2\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-twin-20-pdr.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 990,
+        "Volcanic Ore": 72,
+        "Battle Mark": 9,
+        "Bronze": 13
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-mjolnir",
+      "name": "Mjolnir",
+      "kind": "weapon",
+      "group": "Bombard",
+      "description": "Bombard. Heavy weapon; fits ship ranks 2\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-mjolnir.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 380
+      },
+      "caliber": "Heavy",
+      "ship_ranks": [
+        1,
+        2
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-alchemical-fire",
+      "name": "Alchemical Fire",
+      "kind": "weapon",
+      "group": "Special",
+      "description": "Special. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-alchemical-fire.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 7503,
+        "Rum": 1250,
+        "Copper": 583
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-imperial-bombard",
+      "name": "Imperial Bombard",
+      "kind": "weapon",
+      "group": "Special",
+      "description": "Special. Medium weapon; fits ship ranks 4\u20131, subject to side restrictions.",
+      "image": "/build-assets/weapon-imperial-bombard.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 6007,
+        "Rum": 1000,
+        "Copper": 466
+      },
+      "caliber": "Medium",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-6-inch-mortar",
+      "name": "6-inch Mortar",
+      "kind": "weapon",
+      "group": "Mortar",
+      "description": "Mortar. Requires a ship with a permitted mortar position.",
+      "image": "/build-assets/weapon-6-inch-mortar.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 1000,
+        "Rum": 250
+      },
+      "caliber": "Mortar",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-7-inch-mortar",
+      "name": "7-inch Mortar",
+      "kind": "weapon",
+      "group": "Mortar",
+      "description": "Mortar. Requires a ship with a permitted mortar position.",
+      "image": "/build-assets/weapon-7-inch-mortar.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 2500,
+        "Rum": 625
+      },
+      "caliber": "Mortar",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-8-inch-mortar",
+      "name": "8-inch Mortar",
+      "kind": "weapon",
+      "group": "Mortar",
+      "description": "Mortar. Requires a ship with a permitted mortar position.",
+      "image": "/build-assets/weapon-8-inch-mortar.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 4220,
+        "Rum": 703,
+        "Copper": 328
+      },
+      "caliber": "Mortar",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-9-inch-mortar",
+      "name": "9-inch Mortar",
+      "kind": "weapon",
+      "group": "Mortar",
+      "description": "Mortar. Requires a ship with a permitted mortar position.",
+      "image": "/build-assets/weapon-9-inch-mortar.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 8441,
+        "Rum": 1406,
+        "Copper": 656
+      },
+      "caliber": "Mortar",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-10-inch-mortar",
+      "name": "10-inch Mortar",
+      "kind": "weapon",
+      "group": "Mortar",
+      "description": "Mortar. Requires a ship with a permitted mortar position.",
+      "image": "/build-assets/weapon-10-inch-mortar.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 11000,
+        "Volcanic Ore": 375,
+        "Battle Mark": 84,
+        "Bronze": 129
+      },
+      "caliber": "Mortar",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-11-inch-mortar",
+      "name": "11-inch Mortar",
+      "kind": "weapon",
+      "group": "Mortar",
+      "description": "Mortar. Requires a ship with a permitted mortar position.",
+      "image": "/build-assets/weapon-11-inch-mortar.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Iron": 17000,
+        "Volcanic Ore": 562,
+        "Battle Mark": 126,
+        "Bronze": 194
+      },
+      "caliber": "Mortar",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-heavy-mortar",
+      "name": "Heavy Mortar",
+      "kind": "weapon",
+      "group": "Mortar",
+      "description": "Mortar. Requires a ship with a permitted mortar position.",
+      "image": "/build-assets/weapon-heavy-mortar.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 670
+      },
+      "caliber": "Mortar",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "weapon-barrel-launcher",
+      "name": "Barrel Launcher",
+      "kind": "weapon",
+      "group": "Mortar",
+      "description": "Mortar. Requires a ship with a permitted mortar position.",
+      "image": "/build-assets/weapon-barrel-launcher.png",
+      "effects": [],
+      "verified": false,
+      "source": "Existing crafting catalogue",
+      "cost": {
+        "Pirate Token": 500
+      },
+      "caliber": "Mortar",
+      "ship_ranks": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7
+      ],
+      "image_source": "User screenshot October 9, 2026"
+    },
+    {
+      "id": "ammunition-round-shots",
+      "name": "Round Shots",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Standard all-purpose shot for dealing damage.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "combat": [
+        {
+          "label": "Hull damage",
+          "value": 100,
+          "unit": "%"
+        }
+      ],
+      "sprite": {
+        "image": "/build-assets/inventory-sprite43.png",
+        "x": 967,
+        "y": 587,
+        "size": 48
+      }
+    },
+    {
+      "id": "ammunition-heated-shots",
+      "name": "Heated Shots",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Flammable shells ignite ships or water; useful for triggering barrels and fighting clustered enemies.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 3,
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "combat": [
+        {
+          "label": "Hull damage",
+          "value": 90,
+          "unit": "%"
+        },
+        {
+          "label": "Firing range",
+          "value": -40,
+          "unit": "%"
+        }
+      ],
+      "sprite": {
+        "image": "/build-assets/inventory-sprite43.png",
+        "x": 1017,
+        "y": 587,
+        "size": 48
+      }
+    },
+    {
+      "id": "ammunition-heavy-shots",
+      "name": "Heavy Shots",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Powerful cannon shots with slower reload time.",
+      "effects": [],
+      "image": "/build-assets/ammunition-heavy-shots.png",
+      "unit_weight": 2,
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "combat": [
+        {
+          "label": "Hull damage",
+          "value": 125,
+          "unit": "%"
+        }
+      ],
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "ammunition-fireworks",
+      "name": "Fireworks",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Swivel-gun ammunition; particularly useful against enemy crew.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "combat": [
+        {
+          "label": "Damage",
+          "value": 20,
+          "unit": ""
+        }
+      ],
+      "sprite": {
+        "image": "/build-assets/inventory-sprite43.png",
+        "x": 1070,
+        "y": 639,
+        "size": 48
+      }
+    },
+    {
+      "id": "ammunition-phosphorous-shots",
+      "name": "Phosphorous Shots",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Swivel-gun ammunition effective at long range, with area damage and increased sail damage.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "combat": [
+        {
+          "label": "Damage",
+          "value": 35,
+          "unit": ""
+        }
+      ],
+      "sprite": {
+        "image": "/build-assets/inventory-sprite43.png",
+        "x": 1120,
+        "y": 639,
+        "size": 48
+      }
+    },
+    {
+      "id": "ammunition-burning-arrows",
+      "name": "Burning Arrows",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Swivel-gun ammunition that bursts on impact; can fire over obstacles or along impact-marked trajectories.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "combat": [
+        {
+          "label": "Damage",
+          "value": 30,
+          "unit": ""
+        }
+      ],
+      "sprite": {
+        "image": "/build-assets/inventory-sprite43.png",
+        "x": 1170,
+        "y": 639,
+        "size": 48
+      }
+    },
+    {
+      "id": "ammunition-shrapnel-rounds",
+      "name": "Shrapnel Rounds",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Mortar shells deal area damage, stronger near the center, with limited range.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 75,
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "sprite": {
+        "image": "/build-assets/inventory-sprite43.png",
+        "x": 1020,
+        "y": 639,
+        "size": 48
+      }
+    },
+    {
+      "id": "ammunition-small-gunpowder-barrels",
+      "name": "Small Gunpowder Barrels",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "A set of four barrels with small individual blast radii that together create a large damage area.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 200,
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "combat": [
+        {
+          "label": "Damage per shot",
+          "value": 125,
+          "unit": ""
+        },
+        {
+          "label": "Reload time",
+          "value": 25,
+          "unit": "sec"
+        }
+      ],
+      "sprite": {
+        "image": "/build-assets/inventory-sprite43.png",
+        "x": 968,
+        "y": 691,
+        "size": 48
+      }
+    },
+    {
+      "id": "ammunition-saxon-shots",
+      "name": "Saxon Shots",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Saxon Shot inventory item. Weight 1 per unit.",
+      "effects": [],
+      "image": "/build-assets/ammunition-saxon-shots.png",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "ammunition-strike-rounds",
+      "name": "Strike Rounds",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Ammunition inventory entry. Enter a unit weight to include it in the full hold calculation.",
+      "effects": [],
+      "image": "/build-assets/ammunition-strike-rounds.png",
+      "unit_weight": null,
+      "verified": false,
+      "source": "Inventory planning entry; weight not captured",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "ammunition-chain-shots",
+      "name": "Chain Shots",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Ammunition inventory entry. Enter a unit weight to include it in the full hold calculation.",
+      "effects": [],
+      "image": "/build-assets/ammunition-chain-shots.png",
+      "unit_weight": null,
+      "verified": false,
+      "source": "Inventory planning entry; weight not captured",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "ammunition-grape-shots",
+      "name": "Grape Shots",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Ammunition inventory entry. Enter a unit weight to include it in the full hold calculation.",
+      "effects": [],
+      "image": "/build-assets/ammunition-grape-shots.png",
+      "unit_weight": null,
+      "verified": false,
+      "source": "Inventory planning entry; weight not captured",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "ammunition-small-flaming-barrels",
+      "name": "Small Flaming Barrels",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Ammunition inventory entry. Enter a unit weight to include it in the full hold calculation.",
+      "effects": [],
+      "image": "/build-assets/ammunition-small-flaming-barrels.png",
+      "unit_weight": null,
+      "verified": false,
+      "source": "Inventory planning entry; weight not captured",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "ammunition-large-phosphorous-mines",
+      "name": "Large Phosphorous Mines",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Ammunition inventory entry. Enter a unit weight to include it in the full hold calculation.",
+      "effects": [],
+      "image": "/build-assets/ammunition-large-phosphorous-mines.png",
+      "unit_weight": null,
+      "verified": false,
+      "source": "Inventory planning entry; weight not captured",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "ammunition-fire-ship",
+      "name": "Fire Ship",
+      "kind": "ammunition",
+      "group": "Ammunition",
+      "description": "Ammunition inventory entry. Enter a unit weight to include it in the full hold calculation.",
+      "effects": [],
+      "image": "/build-assets/ammunition-fire-ship.png",
+      "unit_weight": null,
+      "verified": false,
+      "source": "Inventory planning entry; weight not captured",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-fish",
+      "name": "Fish",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Cooked fish feeds sailors. Spoils in the hold; can be exchanged with special traders.",
+      "effects": [],
+      "image": "/build-assets/resource-fish.png",
+      "unit_weight": 3,
+      "verified": true,
+      "source": "Equipment recording 2026-10-09",
+      "combat": [
+        {
+          "label": "Nutrition",
+          "value": 6,
+          "unit": ""
+        },
+        {
+          "label": "Value",
+          "value": 6,
+          "unit": ""
+        }
+      ],
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-wood",
+      "name": "Wood",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Wood inventory item. Weight 2 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-wood.png",
+      "unit_weight": 2,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-wreckage",
+      "name": "Wreckage",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Wreckage inventory item. Weight 5 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-wreckage.png",
+      "unit_weight": 5,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-fabric",
+      "name": "Fabric",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Fabric inventory item. Weight 1 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-fabric.png",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-iron",
+      "name": "Iron",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Iron inventory item. Weight 4 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-iron.png",
+      "unit_weight": 4,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-iron-ore",
+      "name": "Iron Ore",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Iron Ore inventory item. Weight 6 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-iron-ore.png",
+      "unit_weight": 6,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-copper",
+      "name": "Copper",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Copper inventory item. Weight 10 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-copper.png",
+      "unit_weight": 10,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-copper-ore",
+      "name": "Copper Ore",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Copper Ore inventory item. Weight 20 per unit.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 20,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-coal",
+      "name": "Coal",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Coal inventory item. Weight 5 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-coal.png",
+      "unit_weight": 5,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-rations",
+      "name": "Rations",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Resource inventory entry. Unit weight was not captured in these recordings; enter it from the game tooltip.",
+      "effects": [],
+      "image": "/build-assets/resource-rations.png",
+      "unit_weight": null,
+      "verified": false,
+      "source": "Inventory planning entry; weight not captured",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-provision",
+      "name": "Provision",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Provision inventory item. Weight 40 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-provision.png",
+      "unit_weight": 40,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-water",
+      "name": "Water",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Water inventory item. Weight 2 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-water.png",
+      "unit_weight": 2,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-rum",
+      "name": "Rum",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Rum inventory item. Weight 6 per unit.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 6,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-gold",
+      "name": "Gold",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Resource inventory entry. Unit weight was not captured in these recordings; enter it from the game tooltip.",
+      "effects": [],
+      "image": "",
+      "unit_weight": null,
+      "verified": false,
+      "source": "Inventory planning entry; weight not captured"
+    },
+    {
+      "id": "resource-whale-oil",
+      "name": "Whale Oil",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Whale Oil inventory item. Weight 15 per unit.",
+      "effects": [],
+      "image": "/build-assets/resource-whale-oil.png",
+      "unit_weight": 15,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-captives",
+      "name": "Captives",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Captive inventory item. Weight 60 per unit.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 60,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-amber",
+      "name": "Amber",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Amber inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 5,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-animals",
+      "name": "Animals",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Animals inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 22,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-antiquities",
+      "name": "Antiquities",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Antiquities inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 4,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-battle-mark",
+      "name": "Battle Mark",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Battle Mark inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-beam",
+      "name": "Beam",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Beam inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 150,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-blueprint-fragment",
+      "name": "Blueprint Fragment",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Blueprint Fragment inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-bronze",
+      "name": "Bronze",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Bronze inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 90,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-bulkhead",
+      "name": "Bulkhead",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Bulkhead inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 210,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-chest",
+      "name": "Chest",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Chest inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-chest-key",
+      "name": "Chest Key",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Chest Key inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-construction-license",
+      "name": "Construction License",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Construction License inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-escudo",
+      "name": "Escudo",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Escudo inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-fresh-meat",
+      "name": "Fresh Meat",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Fresh Meat inventory item.",
+      "effects": [],
+      "image": "/build-assets/resource-fresh-meat.png",
+      "unit_weight": 5,
+      "verified": true,
+      "source": "Existing Resource Reference",
+      "combat": [
+        {
+          "label": "Nutrition",
+          "value": 4,
+          "unit": ""
+        }
+      ],
+      "image_source": "User video October 9, 2026"
+    },
+    {
+      "id": "resource-grain",
+      "name": "Grain",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Grain inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 20,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-imperial-blueprint",
+      "name": "Imperial Blueprint",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Imperial Blueprint inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-insurance",
+      "name": "Insurance",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Insurance inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 1,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-plate",
+      "name": "Plate",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Plate inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 100,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-resin",
+      "name": "Resin",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Resin inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 2,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-sailcloth",
+      "name": "Sailcloth",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Sailcloth inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 10,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-supplies",
+      "name": "Supplies",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Supplies inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 5,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-tackles",
+      "name": "Tackles",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Tackles inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 5,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-volcanic-ore",
+      "name": "Volcanic Ore",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Volcanic Ore inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 40,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "resource-voodoo-skull",
+      "name": "Voodoo Skull",
+      "kind": "resource",
+      "group": "Resources",
+      "description": "Voodoo Skull inventory item.",
+      "effects": [],
+      "image": "",
+      "unit_weight": 7,
+      "verified": true,
+      "source": "Existing Resource Reference"
+    },
+    {
+      "id": "upgrade-mortar-modification",
+      "name": "Mortar Modification",
+      "kind": "upgrade",
+      "group": "Ship modification",
+      "description": "Falmouth: adds one mortar position in addition to its cannons.",
+      "image": "",
+      "effects": [],
+      "verified": true,
+      "cost": {}
+    }
+  ],
+  "design_slots": [
+    "Large Lantern"
+  ],
+  "limitations": [
+    "Passive percentages are added against base stats, then flat bonuses are added. This is the planning model; multiplicative game stacking has not been measured.",
+    "Gun positions are Bow, Stern, Port and Starboard, plus ship-specific mortar mounts. Administrators configure actual counts and restrictions.",
+    "Inventory weights are recorded where visible. Unknown unit weights remain explicit and can be entered manually. Installed guns and upgrades are not included in hold weight.",
+    "Temporary effects are shown separately; Captain\u2019s Seal slot-three cooldown reduction amount is not established."
+  ]
+}

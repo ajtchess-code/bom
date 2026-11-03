@@ -1,0 +1,32 @@
+{
+  "version": "v4.1.0",
+  "title": "Dashboard & Fleet Operations Revision",
+  "summary": "A focused single-server dashboard and Port Battle overhaul: personalized member home, adaptive Quick Actions, cleaner BOM branding, corrected Discord display names, configurable member ranks, live Discord voice presence, canonical PB scheduling, Preferred Ships/Horn improvements, officer fleet planning, tactical-map DMs, Discord index recovery, and runtime fixes.",
+  "releasedAt": "2026-10-17T19:30:00Z",
+  "sections": [
+    {
+      "title": "Dashboard",
+      "items": [
+        "Removes the unnecessary server selector and old Command Deck wording, introduces the floating BOM crest and animated Band of Misfits gold wordmark, and uses server display names without bracketed guild prefixes.",
+        "Quick Actions are permission-aware and learn from each member's usage so frequently used allowed actions rise to the top.",
+        "The home page is rebuilt around a personalized BOM member card, Discord voice presence, Continue workspace, Music status, Recently Played, and Report An Issue instead of redundant operational clutter."
+      ]
+    },
+    {
+      "title": "Port Battles",
+      "items": [
+        "The scheduler uses canonical ports with derived rate/team size, guild dropdowns plus BOM/FAT/DPS quick choices, Today/Tomorrow shortcuts, and in-game 12–23 hour buttons with a configurable clock offset.",
+        "Preferred Ships excludes 7th Rate, administrators can control selectable ships, Horn capability/preference are separate, and the required Horn stock/loadout guidance is shown in the profile flow.",
+        "Officer roster management keeps targets advisory, supports drag/drop and double-click placement, larger target steppers, default per-port doctrine, fleet templates, and tactical-map DMs by role."
+      ]
+    },
+    {
+      "title": "Discord & reliability",
+      "items": [
+        "Port Battle Discord surfaces recover from stale/deleted message IDs and sync through a serialized repair path to prevent duplicate index spam.",
+        "The Welcome panel now uses soft-sticky reposting instead of Discord pinning.",
+        "Recruitment PostgreSQL array handling is repaired, eliminating the observed malformed-array runtime errors."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,865 @@
+{
+  "observed": [
+    {
+      "id": "wosb-dcbd1be963ac",
+      "tag": "BOM",
+      "name": "Band of Misfits",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-496e1ef01405",
+      "tag": "UBG",
+      "name": "UNBROKEN GAMING",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "UNBROKEN"
+      ]
+    },
+    {
+      "id": "wosb-28ab36eeba8d",
+      "tag": "ATK",
+      "name": "Armed to the Keel",
+      "faction": "Español",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "Antilia's True Keepers"
+      ]
+    },
+    {
+      "id": "wosb-634b1ba30c6c",
+      "tag": "DED",
+      "name": "Dead Man’s Chest",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "Dead Man's Chest"
+      ]
+    },
+    {
+      "id": "wosb-cc85a60b3457",
+      "tag": "DVS",
+      "name": "DVS Gaming",
+      "faction": "Español",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-1f95afa16734",
+      "tag": "BR",
+      "name": "Armada",
+      "faction": "Español",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-5a16cfeada00",
+      "tag": "CBS",
+      "name": "Casual Boat Stuff",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-530ae838a6b1",
+      "tag": "T.E",
+      "name": "The Exiles",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-8d6e5c558206",
+      "tag": "TIF",
+      "name": "The Iron Fleet",
+      "faction": "Español",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-1500d9a02837",
+      "tag": "HDM",
+      "name": "Húsares de la Muerte",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "Husares de la Muerte"
+      ],
+      "needsReview": true,
+      "reviewNote": "Decorative skull symbols around the name are not transcribed; readable name and faction verified."
+    },
+    {
+      "id": "wosb-12d5138884df",
+      "tag": "WYC",
+      "name": "Weyland-Yutani Corp",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-084ae9bff284",
+      "tag": "WO.",
+      "name": "Wooden Overlords",
+      "faction": "Kai & Severia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-58fb47ca7571",
+      "tag": "BWC",
+      "name": "Blackwolf Chapter",
+      "faction": "Español",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-fd00d70916b9",
+      "tag": "FAT",
+      "name": "Plus Sized Pirates",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "Plus Sized Pirates"
+      ],
+      "needsReview": true,
+      "reviewNote": "Chinese name transcribed from screenshot; exact simplified/traditional glyphs need confirmation.",
+      "proposedName": "胖紳士公會"
+    },
+    {
+      "id": "wosb-e4fc148bd98d",
+      "tag": "FTA",
+      "name": "Free Trade Association",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-cde0bff9b487",
+      "tag": "QRY",
+      "name": "Surprise",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145134.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-4869247f5c2a",
+      "tag": "ATF",
+      "name": "Ale, Tender & Flintlock",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-e131d2e5b521",
+      "tag": "VLK",
+      "name": "The Valkyrie Fleet",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-2ceb665108b1",
+      "tag": "SVA",
+      "name": "La Armada Soberana",
+      "faction": "Español",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-4637d85c2cdc",
+      "tag": "R R",
+      "name": "Rum & Ruin",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "Rum & Rum"
+      ]
+    },
+    {
+      "id": "wosb-7a09469f3e18",
+      "tag": "MiT",
+      "name": "Men In Tights",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-e1421c065847",
+      "tag": "PvP",
+      "name": "Poltava Patrol",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-6767f2f5e32f",
+      "tag": "FLN",
+      "name": "«The»Fallen»",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Decorative quotation marks around the name need confirmation."
+    },
+    {
+      "id": "wosb-cbea74212ffa",
+      "tag": "MSM",
+      "name": "Enviados de la Muerte",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-82c173e70056",
+      "tag": "PAL",
+      "name": "PALADINS",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-fb62acbbc598",
+      "tag": "AK+",
+      "name": "Animal Kingdom",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-082fa23333d5",
+      "tag": "PRB",
+      "name": "PRB Armed Forces",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-7403017ae802",
+      "tag": "DPS",
+      "name": "Damage Per Second",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "DPS"
+      ]
+    },
+    {
+      "id": "wosb-772f809d7e56",
+      "tag": "CCE",
+      "name": "Captain’s Council",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "Captain's Council"
+      ]
+    },
+    {
+      "id": "wosb-4442bcb2a947",
+      "tag": "BBC",
+      "name": "Big Black Cannonballs",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145203.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-86ef3d709183",
+      "tag": "⚓☠⚓",
+      "name": "Anchors ’n’ Skull",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Decorative tag/name glyph sequence needs confirmation; readable Anchors n Skull and Trade Union verified."
+    },
+    {
+      "id": "wosb-fcb32d8e1875",
+      "tag": "TNA",
+      "name": "TotalNonchalantAlliance",
+      "faction": "Español",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-e1a36a451b9d",
+      "tag": "TNC",
+      "name": "The Nomad Captains",
+      "faction": "Kai & Severia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-a397a187fa30",
+      "tag": "W_F",
+      "name": "White Flag",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-dcbcc8e5891c",
+      "tag": "HSL",
+      "name": "High Seas Logistics",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-5e0125154d50",
+      "tag": "DIT",
+      "name": "Dragon Isles Trading",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-86a7cfef32a8",
+      "tag": "SWG",
+      "name": "SRREG WOSB Gang",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "aliases": [
+        "§WG"
+      ],
+      "reconciliationNote": "Matched prior §WG / §RREQ WO§B GANG by distinctive tag/name; retain old tag as alias.",
+      "previousNames": [
+        "§RREQ WO§B GANG"
+      ]
+    },
+    {
+      "id": "wosb-41c7d30ed02e",
+      "tag": "BR",
+      "name": "TRADE BR",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "reference": "BR · TRADE BR"
+    },
+    {
+      "id": "wosb-3158a5bb21c6",
+      "tag": "USF",
+      "name": "United Sovereign Fleet",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-d88717ebbac1",
+      "tag": "DSC",
+      "name": "Deadspace Collective",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-29f606695c52",
+      "tag": "DVT",
+      "name": "Devil’s Triangle",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-30663df9881f",
+      "tag": "LIQ",
+      "name": "Liquidators",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-e20bfd8f8649",
+      "tag": "A~M",
+      "name": "Aurora Meridian",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-4395d822e45f",
+      "tag": "HDP",
+      "name": "Hijos de la Pólvora.",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-a5ae71ce9e6c",
+      "tag": "SSD",
+      "name": "Salty Sea Dogs",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145223.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-75786e88cade",
+      "tag": "D&T",
+      "name": "Death & Taxes",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-aac93e57bcd4",
+      "tag": "MKF",
+      "name": "MKF (name awaiting verification)",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Small Chinese characters need confirmation; proposed transcription retained with review flag.",
+      "proposedName": "梅茵菲娜骑士团"
+    },
+    {
+      "id": "wosb-16a118ee1416",
+      "tag": "C P",
+      "name": "Cowboys & Plowboys",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-9141265b1be4",
+      "tag": "HME",
+      "name": "HME (name awaiting verification)",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Chinese name needs exact-character confirmation. Distinct from HMe in the same screenshot.",
+      "proposedName": "神圣萌喵帝国"
+    },
+    {
+      "id": "wosb-39ae391531e7",
+      "tag": "LAC",
+      "name": "La Cruz Del Sur",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-b4c473c82a19",
+      "tag": "JOY",
+      "name": "Joyfull Syrens",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-91c6a14195e1",
+      "tag": "PLN",
+      "name": "Planet Express Corp",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-9cea162749ee",
+      "tag": "MHY",
+      "name": "MATRIX HAS YOU",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-a246d4039e2a",
+      "tag": "ДДТ",
+      "name": "Ты не один",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-8fe258a0d234",
+      "tag": "RIP",
+      "name": "Rum Inspired Profit",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-3a5816e01fc7",
+      "tag": "IRS",
+      "name": "Dad Tax",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-03e82fc4d76d",
+      "tag": "S^S",
+      "name": "SAEVAR SYNIR",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Stylized middle tag symbol needs confirmation."
+    },
+    {
+      "id": "wosb-ba7a64d0009b",
+      "tag": "HMe",
+      "name": "HMe (name awaiting verification)",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Chinese name needs exact-character confirmation. Distinct from HME in the same screenshot.",
+      "proposedName": "神圣萌喵帝国"
+    },
+    {
+      "id": "wosb-f9e834ebff3e",
+      "tag": "SaD",
+      "name": "Safe Against Drama",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145242.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-30266e0b9d93",
+      "tag": "N×P",
+      "name": "Noche Plateada",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Stylized separator in the tag needs confirmation."
+    },
+    {
+      "id": "wosb-7f381d4ccb50",
+      "tag": "R-S",
+      "name": "Red Sky",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-1c898b178441",
+      "tag": "KKG",
+      "name": "Krakengard",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-4c40026c6757",
+      "tag": "♛☠♛",
+      "name": "Hangman’s Noose",
+      "faction": "Español",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "Hangman's Noose"
+      ],
+      "needsReview": true,
+      "reviewNote": "Existing decorative tag retained; exact crown/skull Unicode sequence needs confirmation."
+    },
+    {
+      "id": "wosb-9aed9ad6bf98",
+      "tag": "KSB",
+      "name": "Kai Security Bureau",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-d778bf283516",
+      "tag": "CTL",
+      "name": "Control",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-e02fb16c2dcc",
+      "tag": "HoK",
+      "name": "House of Khans",
+      "faction": "Español",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-a40a5b91c161",
+      "tag": "BRT",
+      "name": "Brazilian Royal Traders",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-2cc310a92054",
+      "tag": "PYT",
+      "name": "Pyrots Trading Co.",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-f14b71f80282",
+      "tag": "STU",
+      "name": "Salty Trading Union",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-7f485757c056",
+      "tag": "DdS",
+      "name": "[DdS]Drakkar’s del Sur",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Name punctuation/spacing needs confirmation."
+    },
+    {
+      "id": "wosb-855a766657ba",
+      "tag": "FPS",
+      "name": "Floundering Privateers",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-27a21a89d42d",
+      "tag": "B×T",
+      "name": "Black Tide",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Stylized separator in the tag needs confirmation."
+    },
+    {
+      "id": "wosb-88bf9c136bf0",
+      "tag": "GCM",
+      "name": "Old Men in Black Socks",
+      "faction": "Pirates",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-87f721032d47",
+      "tag": "HMS",
+      "name": "The Royal Navy",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145302.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-e053271a1c64",
+      "tag": "DAM",
+      "name": "Guild Of The Beavers",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-247e555e798a",
+      "tag": "TFO",
+      "name": "The Fallen Ones",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-daaceeabbac6",
+      "tag": "YIF",
+      "name": "Yowl If Frisky",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-85a0d0eacf97",
+      "tag": "UNW",
+      "name": "大航海時代",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-aee6447019a5",
+      "tag": "IOU",
+      "name": "IndependentOwners Union",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-5d8f60cc1040",
+      "tag": "PoF",
+      "name": "Privateers of Freedom",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-c0b67dbea714",
+      "tag": "海神殿",
+      "name": "华夏深蓝学院",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-6b264577a8a3",
+      "tag": "BBO",
+      "name": "Big Blue Ocean",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-7a6f5402e2c0",
+      "tag": "C_C",
+      "name": "Calypso’s Call",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "previousNames": [
+        "Calypso's Call"
+      ]
+    },
+    {
+      "id": "wosb-13a8ffdeac13",
+      "tag": "C2☠",
+      "name": "Crown & Cross",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots",
+      "needsReview": true,
+      "reviewNote": "Existing stored tag retained temporarily: screenshot shows C2 plus a crown-like glyph, not the stored skull. Exact Unicode replacement needs confirmation."
+    },
+    {
+      "id": "wosb-d3a00dbf956c",
+      "tag": "MLC",
+      "name": "Maritime Logistics Co.",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-ec0601f1de7e",
+      "tag": "RrR",
+      "name": "RandyRumRaiders",
+      "faction": "Trade Union",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-a2198878386a",
+      "tag": "ZIM",
+      "name": "The Z Republic",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    },
+    {
+      "id": "wosb-e8ecb0ca0bdb",
+      "tag": "SWB",
+      "name": "Stonewall Brigade",
+      "faction": "Antilia",
+      "verifiedAt": "2026-10-22",
+      "sourceScreenshot": "Screenshot 2026-10-22 145322.png",
+      "catalogueRevision": "2026-10-22-screenshots"
+    }
+  ],
+  "reviewPolicy": "Uncertain glyphs are flagged; uncertain Chinese name replacements are proposed rather than applied."
+}

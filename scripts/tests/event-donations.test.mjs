@@ -1,0 +1,47 @@
+import {test} from 'node:test';
+import assert from 'node:assert/strict';
+import {readFileSync} from 'node:fs';
+import vm from 'node:vm';
+import ts from 'typescript';
+import Fastify from 'fastify';
+import {PGlite} from '@electric-sql/pglite';
+import * as shared from '../../packages/shared/dist/index.js';
+import * as crypto from 'node:crypto';
+const campaign='11111111-1111-4111-8111-111111111111',alice='123456789012345678',bob='234567890123456789',outsider='345678901234567890';
+test('donation ledger API: roster, permissions, bulk amounts, retry, corrections and goal',async()=>{
+ const pg=new PGlite();await pg.exec(`CREATE TABLE guild_event_campaigns(id uuid PRIMARY KEY,guild_id text,active boolean,participant_role_ids jsonb);CREATE TABLE guild_event_results(campaign_id uuid);ALTER TABLE guild_event_campaigns ADD COLUMN start_date date DEFAULT current_date;ALTER TABLE guild_event_campaigns ADD COLUMN timezone text DEFAULT 'UTC';ALTER TABLE guild_event_campaigns ADD COLUMN event_end_at timestamptz DEFAULT now()+interval '10 days';CREATE TABLE membership_settings(guild_id text,member_role_id text,officer_role_ids jsonb);INSERT INTO guild_event_campaigns VALUES('${campaign}','guild',true,'[]');INSERT INTO membership_settings VALUES('guild','member','[]');`);await pg.exec(readFileSync('packages/db/migrations/109_event_donations.sql','utf8'));await pg.exec('CREATE TABLE bot_branding_state(guild_id text PRIMARY KEY)');await pg.exec(readFileSync('packages/db/migrations/110_halloween_rewards.sql','utf8'));await pg.exec(readFileSync('packages/db/migrations/112_event_donation_balances.sql','utf8'));
+ const query=async(sql,args=[])=>{const r=await pg.query(sql,args);return {...r,rowCount:r.affectedRows??r.rows.length};},db={query},deps={db,pool:{connect:async()=>({query,release(){}})},many:async(s,a)=>(await query(s,a)).rows,oneOrNone:async(s,a)=>(await query(s,a)).rows[0]??null};
+ const context=vm.createContext({console,process,AbortSignal,fetch:async()=>({ok:true,json:async()=>[{user:{id:alice,username:'Alice'},roles:['member']},{user:{id:bob,username:'Bob'},roles:['member']},{user:{id:outsider,username:'Guest'},roles:[]}]})});
+ const mock=async(values)=>{const m=new vm.SyntheticModule(Object.keys(values),function(){for(const [k,v]of Object.entries(values))this.setExport(k,v);},{context});await m.link(()=>{});await m.evaluate();return m;};
+ const mocks={'@bom/redis':await mock({discordRequest:context.fetch}),'@bom/db':await mock(deps),'@bom/shared':await mock(shared),'node:crypto':await mock(crypto),'./eventRewards.js':await mock({registerEventRewards:()=>{}}),'./authz.js':await mock({discordAccess:async()=>({roles:[]}),discordMemberProfile:async()=>null})};
+ const source=ts.transpileModule(readFileSync('apps/api/src/eventTool.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2023}}).outputText;
+ const module=new vm.SourceTextModule(source,{context});await module.link(name=>mocks[name]);await module.evaluate();const app=Fastify();module.namespace.registerEventTool(app,{guildId:'guild',requireMember:async()=>({member:true}),pbManager:async req=>req.headers.officer==='yes',userId:req=>req.headers.uid??alice});
+ const call=(method,path,body,officer=true)=>app.inject({method,url:'/v1/event-tool/donations'+path,headers:{uid:alice,...(officer?{officer:'yes'}:{})},payload:body});
+ try{let r=await call('GET','');assert.equal(r.statusCode,200,r.body);assert.equal(r.json().members.length,2);assert.equal(r.json().members[0].total,0);
+ const b={campaignId:campaign,batchId:crypto.randomUUID(),userIds:[alice,bob],amount:2500};
+ assert.equal((await call('POST','',b,false)).statusCode,403);
+ assert.equal((await call('POST','',{...b,userIds:[outsider]})).statusCode,400);
+ assert.equal((await call('POST','',{...b,amount:-1})).statusCode,400);
+ assert.equal((await call('POST','',{...b,amount:1.5})).statusCode,400);
+ assert.equal((await call('POST','',b)).statusCode,200);
+ assert.equal((await call('POST','',b)).statusCode,200);
+ assert.equal((await call('POST','',{...b,amount:5000})).statusCode,409);
+ r=await call('GET','');assert.equal(r.json().total,5000);assert.equal(r.json().complete,0);assert.equal(r.json().members[0].remaining,2500);
+ assert.equal((await call('GET','',undefined,false)).json().members,undefined);
+ assert.equal((await call('POST','',{...b,batchId:crypto.randomUUID(),amount:2500})).statusCode,200);
+ r=await call('GET','');assert.equal(r.json().total,10000);assert.equal(r.json().complete,2);
+ const entry=r.json().history[0];assert.equal((await call('DELETE','/'+entry.id,{campaignId:campaign},false)).statusCode,403);
+ assert.equal((await call('DELETE','/'+entry.id,{campaignId:campaign})).statusCode,200);
+ assert.equal((await call('DELETE','/'+entry.id,{campaignId:campaign})).statusCode,200);
+ r=await call('GET','');assert.equal(r.json().total,7500);assert.equal(r.json().history.length,4);assert.equal(r.json().history.filter(x=>x.voided_at).length,1);
+ await call('POST','',{...b,batchId:crypto.randomUUID(),userIds:[alice],amount:500000});r=await call('GET','');assert.equal(r.json().remaining,0);assert.ok(r.json().percent>100);assert.equal(r.json().donors[0].user_id,alice);
+ }finally{await app.close();await pg.close();}
+});
+test('Discord donation picker opens searchable multi-select and submits amount per member',async()=>{
+ const saved=new Map(),posts=[],context=vm.createContext({console,process,AbortSignal,Headers,fetch:async(url,init)=>{if(init.method==='POST')posts.push(JSON.parse(init.body));return {ok:true,json:async()=>({campaignId:campaign,members:[],ok:true})};}});
+ const m=new vm.SourceTextModule(ts.transpileModule(readFileSync('apps/controller/src/eventDonations.ts','utf8'),{compilerOptions:{module:ts.ModuleKind.ESNext,target:ts.ScriptTarget.ES2023}}).outputText,{context});const c=new vm.SyntheticModule(['randomUUID'],function(){this.setExport('randomUUID',crypto.randomUUID);},{context});await c.link(()=>{});await c.evaluate();await m.link(()=>c);await m.evaluate();const redis={set:async(k,v)=>saved.set(k,v),get:async k=>saved.get(k)};let reply,modal;const interaction={user:{id:alice},deferReply:async()=>{},editReply:async p=>reply=p,reply:async p=>reply=p,showModal:async p=>modal=p};
+ await m.namespace.handleEventDonations({...interaction,customId:'event:donate'},redis);const menu=reply.components[0].components[0];assert.equal(menu.type,5);assert.equal(menu.max_values,25);
+ await m.namespace.handleEventDonations({...interaction,customId:menu.custom_id,values:[alice,bob]},redis);assert.ok(modal.title.includes('Heavy Shot'));await m.namespace.handleEventDonations({...interaction,customId:modal.custom_id,fields:{getTextInputValue:()=> '5000'}},redis);assert.equal(posts.length,1);assert.equal(posts[0].amount,5000);assert.equal(posts[0].userIds.length,2);
+ await m.namespace.handleEventDonations({...interaction,customId:modal.custom_id,fields:{getTextInputValue:()=> '5000'}},redis);assert.equal(posts[0].batchId,posts[1].batchId);
+ await m.namespace.handleEventDonations({...interaction,customId:modal.custom_id,fields:{getTextInputValue:()=> '7000'}},redis);assert.equal(posts.length,2);assert.match(reply.content,/already submitted/);
+});

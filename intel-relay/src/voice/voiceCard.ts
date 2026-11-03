@@ -1,0 +1,25 @@
+import './fonts.js';
+import sharp from 'sharp';
+export interface VoiceCardChannel{guildId:string;guildName:string;channelId:string;channelName:string;members:Array<{id:string;name:string;avatar?:string;muted?:boolean;deafened?:boolean;streaming?:boolean;priority?:number}>;}
+export const readableVoiceText=(s:string)=>s.normalize('NFKC').replace(/[\u200B-\u200D\uFE0E\uFE0F]/g,'');
+const escape=(s:string)=>readableVoiceText(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]!));
+const short=(s:string,n:number)=>[...s].slice(0,n).join('')+([...s].length>n?'…':'');
+const avatars=new Map<string,Buffer>();
+async function avatar(url:string|undefined){if(!url)return null;try{const u=new URL(url);if(u.protocol!=='https:'||!['cdn.discordapp.com','media.discordapp.net'].includes(u.hostname))return null;const cached=avatars.get(url);if(cached)return cached;const response=await fetch(url,{signal:AbortSignal.timeout(4000),redirect:'error'});if(!response.ok)return null;const size=Number(response.headers.get('content-length')??0);if(size>1000000)return null;const bytes=Buffer.from(await response.arrayBuffer());if(bytes.length>1000000)return null;const buffer=await sharp(bytes,{limitInputPixels:16000000}).resize(32,32).composite([{input:Buffer.from('<svg width="32" height="32"><circle cx="16" cy="16" r="16" fill="white"/></svg>'),blend:'dest-in'}]).png().toBuffer();if(avatars.size>=300)avatars.delete(avatars.keys().next().value!);avatars.set(url,buffer);return buffer;}catch{return null;}}
+export async function renderVoiceCards(snapshot:VoiceCardChannel[],options:{label?:string;showStatus?:boolean;pageChannels?:number}={}){
+ const groups=snapshot.flatMap(c=>Array.from({length:Math.ceil(c.members.length/24)},(_,i)=>({...c,channelName:c.channelName+(i?' · continued':''),members:c.members.slice(i*24,i*24+24)})));
+ const files:Array<{attachment:Buffer;name:string}>=[];
+ for(let start=0;start<groups.length&&true;start+=options.pageChannels??3){
+  const page=groups.slice(start,start+(options.pageChannels??3)),total=snapshot.reduce((n,c)=>n+c.members.length,0);let y=options.showStatus?90:72;
+  let shapes=`<rect width="1000" height="HEIGHT" rx="18" fill="#23272f"/><text x="26" y="48" fill="#ffffff" font-size="24" font-weight="700">${escape(options.label??'Intel Relay')} · Voice</text><text x="970" y="48" text-anchor="end" fill="#e7b94d" font-size="16">${total} in voice</text>`;
+  if(options.showStatus)shapes+=`<text x="26" y="72" fill="#aeb8c7" font-size="12">M · muted   D · deafened   ▶ · streaming (reported status)</text>`;
+  const positions:Array<{url?:string;x:number;y:number}>=[];
+  for(const channel of page){const rows=Math.ceil(channel.members.length/4),height=60+rows*48;shapes+=`<rect x="24" y="${y}" width="952" height="${height}" rx="14" fill="#2c313a" stroke="#454c58"/><text x="40" y="${y+28}" fill="#6ddb95" font-size="16">◉</text><defs><clipPath id="heading-${y}"><rect x="64" y="${y}" width="850" height="40"/></clipPath></defs><text clip-path="url(#heading-${y})" x="64" y="${y+28}" fill="#f2f3f5" font-size="16" font-weight="700">${escape(short(readableVoiceText(channel.guildName+' / '+channel.channelName),72))}</text><text x="954" y="${y+28}" text-anchor="end" fill="#aeb8c7" font-size="14">${channel.members.length}</text>`;
+   channel.members.forEach((member,i)=>{const x=40+(i%4)*230,top=y+42+Math.floor(i/4)*48;shapes+=`<rect x="${x}" y="${top}" width="218" height="38" rx="19" fill="#1e2229" stroke="${member.priority===2?'#ED4245':member.priority===1?'#F0B232':'none'}"/><circle cx="${x+20}" cy="${top+19}" r="16" fill="#515966"/><text x="${x+20}" y="${top+24}" text-anchor="middle" fill="white" font-size="13">${escape([...readableVoiceText(member.name)][0]??'?')}</text><defs><clipPath id="name-${x}-${top}"><rect x="${x+44}" y="${top}" width="${options.showStatus?124:149}" height="38"/></clipPath></defs><text clip-path="url(#name-${x}-${top})" x="${x+44}" y="${top+24}" fill="white" font-size="13" font-weight="600">${escape(short(readableVoiceText(member.name),options.showStatus?14:17))}</text>${options.showStatus?`<text x="${x+184}" y="${top+23}" text-anchor="middle" fill="#c4ceda" font-size="10">${[(member.streaming?'▶':''),(member.deafened?'D':''),(member.muted?'M':'')].join('')}</text>`:''}<circle cx="${x+205}" cy="${top+19}" r="4" fill="#58cc83"/>`;positions.push({...(member.avatar?{url:member.avatar}:{}),x:x+4,y:top+3});});y+=height+18;
+  }
+  const base=Buffer.from(`<svg xmlns="http://www.w3.org/2000/svg" width="1000" height="${y+8}" font-family="DejaVu Sans, sans-serif">${shapes.replace('HEIGHT',String(y+8))}</svg>`);
+  const overlays=[];for(let i=0;i<positions.length;i+=8){const batch=await Promise.all(positions.slice(i,i+8).map(async p=>{const input=await avatar(p.url);return input?{input,left:p.x,top:p.y}:null}));overlays.push(...batch.filter((p):p is NonNullable<typeof p>=>Boolean(p)));}
+  files.push({name:`voice-crew-${files.length+1}.png`,attachment:await sharp(base).composite(overlays).png().toBuffer()});
+ }
+ return {files,truncated:false};
+}

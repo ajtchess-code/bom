@@ -1,0 +1,6 @@
+{
+  "repository": "https://github.com/LukasMFR/clash-potion-calculator",
+  "commit": "352eeafa35cf2b7dca4456f1cac1bc31af89b86b",
+  "license": "MIT",
+  "reuse": "Builder/research/pet potion coverage formula and duration helpers adapted into shared/clashToolkit.ts; original files preserved here."
+}

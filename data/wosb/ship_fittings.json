@@ -1,0 +1,2744 @@
+{
+  "pickle": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 3,
+      "starboard": 3,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 3
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 3
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 6,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "le-cerf": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 5,
+      "starboard": 4,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 9,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "la-creole": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 4,
+      "port": 6,
+      "starboard": 6,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 12,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "poltava": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 0,
+      "port": 12,
+      "starboard": 11,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 12
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 11
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 23,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "ingermanland": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 0,
+      "port": 16,
+      "starboard": 16,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 16
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 16
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 32,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "horizon": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 2,
+      "port": 4,
+      "starboard": 4,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 8,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "la-salamandre": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 2,
+      "port": 5,
+      "starboard": 5,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 10,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "black-wind": {
+    "gun_limits": {
+      "bow": 2,
+      "stern": 2,
+      "port": 8,
+      "starboard": 8,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 16,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "essex": {
+    "gun_limits": {
+      "bow": 2,
+      "stern": 2,
+      "port": 11,
+      "starboard": 10,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 11
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 10
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 21,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "anson": {
+    "gun_limits": {
+      "bow": 2,
+      "stern": 4,
+      "port": 15,
+      "starboard": 15,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 15
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 15
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 30,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "sans-pareil": {
+    "gun_limits": {
+      "bow": 2,
+      "stern": 4,
+      "port": 19,
+      "starboard": 19,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 19
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 19
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 38,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "victory": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 4,
+      "port": 25,
+      "starboard": 24,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 25
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 24
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 49,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "friede": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 2,
+      "port": 4,
+      "starboard": 3,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 3
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 7,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "mercury": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 2,
+      "port": 5,
+      "starboard": 4,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 9,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "russia": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 2,
+      "port": 7,
+      "starboard": 7,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 7
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 7
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 14,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "falmouth": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 4,
+      "port": 9,
+      "starboard": 9,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 9
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 9
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 18,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": true
+  },
+  "mordaunt": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 4,
+      "port": 13,
+      "starboard": 13,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 26,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "la-sirene": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 4,
+      "port": 16,
+      "starboard": 16,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 16
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 16
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 32,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "la-couronne": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 8,
+      "port": 14,
+      "starboard": 14,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 14
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 14
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 28,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "phoenix": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 6,
+      "starboard": 6,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 12,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "san-martin": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 10,
+      "starboard": 10,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 10
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 10
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 20,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "constitution": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 13,
+      "starboard": 13,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 26,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "bellona": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 18,
+      "starboard": 17,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 18
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 17
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 35,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "redoutable": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 22,
+      "starboard": 21,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 22
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 21
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 43,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "12-apostolov": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 30,
+      "starboard": 29,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 30
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 29
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 59,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "la-royale": {
+    "gun_limits": {
+      "bow": 6,
+      "stern": 0,
+      "port": 9,
+      "starboard": 9,
+      "mortar": 3
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 9
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 9
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-7-inch-mortar",
+            "weapon-8-inch-mortar",
+            "weapon-9-inch-mortar",
+            "weapon-10-inch-mortar",
+            "weapon-11-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 3
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 18,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "adventure": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 4,
+      "port": 10,
+      "starboard": 9,
+      "mortar": 2
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 10
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 9
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-7-inch-mortar",
+            "weapon-8-inch-mortar",
+            "weapon-9-inch-mortar",
+            "weapon-10-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 2
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 19,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "kobukson": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 8,
+      "starboard": 7,
+      "mortar": 4
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 7
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-7-inch-mortar",
+            "weapon-8-inch-mortar",
+            "weapon-9-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 4
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 15,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "le-requin": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 2,
+      "port": 6,
+      "starboard": 6,
+      "mortar": 1
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-7-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 1
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 12,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "polacca": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 4,
+      "starboard": 3,
+      "mortar": 1
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 3
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 1
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 7,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "huracan": {
+    "gun_limits": {
+      "bow": 2,
+      "stern": 0,
+      "port": 43,
+      "starboard": 42,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 43
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 42
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 85,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false,
+    "special_bow": true
+  },
+  "octopus": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 8,
+      "port": 19,
+      "starboard": 18,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 19
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 18
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 37,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "deadfish": {
+    "gun_limits": {
+      "bow": 1,
+      "stern": 8,
+      "port": 13,
+      "starboard": 12,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 1
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 12
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 25,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false,
+    "special_bow": true
+  },
+  "devourer": {
+    "gun_limits": {
+      "bow": 8,
+      "stern": 12,
+      "port": 6,
+      "starboard": 5,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 12
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 11,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "black-prince": {
+    "gun_limits": {
+      "bow": 2,
+      "stern": 2,
+      "port": 8,
+      "starboard": 7,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 7
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 15,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "santisima-trinidad": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 4,
+      "port": 32,
+      "starboard": 31,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 32
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 31
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 63,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "firestorm": {
+    "gun_limits": {
+      "bow": 1,
+      "stern": 12,
+      "port": 14,
+      "starboard": 14,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 1
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 12
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 14
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 14
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 28,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false,
+    "special_bow": true
+  },
+  "prins-willem": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 6,
+      "port": 13,
+      "starboard": 13,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 26,
+    "all_sizes": false,
+    "upgrade_slots": 7,
+    "mortar_modification": false
+  },
+  "red-arrow": {
+    "gun_limits": {
+      "bow": 6,
+      "stern": 0,
+      "port": 8,
+      "starboard": 7,
+      "mortar": 1
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 7
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-7-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 1
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 15,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "eagle": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 4,
+      "port": 4,
+      "starboard": 4,
+      "mortar": 2
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-7-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 2
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 8,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "savannah": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 5,
+      "starboard": 4,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 9,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "golden-apostle": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 4,
+      "starboard": 3,
+      "mortar": 1
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 3
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 1
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 7,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "axel-thorsen": {
+    "gun_limits": {
+      "bow": 1,
+      "stern": 0,
+      "port": 0,
+      "starboard": 0,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [
+            "weapon-imperial-bombard"
+          ],
+          "max_size": null,
+          "guns": 1
+        }
+      ],
+      "stern": [],
+      "port": [],
+      "starboard": [],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 0,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "sparrow": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 2,
+      "starboard": 2,
+      "mortar": 3
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-7-inch-mortar",
+            "weapon-8-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 3
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 4,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "le-saint-louis": {
+    "gun_limits": {
+      "bow": 6,
+      "stern": 6,
+      "port": 13,
+      "starboard": 13,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 26,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "neptuno": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 4,
+      "port": 18,
+      "starboard": 18,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 18
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 18
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 36,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "de-zeven-provincien": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 4,
+      "port": 21,
+      "starboard": 21,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 21
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 21
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 42,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "shunsen": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 5,
+      "starboard": 5,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 10,
+    "all_sizes": true,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "kwee-song": {
+    "gun_limits": {
+      "bow": 10,
+      "stern": 0,
+      "port": 5,
+      "starboard": 5,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 10
+        }
+      ],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 5
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 10,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "friedrich-wilhelm": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 4,
+      "port": 11,
+      "starboard": 10,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 11
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 10
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 21,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "azov": {
+    "gun_limits": {
+      "bow": 6,
+      "stern": 8,
+      "port": 18,
+      "starboard": 17,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 18
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 17
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 35,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "vasa": {
+    "gun_limits": {
+      "bow": 2,
+      "stern": 4,
+      "port": 16,
+      "starboard": 15,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 16
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 15
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 31,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "sovereign": {
+    "gun_limits": {
+      "bow": 8,
+      "stern": 4,
+      "port": 19,
+      "starboard": 19,
+      "mortar": 2
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 19
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 19
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-7-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 2
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 38,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "southampton": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 2,
+      "port": 8,
+      "starboard": 7,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 7
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 15,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "flying-cloud": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 8,
+      "starboard": 8,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 8
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 16,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "shen": {
+    "gun_limits": {
+      "bow": 1,
+      "stern": 0,
+      "port": 11,
+      "starboard": 11,
+      "mortar": 2
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [
+            "weapon-imperial-bombard",
+            "weapon-alchemical-fire"
+          ],
+          "max_size": null,
+          "guns": 1
+        }
+      ],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 11
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 11
+        }
+      ],
+      "mortar": [
+        {
+          "allowed": [
+            "weapon-6-inch-mortar",
+            "weapon-7-inch-mortar",
+            "weapon-8-inch-mortar",
+            "weapon-9-inch-mortar",
+            "weapon-10-inch-mortar",
+            "weapon-11-inch-mortar",
+            "weapon-barrel-launcher"
+          ],
+          "max_size": null,
+          "guns": 2
+        }
+      ]
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 22,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "st-pavel": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 2,
+      "port": 22,
+      "starboard": 22,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 2
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 22
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 22
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 44,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "tie-long": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 10,
+      "starboard": 10,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 10
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 10
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 20,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "three-hierarchs": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 14,
+      "starboard": 13,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 14
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 13
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 27,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "iberia": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 0,
+      "port": 12,
+      "starboard": 12,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 12
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 12
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 24,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "montanes": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 6,
+      "port": 19,
+      "starboard": 19,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 19
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 19
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 38,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "qing-long": {
+    "gun_limits": {
+      "bow": 4,
+      "stern": 0,
+      "port": 9,
+      "starboard": 9,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 4
+        }
+      ],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 9
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 9
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 18,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "san-juan-nepomuceno": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 0,
+      "port": 18,
+      "starboard": 17,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 18
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 17
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 35,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  },
+  "bonhomme-richard": {
+    "gun_limits": {
+      "bow": 0,
+      "stern": 6,
+      "port": 16,
+      "starboard": 16,
+      "mortar": 0
+    },
+    "sides": {
+      "bow": [],
+      "stern": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 6
+        }
+      ],
+      "port": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 16
+        }
+      ],
+      "starboard": [
+        {
+          "allowed": [],
+          "max_size": null,
+          "guns": 16
+        }
+      ],
+      "mortar": []
+    },
+    "minimum_sailors": null,
+    "configured": true,
+    "source45": true,
+    "broadside_total": 32,
+    "all_sizes": false,
+    "upgrade_slots": 6,
+    "mortar_modification": false
+  }
+}

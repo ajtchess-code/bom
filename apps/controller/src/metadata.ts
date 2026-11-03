@@ -1,0 +1,25 @@
+import { db, oneOrNone } from "@bom/db";
+import type { TrackInfo } from "@bom/shared";
+
+export type TrackMetadata={
+  album?:string|null;releaseDate?:string|null;mbid?:string|null;tags?:string[];listeners?:number|null;playcount?:number|null;fact?:string|null;musicBrainzUrl?:string|null;lastFmUrl?:string|null;albumMbid?:string|null;albumUrl?:string|null;artistInfo?:{name:string;listeners?:number|null;playcount?:number|null;tags?:string[];url?:string|null};
+};
+let lastMusicBrainzAt=0;
+const breakers=new Map<string,{fails:number;openUntil:number}>();
+function cacheKey(t:TrackInfo){return `${t.sourceName}:${t.identifier}`.slice(0,320);}
+function parseMeta(v:any):TrackMetadata|null{if(!v)return null;if(typeof v==="object")return v;try{return JSON.parse(v);}catch{return null;}}
+function num(v:any){const n=Number(v);return Number.isFinite(n)?n:null;}
+function open(name:string){const b=breakers.get(name);return Boolean(b&&b.openUntil>Date.now());}
+function success(name:string){breakers.delete(name);}
+function fail(name:string){const b=breakers.get(name)??{fails:0,openUntil:0};b.fails++;if(b.fails>=3)b.openUntil=Date.now()+60_000;breakers.set(name,b);}
+async function fetchBounded(name:string,input:string|URL,init:any={},timeout=2200){if(open(name))throw new Error(`${name} circuit open`);try{const signal=AbortSignal.timeout(timeout);const r=await fetch(input,{...init,signal});if(!r.ok)throw new Error(`${name} HTTP ${r.status}`);success(name);return r;}catch(e){fail(name);throw e;}}
+
+export async function enrichTrack(track:TrackInfo):Promise<TrackMetadata>{
+  const key=cacheKey(track),cached=await oneOrNone<{metadata:any}>(`SELECT metadata FROM track_metadata_cache WHERE cache_key=$1 AND expires_at>CURRENT_TIMESTAMP`,[key]);const parsed=parseMeta(cached?.metadata);if(parsed)return parsed;
+  const meta:TrackMetadata={tags:[]};
+  try{const wait=Math.max(0,1050-(Date.now()-lastMusicBrainzAt));if(wait)await new Promise(r=>setTimeout(r,Math.min(wait,1100)));lastMusicBrainzAt=Date.now();const u=new URL("https://musicbrainz.org/ws/2/recording/");const q=track.isrc?`isrc:${track.isrc}`:`recording:"${track.title.replaceAll('"','')}" AND artist:"${track.author.replaceAll('"','')}"`;u.search=new URLSearchParams({query:q,fmt:"json",limit:"3"}).toString();const contact=process.env.MUSICBRAINZ_CONTACT??"admin@example.invalid";const r=await fetchBounded("musicbrainz",u,{headers:{"User-Agent":`BOMMusic/0.5 (${contact})`}},2400);const j:any=await r.json(),rec=j.recordings?.[0];if(rec){meta.mbid=rec.id??null;meta.releaseDate=rec["first-release-date"]??null;meta.musicBrainzUrl=rec.id?`https://musicbrainz.org/recording/${rec.id}`:null;const release=rec.releases?.[0];if(release?.title)meta.album=release.title;const tags=(rec.tags??[]).sort((a:any,b:any)=>(b.count??0)-(a.count??0)).slice(0,5).map((x:any)=>x.name).filter(Boolean);if(tags.length)meta.tags=tags;}}catch{}
+  const lfKey=process.env.LASTFM_API_KEY;
+  if(lfKey&&!open("lastfm")){try{const trackUrl=new URL("https://ws.audioscrobbler.com/2.0/");trackUrl.search=new URLSearchParams({method:"track.getInfo",artist:track.author,track:track.title,api_key:lfKey,format:"json",autocorrect:"1"}).toString();const artistUrl=new URL("https://ws.audioscrobbler.com/2.0/");artistUrl.search=new URLSearchParams({method:"artist.getInfo",artist:track.author,api_key:lfKey,format:"json",autocorrect:"1"}).toString();const [tr,ar]=await Promise.all([fetchBounded("lastfm",trackUrl,{headers:{"User-Agent":"BOMMusic/0.5"}},2200),fetchBounded("lastfm",artistUrl,{headers:{"User-Agent":"BOMMusic/0.5"}},2200)]);const tj:any=await tr.json(),t=tj.track;if(t){meta.album=meta.album??t.album?.title??null;meta.albumMbid=t.album?.mbid||null;meta.albumUrl=t.album?.url??null;meta.listeners=num(t.listeners);meta.playcount=num(t.playcount);meta.lastFmUrl=t.url??null;const tags=(t.toptags?.tag??[]).slice(0,5).map((x:any)=>x.name).filter(Boolean);if(tags.length)meta.tags=[...new Set([...(meta.tags??[]),...tags])].slice(0,6);}const aj:any=await ar.json(),a=aj.artist;if(a)meta.artistInfo={name:a.name??track.author,listeners:num(a.stats?.listeners),playcount:num(a.stats?.playcount),tags:(a.tags?.tag??[]).slice(0,6).map((x:any)=>x.name).filter(Boolean),url:a.url??null};}catch{}}
+  if(meta.releaseDate&&meta.album)meta.fact=`Released ${meta.releaseDate} on “${meta.album}”.`;else if(meta.releaseDate)meta.fact=`First release date: ${meta.releaseDate}.`;else if(meta.album)meta.fact=`This track appears on “${meta.album}”.`;else if(meta.listeners)meta.fact=`More than ${Math.floor(meta.listeners).toLocaleString("en-US")} Last.fm listeners have played this track.`;else if(meta.tags?.length)meta.fact=`Common tags include ${meta.tags.slice(0,3).join(", ")}.`;
+  await db.query(`INSERT INTO track_metadata_cache(cache_key,identifier,source_name,metadata,expires_at) VALUES($1,$2,$3,$4,CURRENT_TIMESTAMP + INTERVAL '7 days') ON CONFLICT (cache_key) DO UPDATE SET metadata=EXCLUDED.metadata,fetched_at=CURRENT_TIMESTAMP,expires_at=EXCLUDED.expires_at`,[key,track.identifier,track.sourceName,meta]);return meta;
+}

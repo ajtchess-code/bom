@@ -1,0 +1,35 @@
+{
+  "version": "v3.9.0",
+  "title": "Discord Control Desk & Visual Polish",
+  "summary": "Combines member self-service and BOM Music into one persistent Discord Control Desk, restores Leave of Absence workflows on PostgreSQL, routes Discord role requests to the dashboard, and tightens the dashboard's active visual system.",
+  "releasedAt": "2026-10-17T00:30:00Z",
+  "sections": [
+    {
+      "title": "One persistent Discord Control Desk",
+      "items": [
+        "The configured bot/member channel now keeps one pinned Band of Misfits Control Desk at the bottom instead of separate member and music surfaces.",
+        "Member actions include Request Leave, I Have Returned, Request Discord Role, My Profile & Ships and Guild Roster.",
+        "Music actions include Request Song, Music Controls, View Queue and the full Music Dashboard, automatically routed to the music session serving the member's current voice channel.",
+        "The Control Desk repairs itself after restart and repositions itself after channel activity so it remains the newest persistent control surface."
+      ]
+    },
+    {
+      "title": "Leave of Absence",
+      "items": [
+        "Restores the Python-era Leave workflow using PostgreSQL rather than JSON state.",
+        "Members can enter a return date such as 2026-10-25, 7 days or 2 weeks, update an active leave, and mark themselves returned.",
+        "A leave starts an officer discussion thread, due leaves receive Extend Leave / I Have Returned controls, and configured officers or server managers can remove a member from active leave.",
+        "The Control Desk displays a compact Crew on Leave summary and Leave settings are managed from Membership & Welcome."
+      ]
+    },
+    {
+      "title": "Dashboard visual ownership pass",
+      "items": [
+        "Corrects v3.8.1 surfaces that referenced obsolete --border, --surface-2 and --text-2 variables instead of the current Control Center tokens.",
+        "Normalizes content width, page padding, header scale, panel spacing, form rhythm and sticky-save treatment across the active dashboard shell.",
+        "Reduces light-mode visual leaks from legacy Wiki/Music-era dark surfaces without changing feature behavior.",
+        "The final v3.9 presentation layer deliberately owns active shell spacing so older retained CSS generations cannot unexpectedly win the cascade."
+      ]
+    }
+  ]
+}

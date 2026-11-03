@@ -1,0 +1,7 @@
+/** Shared read-time corrections. Source snapshots remain intact for audit/history. */
+export function applyWikiOverrides(records:any[],overrides:any[]){
+ const by=new Map<string,any[]>();for(const o of overrides){const list=by.get(o.entity_key)??[];list.push(o);by.set(o.entity_key,list);}
+ return records.map(row=>{const data=structuredClone(row.data??{});for(const o of by.get(row.entity_key)??[]){const parts=String(o.field_path??'').split('.');if(!parts.length||parts.some(p=>!p||['__proto__','constructor','prototype'].includes(p)))continue;let target=data;for(let i=0;i<parts.length-1;i++){const key=parts[i];if(!target[key]||typeof target[key]!=='object')target[key]=/^\d+$/.test(parts[i+1])?[]:{};target=target[key];}target[parts.at(-1)!]=structuredClone(o.value);}return {...row,data};});
+}
+export function wikiGuideText(data:any){for(const v of [data?.body,data?.text,data?.description])if(typeof v==='string'&&v.trim())return v.trim();if(Array.isArray(data?.content))return data.content.filter((x:any)=>typeof x==='string'&&x.trim()).join('\n\n');return typeof data?.content==='string'?data.content.trim():'';}
+export function canonicalWikiShipKey(value:any){const key=String(value??'').normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase().replace(/[^\p{L}\p{N}]+/gu,'');return ({horizon:'horizont','12aspotolov':'12apostolov',redoubtable:'redoutable'} as Record<string,string>)[key]??key;}

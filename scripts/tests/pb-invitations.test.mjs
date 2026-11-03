@@ -1,0 +1,12 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+process.env.DATABASE_URL='postgresql://offline:offline@127.0.0.1:1/offline';process.env.DISCORD_GUILD_ID='123456789012345678';
+const {pool}=await import('../../packages/db/dist/index.js');
+const {installPBInvitations}=await import('../../apps/controller/dist/pbInvitations.js');
+test('invitation DMs show relative time, bind signup to recipient, and reject closed battles',async()=>{
+ const original=pool.query;const row={id:'invite-id',guild_id:process.env.DISCORD_GUILD_ID,battle_id:'battle-id',user_id:'captain'};const battle={id:'battle-id',port_name:'Aruba',rate:2,attacker:'BOM',defender:'Enemy',status:'OPEN',starts_at:new Date(Date.now()+3600000)};let queued=true,dm,handler,signed=false,signups=0,deliveryStatus;
+ pool.query=async(sql,args=[])=>{let rows=[];if(sql.includes("SET status='SENDING'")){rows=queued?[row]:[];queued=false;}else if(sql.startsWith('SELECT * FROM pb_battles'))rows=[battle];else if(sql.startsWith('SELECT * FROM pb_invitations'))rows=[row];else if(sql.startsWith('SELECT id FROM pb_signups'))rows=signed?[{id:'signup'}]:[];else if(sql.includes("SET status='SENT'"))deliveryStatus='SENT';return {rows,rowCount:rows.length}};
+ const client={isReady:()=>true,on:(name,fn)=>{handler=fn},off:()=>{},once:()=>{},guilds:{fetch:async()=>({members:{fetch:async()=>({user:{bot:false},send:async body=>{dm=body;return {id:'message'}}})}})}};
+ const worker=installPBInvitations(client,async()=>{signups++});worker.stop();
+ try{await worker.tick();assert.equal(deliveryStatus,'SENT');assert.match(dm.embeds[0].description,/<t:\d+:R>/);assert.equal(dm.components[0].components[0].data.custom_id,'pbinvite:invite-id');let answer;const interaction=user=>({isButton:()=>true,customId:'pbinvite:invite-id',user:{id:user},deferReply:async()=>{},editReply:async body=>{answer=body.content}});await handler(interaction('someone-else'));assert.match(answer,/another member/);assert.equal(signups,0);await handler(interaction('captain'));assert.equal(signups,1);signed=true;await handler(interaction('captain'));assert.match(answer,/already signed/);assert.equal(signups,1);signed=false;battle.status='CLOSED';await handler(interaction('captain'));assert.match(answer,/closed/);assert.equal(signups,1);battle.status='OPEN';battle.starts_at=new Date(Date.now()-1000);await handler(interaction('captain'));assert.match(answer,/started/);assert.equal(signups,1);}finally{pool.query=original;await pool.end();}
+});

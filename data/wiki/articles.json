@@ -1,0 +1,800 @@
+{
+  "version": 6,
+  "categories": [
+    {
+      "id": "ships",
+      "label": "Ships & Fitting",
+      "description": "Ships, fittings, weapons, combat roles, and practical build-planning information."
+    },
+    {
+      "id": "combat",
+      "label": "Combat & Weapons",
+      "description": "Weapons, ammunition, boarding, consumables, and the mechanics that shape combat."
+    },
+    {
+      "id": "economy",
+      "label": "Trading & Economy",
+      "description": "Trading, resources, crafting, storage, mines, production, and profit planning."
+    },
+    {
+      "id": "world",
+      "label": "World & Ports",
+      "description": "Ports, map locations, factions, tension, and Port Battle information."
+    },
+    {
+      "id": "captain",
+      "label": "Captain & Crew",
+      "description": "Captain skills, crew, specialists, and the systems that affect your ship and progression."
+    },
+    {
+      "id": "guides",
+      "label": "BOM Guides",
+      "description": "BOM-written guides, tactics, explanations, and practical reference material."
+    },
+    {
+      "id": "discord",
+      "label": "BOM & Discord",
+      "description": "Member procedures and tools provided by the BOM bot."
+    }
+  ],
+  "articles": [
+    {
+      "slug": "ships",
+      "title": "Ships",
+      "category": "ships",
+      "type": "ships",
+      "summary": "Browse the fleet, compare important stats, and open a dedicated page for each ship."
+    },
+    {
+      "slug": "ship-building",
+      "title": "Shipbuilding",
+      "category": "ships",
+      "type": "guide",
+      "guideEntity": "guide:ship-building",
+      "summary": "Learn how rates, classes, core ship stats, shipbuilding schools, and the school-port crafting discount work together."
+    },
+    {
+      "slug": "cannons-and-weapons",
+      "title": "Cannons & Weapons",
+      "category": "combat",
+      "type": "weapons",
+      "summary": "Compare cannon families and special weapons by the stats that matter in combat."
+    },
+    {
+      "slug": "ammunition",
+      "title": "Ammunition",
+      "category": "combat",
+      "type": "ammunition",
+      "summary": "A practical reference for ammunition types, intended roles, and known effects."
+    },
+    {
+      "slug": "consumables",
+      "title": "Consumables",
+      "category": "combat",
+      "type": "consumables",
+      "summary": "Browse consumables by effect, cooldown, duration, and practical use."
+    },
+    {
+      "slug": "boarding",
+      "title": "Boarding",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:boarding",
+      "summary": "Learn boarding damage, crew roles, attack and defend decisions, and practical risk management."
+    },
+    {
+      "slug": "nutrition",
+      "title": "Nutrition",
+      "category": "captain",
+      "type": "nutrition",
+      "summary": "Compare known food efficiency by nutrition per unit of weight, with modifiers kept separate."
+    },
+    {
+      "slug": "captain-skills",
+      "title": "Captain Skills",
+      "category": "captain",
+      "type": "captain_skills",
+      "summary": "Browse captain skills by tree and rank, including their known effects and costs."
+    },
+    {
+      "slug": "crew-and-specialists",
+      "title": "Crew & Specialists",
+      "category": "captain",
+      "type": "crew",
+      "summary": "Understand ordinary crew, specialists, and the shipboard roles they support."
+    },
+    {
+      "slug": "trade-goods",
+      "title": "Trade Goods",
+      "category": "economy",
+      "type": "trade_goods",
+      "summary": "Compare trade goods, price ranges, weight, and useful port-price observations without creating a page for every port/good pair."
+    },
+    {
+      "slug": "resources",
+      "title": "Resources",
+      "category": "economy",
+      "type": "resources",
+      "summary": "Reference resource weight, value, purpose, and known crafting uses."
+    },
+    {
+      "slug": "crafting",
+      "title": "Crafting",
+      "category": "economy",
+      "type": "crafting",
+      "summary": "Find recipes, required materials, base costs, and configured discounts for production planning."
+    },
+    {
+      "slug": "warehouses-and-hold",
+      "title": "Warehouses & Hold",
+      "category": "economy",
+      "type": "warehouses",
+      "summary": "Understand warehouse levels, temporary storage, cargo capacity, and hold-related planning."
+    },
+    {
+      "slug": "guilds-and-factions",
+      "title": "Guilds & Factions",
+      "category": "world",
+      "type": "factions",
+      "summary": "An overview of the guild and faction systems, their benefits, and how they affect play."
+    },
+    {
+      "slug": "trade-missions",
+      "title": "Trade Missions",
+      "category": "economy",
+      "type": "trade_missions",
+      "summary": "Trade Mission costs, timing, discounts, and production-related effects in one reference."
+    },
+    {
+      "slug": "ports-and-port-battles",
+      "title": "Ports & Port Battles",
+      "category": "world",
+      "type": "ports",
+      "summary": "Browse Port Battle ports, rates, team sizes, tension information, and related capture mechanics."
+    },
+    {
+      "slug": "map-and-world",
+      "title": "Map & World",
+      "category": "world",
+      "type": "map",
+      "summary": "Explore ports, mines, forts, lighthouses, resources, and other useful world locations."
+    },
+    {
+      "slug": "pirate-weapons-and-tokens",
+      "title": "Pirate Weapons & Tokens",
+      "category": "combat",
+      "type": "pirate",
+      "summary": "Pirate weapons, token costs, and the information useful for planning Pirate Shop purchases."
+    },
+    {
+      "slug": "transport-ships",
+      "title": "Transport Ships",
+      "category": "ships",
+      "type": "transport",
+      "summary": "Compare transport capacity, cargo-fitting scenarios, lantern choices, and overweight behavior."
+    },
+    {
+      "slug": "flags-pvp-and-tension",
+      "title": "Flags, PvP & Tension",
+      "category": "world",
+      "type": "flags",
+      "summary": "Understand flags, PvP reputation, tension, and the mechanics that connect them."
+    },
+    {
+      "slug": "trading",
+      "title": "Trading",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:trading",
+      "summary": "How player trade, ports, and resources fit together."
+    },
+    {
+      "slug": "trading-at-sea",
+      "title": "Trading at Sea",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:trading-at-sea",
+      "summary": "Daily offers from trading ships and settlements."
+    },
+    {
+      "slug": "mines-and-factories",
+      "title": "Mines & Factories",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:mines-and-factories",
+      "summary": "Production sites, provisions, resource output, and production management."
+    },
+    {
+      "slug": "workshops",
+      "title": "Workshops",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:workshop",
+      "summary": "Processing materials and crafting through workshops."
+    },
+    {
+      "slug": "earning-gold",
+      "title": "Earning Gold",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:earning-gold",
+      "summary": "Reference methods for gathering, trading, combat, and income."
+    },
+    {
+      "slug": "guild-development",
+      "title": "Guild Development",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:guild-development",
+      "summary": "Influence points, upgrades, and city development."
+    },
+    {
+      "slug": "guild-vault-and-treasury",
+      "title": "Guild Vault & Treasury",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:vault-and-treasury",
+      "summary": "Guild storage, treasury, and contributions."
+    },
+    {
+      "slug": "headquarters-and-city-bonuses",
+      "title": "Headquarters & City Bonuses",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:headquarters-and-city-bonuses",
+      "summary": "Reference information about developed cities and their benefits."
+    },
+    {
+      "slug": "wind-and-speed",
+      "title": "Wind & Sailing Speed",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:seafaring-wind-and-speed",
+      "summary": "Cruise mode, sail settings, and wind direction."
+    },
+    {
+      "slug": "weather-and-storms",
+      "title": "Weather & Storms",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:weather-and-storms",
+      "summary": "Storms, squalls, and sailing hazards."
+    },
+    {
+      "slug": "travel-and-hazards",
+      "title": "Travel & Hazards",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:travel-and-hazards",
+      "summary": "Hazard levels, exploration, and travel."
+    },
+    {
+      "slug": "nps-ships",
+      "title": "NPS Ships",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:nps",
+      "summary": "Non-player ships and their roles in the archipelago."
+    },
+    {
+      "slug": "notoriety",
+      "title": "Notoriety",
+      "category": "captain",
+      "type": "guide",
+      "guideEntity": "guide:notoriety-level",
+      "summary": "Reference information about notoriety and its effects."
+    },
+    {
+      "slug": "ship-capturing",
+      "title": "Capturing Ships",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:ship-capturing",
+      "summary": "Boarding, capture, and captured ships."
+    },
+    {
+      "slug": "port-robberies",
+      "title": "Port Robberies",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:port-robberies",
+      "summary": "Fort robberies and their relationship to Port Battles."
+    },
+    {
+      "slug": "custom-roles",
+      "title": "Request a Custom Role",
+      "category": "discord",
+      "type": "guide",
+      "summary": "BOM bot procedures and dashboard instructions.",
+      "body": "## Open the role designer\n\nUse `/role-request` in Discord, or open **Members → Custom Role** in the dashboard.\n\n## Choose the appearance\n\nEnter a role name. Choose a solid color, a two-color gradient, or the holographic preset. An icon or Unicode emoji is optional. The preview shows the name color; message bodies keep their normal color.\n\nGradient and holographic colors require Discord Enhanced Role Colors in the server. Submit the request for Admiralty approval. If requests are disabled, contact Admiralty."
+    },
+    {
+      "slug": "guild-media",
+      "title": "Request Guild Media",
+      "category": "discord",
+      "type": "guide",
+      "summary": "BOM bot procedures and dashboard instructions.",
+      "body": "## Choose the outputs\n\nOpen **Members → Guild Media**. Select Emoji, Animated Emoji, Sticker, Soundboard Clip, or multiple compatible outputs. One static image can become both an emoji and a sticker.\n\nUpload a file, provide a name, and send the request for approval. Animated emoji requires a GIF. Soundboard clips use a separate MP3 upload under 512 KiB and five seconds.\n\nAdmiralty reviews and publishes each output separately."
+    },
+    {
+      "slug": "pb-signups",
+      "title": "Port Battle Signups",
+      "category": "discord",
+      "type": "guide",
+      "summary": "BOM bot procedures and dashboard instructions.",
+      "body": "## Save your fleet\n\nOpen **Port Battles → Preferred Ships** and select ships you can play. Mark your preferred ships and Horn capabilities.\n\n## Join a battle\n\nUse **Attending**, **Running Late**, or **Waitlist** on the battle card. **Detailed Signup** lets you choose playable ships and volunteer for Horn or signal flare duties. Officers confirm the roster and assign ships and duties.\n\nShip eligibility comes from the port rate and officer settings. An allowed ship is not automatically a required ship; current ship targets and confirmed rosters show the live fleet plan."
+    },
+    {
+      "slug": "ask-and-corrections",
+      "title": "Ask Questions & Correct Answers",
+      "category": "discord",
+      "type": "guide",
+      "summary": "BOM bot procedures and dashboard instructions.",
+      "body": "## Ask Misfit\n\nMention Misfit with a game question or use Ask Wiki. Supported requests also include personal leave and Port Battle signup; officer duties and signing up another member remain permission checked. Misfit asks for missing details and confirms proposed actions before committing.\n\n## Correct a fact\n\nReply to an answer with the configured **No** role, the entity, field and corrected value; for example, an Anson cargo capacity correction. Authorized correctors can apply a supported change to shared Wiki knowledge. Other members submit suggestions for review. Ambiguous changes need clarification.\n\n## Source and version differences\n\nCorrections are auditable and reversible. Imported historical snapshots retain their original values. Include a source or game version when you know it. Never treat a dated guild fleet preference as a current ship balance statistic."
+    },
+    {
+      "slug": "bom-port-battle-preparation",
+      "title": "BOM Port Battle Preparation",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:bom-pb-preparation",
+      "summary": "Recovered BOM stockpile checklists, tension fleet preferences and heavy-fleet doctrine. Dated guild guidance."
+    },
+    {
+      "slug": "source-guide-crew",
+      "title": "Crew — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:crew",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-ammunition",
+      "title": "Ammunition — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:ammunition",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-barrels-swivel-guns-and-special-weapons",
+      "title": "Barrels, Swivel Guns & Special Weapons — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:barrels-swivel-guns-and-special-weapons",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-flags",
+      "title": "Flags — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:flags",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-ports",
+      "title": "Ports — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:ports",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-port-battles-and-capturing",
+      "title": "Port Battles & Capturing — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:port-battles-and-capturing",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-reputation-and-pvp",
+      "title": "Reputation & PvP — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:reputation-and-pvp",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-tension",
+      "title": "Tension — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:tension",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-factions-and-guilds",
+      "title": "Factions & Guilds — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:factions-and-guilds",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-factions",
+      "title": "Factions — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:factions",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-map-gazetteer",
+      "title": "Map Gazetteer — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:map-gazetteer",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-consumable-items",
+      "title": "Consumable Items — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:consumable-items",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-holds-and-warehouses",
+      "title": "Holds & Warehouses — Source Guide",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:holds-and-warehouses",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-adventures-and-cataclysm",
+      "title": "Adventures & Cataclysm — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:adventures-and-cataclysm",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-social-menu",
+      "title": "Social Menu — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:social-menu",
+      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+    },
+    {
+      "slug": "source-guide-boarding-crew",
+      "title": "Boarding — Crew setup — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:boarding:crew",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-boarding-fundamentals",
+      "title": "Boarding — Fundamentals — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:boarding:fundamentals",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-boarding-strategy",
+      "title": "Boarding — Basic strategy — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:boarding:strategy",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-build-upgrade-categories",
+      "title": "Build Creation — Upgrade categories — Source Guide",
+      "category": "ships",
+      "type": "guide",
+      "guideEntity": "guide:build:upgrade-categories",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-build-process",
+      "title": "Build Creation — Build process — Source Guide",
+      "category": "ships",
+      "type": "guide",
+      "guideEntity": "guide:build:process",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-build-consumables",
+      "title": "Build Creation — Consumables — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:build:consumables",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-build-crew",
+      "title": "Build Creation — Crew — Source Guide",
+      "category": "ships",
+      "type": "guide",
+      "guideEntity": "guide:build:crew",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-flags",
+      "title": "Flags — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:basic:flags",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-port-battles-tension",
+      "title": "Port Battles — Tension — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:basic:port-battles-tension",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-port-battles-start",
+      "title": "Port Battles — Starting a battle — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:basic:port-battles-start",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-port-battles-instance",
+      "title": "Port Battles — In the battle — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:basic:port-battles-instance",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-ship-repairs",
+      "title": "Ship Repairs — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:basic:ship-repairs",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-economy-crafting",
+      "title": "Economy and Crafting — Source Guide",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:basic:economy-crafting",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-private-island",
+      "title": "Private Island buildings — Source Guide",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:basic:private-island",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-port-crafting",
+      "title": "Port Crafting — Source Guide",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:basic:port-crafting",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-resource-mines",
+      "title": "Resource Mines — Source Guide",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:basic:resource-mines",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-cannon-archetypes",
+      "title": "Cannons — Archetypes — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:basic:cannon-archetypes",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-cannon-acquisition",
+      "title": "Cannons — Crafted and Pirate — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:basic:cannon-acquisition",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-mortars-special",
+      "title": "Mortars and Special Weapons — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:basic:mortars-special",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-ship-roles",
+      "title": "Ships — Roles by water/rate — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:basic:ship-roles",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-boarding",
+      "title": "Boarding overview — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:basic:boarding",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-fort",
+      "title": "The Fort — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:basic:fort",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-stealing-gold",
+      "title": "Stealing Gold — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:basic:stealing-gold",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-arena",
+      "title": "Arena / Daily Quests — Source Guide",
+      "category": "combat",
+      "type": "guide",
+      "guideEntity": "guide:basic:arena",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-basic-map-tips",
+      "title": "Map — Useful Tips / FAQ — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:basic:map-tips",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-shipyard",
+      "title": "B21 — Shipyard and factions — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:shipyard",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-new-ships",
+      "title": "B21 — New ships — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:new-ships",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-elite",
+      "title": "B21 — Elite status — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:elite",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-repairs",
+      "title": "B21 — Integrity and repairs — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:repairs",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-wind",
+      "title": "B21 — Unique wind rose — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:wind",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-balance",
+      "title": "B21 — Ship and weapon balance overview — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:balance",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-consumables",
+      "title": "B21 — Consumable changes — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:consumables",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-pb",
+      "title": "B21 — Port Battle and tension changes — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:pb",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-guilds",
+      "title": "B21 — Guild/faction benefits — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:guilds",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-b21-event",
+      "title": "B21 — Holiday event — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:b21:event",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-port-warehouses",
+      "title": "Port Warehouses — Source Guide",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:port-warehouses",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-guild-pirates",
+      "title": "Pirate faction guilds — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:guild:pirates",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-guild-trade",
+      "title": "Trade Union guilds — Source Guide",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:guild:trade",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-guild-military",
+      "title": "Military guilds — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:guild:military",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-guild-neutral",
+      "title": "Neutral guilds / Flotillas — Source Guide",
+      "category": "world",
+      "type": "guide",
+      "guideEntity": "guide:guild:neutral",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-trade-mission",
+      "title": "Trade Mission — community guide — Source Guide",
+      "category": "economy",
+      "type": "guide",
+      "guideEntity": "guide:trade-mission",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    },
+    {
+      "slug": "source-guide-pirate-token-farming",
+      "title": "Pirate weapons and Pirate Token farming — Source Guide",
+      "category": "guides",
+      "type": "guide",
+      "guideEntity": "guide:pirate-token-farming",
+      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+    }
+  ]
+}

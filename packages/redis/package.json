@@ -1,0 +1,19 @@
+{
+  "name": "@bom/redis",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "ioredis": "5.7.0",
+    "@bom/shared": "0.1.0",
+    "@bom/db": "0.1.0"
+  },
+  "devDependencies": {
+    "typescript": "5.8.3"
+  }
+}

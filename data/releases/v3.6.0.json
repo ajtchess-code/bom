@@ -1,0 +1,43 @@
+{
+  "version": "v3.6.0",
+  "title": "Control Center",
+  "summary": "A MEE6-inspired dashboard architecture replaces oversized decorative layouts with a compact module directory, clearer navigation, denser settings surfaces and consistent light/dark control-center styling while preserving BOM functionality and branding.",
+  "releasedAt": "2026-10-16T21:40:00Z",
+  "sections": [
+    {
+      "title": "Dashboard architecture",
+      "items": [
+        "Rebuilt the dashboard home around a compact server overview and filterable module directory instead of a large decorative hero.",
+        "Added All Modules, Operations, World of Sea Battles, Community and Administration filters with consistent module cards and direct Open actions.",
+        "Retained favorites, recently viewed items, notifications and recent listening while presenting them as compact control-center activity panels.",
+        "Preserved existing dashboard home visibility preferences; the previous Quick Access preference now controls the new module directory."
+      ]
+    },
+    {
+      "title": "Navigation and visual system",
+      "items": [
+        "Added a compact current-server block and tightened the desktop sidebar around grouped bot modules.",
+        "Refined the top bar, search, create, notification, favorite, appearance and account controls into one consistent utility row.",
+        "Replaced near-black/olive surfaces with neutral charcoal/slate dark mode and a clean neutral light mode while keeping BOM gold for active and primary actions.",
+        "Removed decorative glow and large-gradient treatments from core workspace surfaces."
+      ]
+    },
+    {
+      "title": "Settings and tools",
+      "items": [
+        "Normalized cards, tabs, inputs, selects, forms, modals, tables and status treatments across Admin, Sentinel, Music, Automations, Branding, Ship Builder, Prep & Review, Wiki, Map and Port Battles.",
+        "Administration keeps Basic, Advanced and Diagnostics behavior but now reads as a compact settings console.",
+        "Legacy feature panels retain their existing logic while old dark/green visual styling is neutralized by the new shared design system.",
+        "Map, Wiki and WoSB workspaces keep their current data, natural-language features and interactions."
+      ]
+    },
+    {
+      "title": "Functionality preservation",
+      "items": [
+        "No API routes, database migrations, Discord controller logic, music workers, Port Battle behavior, Sentinel queries or Wiki knowledge logic were changed.",
+        "No new runtime dependency is required; the existing dependency-free Lucide-style icon component remains in use.",
+        "Light/dark appearance, compact sidebar, command palette, notification center, inspector, mobile dock and unsaved-change protection remain available."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "version": "v4.3.0",
+  "title": "Banter and Ask Reliability",
+  "summary": "More frequent administrator-controlled Banter, unified conversation routing, accurate audit counts, PostgreSQL AI budgets and restored Sentinel schema/pages.",
+  "releasedAt": "2026-10-19T01:00:00Z",
+  "sections": [
+    {
+      "title": "Banter",
+      "items": [
+        "Lively and Frequent presets; up to 100% trigger chance and optional zero channel cooldown.",
+        "Atomic limits, cooldown refunds, clearer diagnostics and no new member controls."
+      ]
+    },
+    {
+      "title": "Ask and Sentinel",
+      "items": [
+        "Shared role-history count and time filtering; channel-scoped context.",
+        "Restored audit schema and admin dashboard evidence pages."
+      ]
+    }
+  ]
+}

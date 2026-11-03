@@ -1,0 +1,56 @@
+{
+  "version": "v3.4.0",
+  "title": "Dashboard Polish & Operations",
+  "summary": "A dashboard-wide refinement pass improves navigation, administration, health visibility, accessibility, wording, Wiki quality, Sentinel questions, mobile usability and overall visual balance.",
+  "releasedAt": "2026-10-16T19:20:00Z",
+  "sections": [
+    {
+      "title": "Command Deck & Navigation",
+      "items": [
+        "Expanded Ctrl/Cmd+K from search into an action launcher for common dashboard workflows.",
+        "Added a global Quick Create menu and a universal right-side Inspector for ships, builds, Port Battles, captains, Wiki results and map locations.",
+        "Added actionable notification controls, category filtering, one-hour snooze and clearer next-step buttons.",
+        "Added last-known-state recovery and data-freshness messaging so short connection interruptions do not blank the dashboard."
+      ]
+    },
+    {
+      "title": "Administration & Health",
+      "items": [
+        "Reorganized Administration into Basic, Advanced and Diagnostics views with clearer descriptions and contextual help.",
+        "Added a Review Changes step before saving important configuration updates.",
+        "Added a System Health view for the core service, database, live state, audio engine, dashboard and music workers.",
+        "Added privacy-conscious client performance telemetry for navigation, LCP, CLS and INP, summarized in Diagnostics."
+      ]
+    },
+    {
+      "title": "Wiki",
+      "items": [
+        "Renamed Living Wiki to Wiki throughout the member experience.",
+        "Expanded conversational question handling for slang, shorthand, follow-ups, comparisons, crafting, trade, builds and casual phrasing.",
+        "Removed provenance, source-set and implementation terminology from normal member-facing answers while preserving it internally for review.",
+        "Reworked rough system articles and fallback data presentation into readable facts and tables.",
+        "Rewrote the Shipbuilding and Boarding guides into structured player-facing articles based only on the existing Wiki material.",
+        "Restricted the Wiki source inventory endpoint to administrators."
+      ]
+    },
+    {
+      "title": "Sentinel",
+      "items": [
+        "Expanded natural-language flexibility for casual questions about members, roles, channels, access, removals and recent changes.",
+        "Improved conversational follow-ups and context handling.",
+        "Reworded the dashboard around operator-friendly server history, backups, recovery and activity coverage instead of developer-console terminology.",
+        "Kept technical detail available where it belongs in Diagnostics rather than normal answers."
+      ]
+    },
+    {
+      "title": "Design, Mobile & Accessibility",
+      "items": [
+        "Moved the dashboard to a warmer charcoal-and-gold palette with lighter raised surfaces and clearer visual hierarchy.",
+        "Consolidated the active design palette into the canonical dashboard tokens instead of relying on a second late theme override.",
+        "Added stronger keyboard focus states, larger mobile targets, mobile bottom sheets and improved responsive layouts.",
+        "Added sticky table headers, configurable Ship columns, sorting, CSV export and rendering optimizations for larger datasets.",
+        "Improved empty states, contextual help and end-user wording across dashboard tools and Discord Wiki/Sentinel responses."
+      ]
+    }
+  ]
+}

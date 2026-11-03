@@ -1,0 +1,25 @@
+node_modules/
+dist/
+.next/
+.env
+.env.*
+!.env.example
+*.log
+coverage/
+.DS_Store
+
+# Local runtime state and secrets (kept out of the repo)
+.cache/
+.local/
+.npm/
+.yarn/
+cloudflared
+cloudflare-token
+cloudflare-token.txt
+config/redis.conf
+config/redis-password.txt
+data/redis/
+vendor/redis/
+*.sqlite
+*.sqlite-shm
+*.sqlite-wal

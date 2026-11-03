@@ -1,0 +1,7 @@
+export const EVENT_DONATION_REVIEWER='1207434980855259206';
+export const EVENT_END_SQL="COALESCE(event_end_at,(start_date+14)::timestamp AT TIME ZONE timezone)";
+export function lotteryTickets(resource:string,purpose:string,amount:number){if(!Number.isSafeInteger(amount)||amount<1||amount>1000000000)throw Error('Enter a positive whole amount up to 1,000,000,000.');if(!['HEAVY','SAXON'].includes(resource)||!['GOAL','TICKETS'].includes(purpose))throw Error('Choose Heavy Shot or Saxon Shot.');return Math.floor(amount/(resource==='HEAVY'?5000:10000));}
+
+export const EVENT_PRIZE_RULES={donations:['1st Rate ship','2nd Rate ship','3rd Rate ship'],collectors:'Top 3: choice of a 3rd or 4th Rate ship',completion:'All goals complete: 10,000 Saxon Shot',lottery:'One winner: choice of a 1st Rate ship',restrictions:'No Imperial or Premium ships. Unique ships permitted.'};
+export function lollipopsPerHour(earned:number,hours:number,minutes:number){if(!Number.isFinite(earned)||earned<0||!Number.isInteger(earned)||!Number.isFinite(hours)||hours<0||!Number.isInteger(hours)||!Number.isInteger(minutes)||minutes<0||minutes>59)return null;const duration=hours*60+minutes;return duration>0?earned*60/duration:null;}
+export function pickLotteryWinner(entries:{user_id:string;tickets:number}[],ticket:number){if(!Number.isSafeInteger(ticket)||ticket<0)return null;let offset=0;for(const e of entries){offset+=e.tickets;if(ticket<offset)return e.user_id;}return null;}

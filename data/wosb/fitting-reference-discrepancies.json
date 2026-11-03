@@ -1,0 +1,359 @@
+{
+  "checkedHulls": 66,
+  "conflicts": [
+    {
+      "ship": "Pickle",
+      "referenceGuns": 12,
+      "recoveredLayoutPositions": 6,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Le Cerf",
+      "referenceGuns": 18,
+      "recoveredLayoutPositions": 9,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "La Creole",
+      "referenceGuns": 28,
+      "recoveredLayoutPositions": 16,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Poltava",
+      "referenceGuns": 50,
+      "recoveredLayoutPositions": 27,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Ingermanland",
+      "referenceGuns": 68,
+      "recoveredLayoutPositions": 36,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Horizon",
+      "referenceGuns": 18,
+      "recoveredLayoutPositions": 10,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "La Salamandre",
+      "referenceGuns": 22,
+      "recoveredLayoutPositions": 12,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Black Wind",
+      "referenceGuns": 36,
+      "recoveredLayoutPositions": 20,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Essex",
+      "referenceGuns": 46,
+      "recoveredLayoutPositions": 25,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Anson",
+      "referenceGuns": 66,
+      "recoveredLayoutPositions": 36,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Sans Pareil",
+      "referenceGuns": 82,
+      "recoveredLayoutPositions": 44,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Victory",
+      "referenceGuns": 106,
+      "recoveredLayoutPositions": 57,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Friede",
+      "referenceGuns": 16,
+      "recoveredLayoutPositions": 9,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Mercury",
+      "referenceGuns": 20,
+      "recoveredLayoutPositions": 11,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Russia",
+      "referenceGuns": 30,
+      "recoveredLayoutPositions": 16,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Falmouth",
+      "referenceGuns": 40,
+      "recoveredLayoutPositions": 22,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Mordaunt",
+      "referenceGuns": 56,
+      "recoveredLayoutPositions": 30,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "La Sirene",
+      "referenceGuns": 68,
+      "recoveredLayoutPositions": 36,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "La Couronne",
+      "referenceGuns": 64,
+      "recoveredLayoutPositions": 36,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Phoenix",
+      "referenceGuns": 24,
+      "recoveredLayoutPositions": 12,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "San Martin",
+      "referenceGuns": 40,
+      "recoveredLayoutPositions": 20,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Constitution",
+      "referenceGuns": 52,
+      "recoveredLayoutPositions": 26,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Bellona",
+      "referenceGuns": 70,
+      "recoveredLayoutPositions": 35,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Redoutable",
+      "referenceGuns": 86,
+      "recoveredLayoutPositions": 43,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "12 Apostolov",
+      "referenceGuns": 118,
+      "recoveredLayoutPositions": 59,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Polacca",
+      "referenceGuns": 14,
+      "recoveredLayoutPositions": 8,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Le Requin",
+      "referenceGuns": 26,
+      "recoveredLayoutPositions": 15,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Kobukson",
+      "referenceGuns": 30,
+      "recoveredLayoutPositions": 19,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Adventure",
+      "referenceGuns": 42,
+      "recoveredLayoutPositions": 25,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "La Royale",
+      "referenceGuns": 42,
+      "recoveredLayoutPositions": 27,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Black Prince",
+      "referenceGuns": 34,
+      "recoveredLayoutPositions": 19,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Devourer",
+      "referenceGuns": 42,
+      "recoveredLayoutPositions": 31,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Deadfish",
+      "referenceGuns": 59,
+      "recoveredLayoutPositions": 34,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Octopus",
+      "referenceGuns": 82,
+      "recoveredLayoutPositions": 45,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Huracan",
+      "referenceGuns": 172,
+      "recoveredLayoutPositions": 87,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Savannah",
+      "referenceGuns": 18,
+      "recoveredLayoutPositions": 9,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Golden Apostle",
+      "referenceGuns": 14,
+      "recoveredLayoutPositions": 8,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Shunsen",
+      "referenceGuns": 20,
+      "recoveredLayoutPositions": 10,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Eagle",
+      "referenceGuns": 20,
+      "recoveredLayoutPositions": 14,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Kwee Song",
+      "referenceGuns": 30,
+      "recoveredLayoutPositions": 20,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Southampton",
+      "referenceGuns": 32,
+      "recoveredLayoutPositions": 17,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Red Arrow",
+      "referenceGuns": 36,
+      "recoveredLayoutPositions": 22,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Sparrow",
+      "referenceGuns": 8,
+      "recoveredLayoutPositions": 7,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Friedrich Wilhelm",
+      "referenceGuns": 50,
+      "recoveredLayoutPositions": 29,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Flying Cloud",
+      "referenceGuns": 32,
+      "recoveredLayoutPositions": 16,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Three Hierarchs",
+      "referenceGuns": 54,
+      "recoveredLayoutPositions": 27,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Prins Willem",
+      "referenceGuns": 62,
+      "recoveredLayoutPositions": 36,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Le Saint Louis",
+      "referenceGuns": 64,
+      "recoveredLayoutPositions": 38,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Azov",
+      "referenceGuns": 84,
+      "recoveredLayoutPositions": 49,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Shen",
+      "referenceGuns": 45,
+      "recoveredLayoutPositions": 25,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Iberia",
+      "referenceGuns": 52,
+      "recoveredLayoutPositions": 28,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Firestorm",
+      "referenceGuns": 69,
+      "recoveredLayoutPositions": 41,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Neptuno",
+      "referenceGuns": 80,
+      "recoveredLayoutPositions": 44,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Vasa",
+      "referenceGuns": 68,
+      "recoveredLayoutPositions": 37,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "St. Pavel",
+      "referenceGuns": 90,
+      "recoveredLayoutPositions": 46,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Montanes",
+      "referenceGuns": 86,
+      "recoveredLayoutPositions": 48,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Santisima Trinidad",
+      "referenceGuns": 130,
+      "recoveredLayoutPositions": 67,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "De Zeven Provincien",
+      "referenceGuns": 92,
+      "recoveredLayoutPositions": 50,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    },
+    {
+      "ship": "Sovereign",
+      "referenceGuns": 88,
+      "recoveredLayoutPositions": 52,
+      "decision": "Preserve recovered rules; show discrepancy; require verified mount layout before changing capacities."
+    }
+  ]
+}

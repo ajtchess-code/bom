@@ -1,0 +1,3 @@
+CREATE TABLE IF NOT EXISTS service_credentials(service text PRIMARY KEY,ciphertext text NOT NULL,updated_by text NOT NULL,updated_at timestamptz NOT NULL DEFAULT NOW());
+CREATE TABLE IF NOT EXISTS pb_invitations(id uuid PRIMARY KEY,guild_id text NOT NULL,battle_id uuid NOT NULL REFERENCES pb_battles(id) ON DELETE CASCADE,user_id text NOT NULL,requested_by text NOT NULL,status text NOT NULL DEFAULT 'QUEUED' CHECK(status IN ('QUEUED','SENDING','SENT','FAILED','SKIPPED')),message_id text,error text,created_at timestamptz NOT NULL DEFAULT NOW(),updated_at timestamptz NOT NULL DEFAULT NOW(),UNIQUE(battle_id,user_id));
+CREATE INDEX IF NOT EXISTS pb_invitations_queue ON pb_invitations(status,created_at);

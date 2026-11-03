@@ -1,0 +1,16 @@
+name: BOMCraftBridge
+version: 1.0.0
+main: org.bandofmisfits.bridge.BOMCraftBridge
+api-version: '1.20'
+softdepend: [Vault, floodgate]
+commands:
+  bomlink:
+    description: Verify your Minecraft account with the BOM dashboard
+    usage: /bomlink CODE
+  bomauction:
+    description: List the item in your hand for BOM Coins
+    usage: /bomauction sell PRICE
+permissions:
+  bombridge.recovery:
+    description: Staff-assisted console identity linking recovery
+    default: op

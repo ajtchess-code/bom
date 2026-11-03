@@ -1,0 +1,44 @@
+{
+  "version": "v3.7.0",
+  "title": "Membership & Welcome",
+  "summary": "Welcome, diplomacy, member profiles, guild roster, custom role requests, Guild Prefix rules and Role Connections return as first-class Node/PostgreSQL systems, alongside a light/dark dashboard surface repair.",
+  "releasedAt": "2026-10-16T22:15:00Z",
+  "sections": [
+    {
+      "title": "Welcome & diplomacy",
+      "items": [
+        "Added a persistent Welcome panel that automatically returns to the bottom of the configured welcome channel after member activity.",
+        "The approved BOM welcome artwork is rendered dynamically with the newest joiner's Discord display name and avatar while using the official BOM shield.",
+        "Welcome actions are Apply to the Guild, Trade with Misfits and Engage in Diplomacy; the first two use administrator-configured links.",
+        "Diplomacy requests create private text and optional voice rooms, support staff-approved additional participants, and archive a transcript when closed."
+      ]
+    },
+    {
+      "title": "Guild membership",
+      "items": [
+        "Added a Guild Roster module sorted by Discord role hierarchy with captain names, game ranks, profile completeness and ship summaries.",
+        "Added My Profile & Ships with captain identity, rank 15–30, owned ships, playable ships, preferred ships and Horn preference.",
+        "Existing Port Battle preferred-ship profiles remain the source of truth for playable/preferred selections; owned ships extend that profile instead of creating a competing data model.",
+        "Added a persistent Discord Member Console for Guild Roster, My Profile & Ships and Custom Role Request access."
+      ]
+    },
+    {
+      "title": "Roles & automation",
+      "items": [
+        "Added Custom Role Requests with staff approval, primary and optional gradient color, Unicode role icon, role ownership and safe fallback to a standard primary-color role when enhanced styles are unavailable.",
+        "Restored Guild Prefix rules: the highest matching configured Discord role wins and member nicknames reconcile after role changes.",
+        "Restored Role Connections: receiving a source role grants up to five linked roles and applies immediately to existing role holders.",
+        "Preserved the Python bot behavior that removing a source role does not automatically remove previously granted connected roles."
+      ]
+    },
+    {
+      "title": "Dashboard repair",
+      "items": [
+        "Added Members to Community navigation, the module directory and global dashboard actions.",
+        "Repaired legacy Music surfaces that remained near-black in Light mode so Music now uses the same Control Center cards, fields, borders and text hierarchy as the rest of the dashboard.",
+        "Updated shell branding to the official BOM shield supplied for this release.",
+        "No Port Battle, Wiki, Sentinel or music playback contracts were replaced by the membership work."
+      ]
+    }
+  ]
+}

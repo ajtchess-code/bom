@@ -1,0 +1,35 @@
+{
+  "version": "v3.8.0",
+  "title": "Recruitment & Trials",
+  "summary": "Adds a dashboard-first recruitment pipeline with Discord application tickets, automatic recruiter ownership, canned responses, interview scheduling, structured trials, private dashboard voting, applicant status tracking and final promotion into the existing Membership system.",
+  "releasedAt": "2026-10-16T23:00:00Z",
+  "sections": [
+    {
+      "title": "Applications & recruiter workflow",
+      "items": [
+        "Apply to the Guild in the Welcome panel can now launch a native two-part BOM application with verification, a private ticket and a pinned applicant status panel.",
+        "The first configured recruiter who sends a normal message in an unassigned ticket automatically claims the application; dashboard transfers move ownership without allowing later replies to steal it.",
+        "Recruiters get dashboard assignment, status, interview, notes, canned responses and decision tools while Discord stays focused on the actual conversation.",
+        "Applicants always see their current stage, assigned recruiter, who the process is waiting on, what happens next and a visible application progress timeline."
+      ]
+    },
+    {
+      "title": "Trials & final review",
+      "items": [
+        "Applications can advance into configurable timed trials with the Trial Discord role, midpoint check-ins, staff feedback and contextual participation summaries from Port Battles and Sentinel activity.",
+        "At trial end the assigned recruiter submits a recommendation before leadership voting opens; running vote totals remain hidden from ordinary voters.",
+        "Leadership can accept, extend or decline from the dashboard. Extending a trial resets the previous recommendation and vote round so the next review is independent.",
+        "Final acceptance assigns the configured BOM Member role, removes Applicant/Trial roles, updates the Guild Roster profile and lets existing Guild Prefix and Role Connections automation take over."
+      ]
+    },
+    {
+      "title": "Reliability & applicant experience",
+      "items": [
+        "Application drafts can be resumed after Discord is closed and abandoned drafts expire automatically after 24 hours.",
+        "Configurable reminders cover unclaimed applications, applicant-required actions, midpoint reviews and overdue final recruiter recommendations; zero disables the applicable reminder.",
+        "Meaningful state changes are written to the recruitment timeline, reflected in the pinned status panel and sent to the applicant when appropriate.",
+        "Recruitment installs disabled by default so administrators can configure the ticket category, recruiter roles, Applicant/Trial/Member roles and voting roles before opening applications."
+      ]
+    }
+  ]
+}

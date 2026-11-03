@@ -1,0 +1,25 @@
+{
+  "version": "v3.8.1",
+  "title": "Admin Setup & Voice Numbering",
+  "summary": "Makes Membership and Welcome configuration easy to find from Administration and adds persistent automatic numbering for Join-to-Create temporary voice rooms, including superscript names such as BOM¹, BOM² and BOM³.",
+  "releasedAt": "2026-10-16T23:30:00Z",
+  "sections": [
+    {
+      "title": "Membership setup is now discoverable",
+      "items": [
+        "Administration now includes a first-class Membership & Welcome destination instead of hiding server-wide onboarding settings inside the Members module.",
+        "Welcome channel, Diplomacy, roster membership, Member Console, Custom Roles, Guild Prefix and Role Connections remain the same underlying systems and can still be reached from Members when appropriate.",
+        "The Administration home and module directory now link directly to Membership & Welcome."
+      ]
+    },
+    {
+      "title": "Temporary voice room numbering",
+      "items": [
+        "Admin Basic now exposes the actual Join-to-Create rule editor rather than only showing active temporary listening sessions.",
+        "Each voice rule can use no numbering, standard numbering, superscript numbering or two-digit padded numbering.",
+        "A name template of BOM with Superscript selected creates BOM¹, BOM², BOM³ and reuses the lowest available number after rooms close.",
+        "The {number} token can be placed explicitly in templates; if omitted from the main voice template while numbering is enabled, the number is appended automatically."
+      ]
+    }
+  ]
+}

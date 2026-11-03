@@ -1,0 +1,44 @@
+{
+  "version": "v3.5.0",
+  "title": "Modern Workspace",
+  "summary": "A visual-system rebuild gives the BOM Command Deck a cleaner hierarchy, true light and dark modes, quieter surfaces, better typography, consistent outline icons and more usable page layouts without changing the underlying tools.",
+  "releasedAt": "2026-10-16T21:00:00Z",
+  "sections": [
+    {
+      "title": "New visual system",
+      "items": [
+        "Rebuilt the dashboard around a restrained warm-neutral design system instead of near-black surfaces and overlapping gold glow treatments.",
+        "Added true Light and Dark appearance modes with a persisted account preference and pre-paint theme bootstrap to reduce theme flashing.",
+        "Adopted Inter for interface copy and Space Grotesk for display typography through an open-source font source, with robust system fallbacks.",
+        "Normalized navigation and utility icon styling around an open-source Lucide-style outline language without adding a runtime icon dependency."
+      ]
+    },
+    {
+      "title": "Navigation and layout",
+      "items": [
+        "Redesigned the desktop sidebar, active navigation, account area and collapse control for clearer grouping and less visual noise.",
+        "Simplified the top bar and moved desktop Quick Create into the top bar; the floating action is now reserved for mobile where it is useful.",
+        "Reduced oversized page heroes and standardized page widths, spacing, borders, controls and card hierarchy across dashboard tools.",
+        "Refined the command palette into a calmer action/search surface with readable recent items and a two-column action launcher."
+      ]
+    },
+    {
+      "title": "Dashboard, Wiki and Map",
+      "items": [
+        "Reduced the Dashboard hero footprint and balanced the session, Music, Sentinel, recents, favorites and attention sections.",
+        "Reworked Wiki visual hierarchy so natural-language search is the primary action while the article directory reads more like an encyclopedia.",
+        "Refined Map controls, layer presentation and canvas framing; map terminology now consistently says Map rather than Chart.",
+        "Updated popovers, notifications, inspectors, tables, forms, empty states and modals to use the same shared visual language."
+      ]
+    },
+    {
+      "title": "Admin, Sentinel and responsive UI",
+      "items": [
+        "Refined Basic, Advanced and Diagnostics administration views without changing their save or API behavior.",
+        "Improved Sentinel table, filter and health surfaces for clearer operator scanning.",
+        "Reworked responsive behavior so the desktop navigation collapses cleanly and mobile keeps the Command Dock and a compact Quick Create action.",
+        "Kept focus states, reduced-motion support, table virtualization hints and existing accessibility behavior intact."
+      ]
+    }
+  ]
+}

@@ -1,0 +1,35 @@
+{
+  "version": "v3.9.1",
+  "title": "Welcome V2 & Fleet Channel Indexes",
+  "summary": "Rebuilds the Welcome surface as Discord Components v2 with a transparent member banner, converts Trade with Misfits into a configured-role action, hardens dashboard Discord authorization against rate limits, and adds persistent signup/roster channel landing panels and indexes.",
+  "releasedAt": "2026-10-17T00:48:00Z",
+  "sections": [
+    {
+      "title": "Welcome surface",
+      "items": [
+        "The old embed is replaced with a true Components v2 container containing only the member-specific banner and action buttons.",
+        "The banner asset is tightly cropped with transparent rounded corners so Discord no longer shows a large white attachment canvas.",
+        "Buttons are now Apply to BOM, Trade with Misfits, and Diplomacy.",
+        "Trade with Misfits grants the configured Trade role instead of opening a URL.",
+        "The Welcome message is pinned, remains at the bottom of its channel, and automatically upgrades the previous legacy embed after restart."
+      ]
+    },
+    {
+      "title": "Port Battle Discord channels",
+      "items": [
+        "The signup channel always has a pinned Port Battle Signups landing embed, even when no battles exist.",
+        "A PB Signup Index always exists and stays at the bottom of the signup channel, including an empty-state index when no signups are open.",
+        "The roster channel always has a pinned Port Battle Rosters landing embed, even when no rosters exist.",
+        "When more than one current roster exists, a Rosters Index is created at the bottom with direct links to each roster; it is removed automatically when no longer needed."
+      ]
+    },
+    {
+      "title": "Dashboard authorization resilience",
+      "items": [
+        "Concurrent dashboard authorization checks now share in-flight Discord lookups instead of issuing duplicate guild/member/role requests.",
+        "Discord 429 responses receive a bounded retry and previously verified authorization/context can be used briefly as stale fallback instead of turning a transient rate limit into a dashboard 500.",
+        "Membership & Welcome configuration adds a Trade role selector and keeps the native Recruitment application flow as the preferred Apply to BOM action."
+      ]
+    }
+  ]
+}

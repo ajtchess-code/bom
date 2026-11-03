@@ -1,0 +1,909 @@
+{
+  "repository": "https://github.com/chiefpansancolt/clash-of-clans-data",
+  "commit": "54cec2a31fd68e538d8e8074388d2d04db6d43c9",
+  "packageVersion": "0.18.1",
+  "license": "MIT",
+  "retrieved": "2026-10-21",
+  "files": [
+    {
+      "path": "data/builder/army-buildings/army-camp.json",
+      "sha256": "27ab33c937e908ea879e2349003f6b276ae6df3b02c0b0ac15998807d149a7d9"
+    },
+    {
+      "path": "data/builder/army-buildings/battle-copter-altar.json",
+      "sha256": "3996761fbe8ae00eb8602043eb0feb707620cafbe719a6a3b6a920ad5597fdad"
+    },
+    {
+      "path": "data/builder/army-buildings/battle-machine-altar.json",
+      "sha256": "9c048fe5a803fd374c847bfc600a84d8d2421c4cf1fcce2d521bf35e00939971"
+    },
+    {
+      "path": "data/builder/army-buildings/builder-barracks.json",
+      "sha256": "ec2ef6c1cee2deed4de0d5cb91add7e137084f06c2967642dd794bf5279ba6be"
+    },
+    {
+      "path": "data/builder/army-buildings/healing-hut.json",
+      "sha256": "9ec542190bb56285b551a1a9c82a1b981930fbc3c92e8a3b94cdde5ffcba2521"
+    },
+    {
+      "path": "data/builder/army-buildings/reinforcement-camp.json",
+      "sha256": "515f51477ba590faa03486a41dba971b920a68050c77abc26778d04e2bd64671"
+    },
+    {
+      "path": "data/builder/army-buildings/star-laboratory.json",
+      "sha256": "7e9cf47bdf751df26fd584a7bb4193dd895a522d5c463854790ac9ea7befffb0"
+    },
+    {
+      "path": "data/builder/builder-hall/builder-hall.json",
+      "sha256": "2a8a1d66aa6ab0aad9d46ff7480cbcfbe79ef95677089bbd92f9083d7ec64a82"
+    },
+    {
+      "path": "data/builder/defenses/air-bombs.json",
+      "sha256": "acc1fd2a27dec21f01b7c0cfd99d13d5a387cbf4e4635001f1558f26599387e0"
+    },
+    {
+      "path": "data/builder/defenses/archer-tower.json",
+      "sha256": "2332d8d4a2aa89849d610ac06e5e7e14490176febc1a50f7b7f56c3bff7d36ff"
+    },
+    {
+      "path": "data/builder/defenses/cannon.json",
+      "sha256": "5e60d3f88e13036eeada512cdadcdbce2a28859267a6262cce7d537c4d65b1a2"
+    },
+    {
+      "path": "data/builder/defenses/crusher.json",
+      "sha256": "133bbcd8ebfe80b34df81eb1ffaf5156ffe80aa73955c0ade54bf654b3e2ff5f"
+    },
+    {
+      "path": "data/builder/defenses/double-cannon.json",
+      "sha256": "62b2b7771bebf83eade86c012495e02d25e6e2d3ce4f073f744942b950047373"
+    },
+    {
+      "path": "data/builder/defenses/firecrackers.json",
+      "sha256": "00cc5fe8ea009d5dc0c77d27e6b29a36aa0a378a1b124aed059453f72f9eb34b"
+    },
+    {
+      "path": "data/builder/defenses/giant-cannon.json",
+      "sha256": "b0845a6b15c5ce88c6bb54e90b2f380ace53a79b655bc54c03623e6e15330a1a"
+    },
+    {
+      "path": "data/builder/defenses/guard-post.json",
+      "sha256": "f46e712f1674fcb931896ec2e4a58e7fd8ef8f59c7799900073d528557272db4"
+    },
+    {
+      "path": "data/builder/defenses/hidden-tesla.json",
+      "sha256": "70ea7fe01c4e782fde63b1d18155ed47252e1eebe77757cbb99f1bcec36f061a"
+    },
+    {
+      "path": "data/builder/defenses/lava-launcher.json",
+      "sha256": "13d3cdd73b1e150d89ed7ee525a0eb992742c2b33ef30503e08db42536afbb16"
+    },
+    {
+      "path": "data/builder/defenses/mega-tesla.json",
+      "sha256": "55f4c8efea61ee944e604e6f8deeef4c6f4cb1a00dcbe09e2f765cb95cd71ea0"
+    },
+    {
+      "path": "data/builder/defenses/multi-mortar.json",
+      "sha256": "8f450cc27577e82c8761e68b9b4246932562c60c734bba2e05c2ab1466a0b103"
+    },
+    {
+      "path": "data/builder/defenses/ottos-outpost.json",
+      "sha256": "f969141906a806057c6489e3e62d424365c418ed3bf16871aec6e32bc1362c32"
+    },
+    {
+      "path": "data/builder/defenses/roaster.json",
+      "sha256": "ad8828c52e49bf3da5ddcfb151e3fdbac96a684d6ee3982fed4803cfd89db2fb"
+    },
+    {
+      "path": "data/builder/defenses/x-bow.json",
+      "sha256": "ed820260c13b070b894f2840f2cb222a8204b29e8cf1d40c88c3eabd5fcf8f98"
+    },
+    {
+      "path": "data/builder/heroes/battle-copter.json",
+      "sha256": "0e6aac40f0fd9ff4a261b1ce52d1fe1915105b215266dc00c21ee77266e817df"
+    },
+    {
+      "path": "data/builder/heroes/battle-machine.json",
+      "sha256": "bbc7e3ce244a0b6787a4d1e99194917f0783940291ec156bd1f5110fbaf905af"
+    },
+    {
+      "path": "data/builder/other/clock-tower.json",
+      "sha256": "87e4af732f251f0b34edf03fd29de8dcda90494671b766cf98e0ddbc334d8a93"
+    },
+    {
+      "path": "data/builder/resource-buildings/bob-control.json",
+      "sha256": "2cdecf37de4c55eb9e5f80da313b8019b7c55ceb0ef1132868c44a157f392a7f"
+    },
+    {
+      "path": "data/builder/resource-buildings/elixir-collector.json",
+      "sha256": "015a058832b80a8ac834768c9582cb09053abbb6974c643091395ce532a91a01"
+    },
+    {
+      "path": "data/builder/resource-buildings/elixir-storage.json",
+      "sha256": "535f858ef3fce5a42d3a0b22805d98f97667009215c621d12a6f42e326d021dd"
+    },
+    {
+      "path": "data/builder/resource-buildings/gem-mine.json",
+      "sha256": "7b23f136289ebdad29de04bbb2fb922e9f88b214640529b517c92ba84a27d7b1"
+    },
+    {
+      "path": "data/builder/resource-buildings/gold-mine.json",
+      "sha256": "95570b68a61a2a043fadeab432077fd954520a5d5c6c6ac524d8f1893213ffe8"
+    },
+    {
+      "path": "data/builder/resource-buildings/gold-storage.json",
+      "sha256": "71b34993911619dd62f425fba2c7927daa73cbc26c8bb8cff85825e3d1d88c7f"
+    },
+    {
+      "path": "data/builder/traps/mega-mine.json",
+      "sha256": "bc10b89ae13d7653fdbebaf271e873e9886778280ff44ef0e950b90330bc47ef"
+    },
+    {
+      "path": "data/builder/traps/mine.json",
+      "sha256": "7d3365822bc950bbbf70b32b1ddc700cf59725a50b80bb8ad45335d17fcacf6b"
+    },
+    {
+      "path": "data/builder/traps/push-trap.json",
+      "sha256": "20a88fdaaccd02ee37615f0da826837098d7c72ec5cbef4a2c2204b9716d5a79"
+    },
+    {
+      "path": "data/builder/traps/spring-trap.json",
+      "sha256": "360855857a1f18256811fc718e38ab9d14583061c88584a8f81ecf7776126142"
+    },
+    {
+      "path": "data/builder/troops/baby-dragon.json",
+      "sha256": "7728807727a1b443d4a8ca382bfc494bc089279fd9ced966b26e6cba34b98e20"
+    },
+    {
+      "path": "data/builder/troops/beta-minion.json",
+      "sha256": "249c570c4978c26d28b00eb0055f3a257bb17fedee224e1f3d5cfc5e74a31779"
+    },
+    {
+      "path": "data/builder/troops/bomber.json",
+      "sha256": "ca4ea6a8552e23fc1c2b603df0ed01d03478e582b9c904bcd8cba2d9961ff253"
+    },
+    {
+      "path": "data/builder/troops/boxer-giant.json",
+      "sha256": "4abb8dd6d47fb7615a46803f3f16859bbae11a7af3a06ddb215c8fbe5e7e1a95"
+    },
+    {
+      "path": "data/builder/troops/cannon-cart.json",
+      "sha256": "d58c1ef252ac37c0dcd4ec8e8fb337378674efb06bca52723ca18f92222e4c7f"
+    },
+    {
+      "path": "data/builder/troops/drop-ship.json",
+      "sha256": "97b661675e23b414c2e0eed89b739e01b2632a5d9b54ab6441235b3ce462688f"
+    },
+    {
+      "path": "data/builder/troops/electrofire-wizard.json",
+      "sha256": "51b627180e3b32b6ffb2f574242ea7099b5fc6d27748bcd787b71889cea6c15c"
+    },
+    {
+      "path": "data/builder/troops/hog-glider.json",
+      "sha256": "4589574e3689d5341b5a9389bbd47d2ab2ac8f9f6e007afc4b70876451371568"
+    },
+    {
+      "path": "data/builder/troops/night-witch.json",
+      "sha256": "4ea6eea5d150ed3b5b272a3e9b375b0040f122c9f913f368cfa28874115c6fe5"
+    },
+    {
+      "path": "data/builder/troops/power-pekka.json",
+      "sha256": "fe7f234c0d069983fcea7c57db4223d452313588c1ddcb7889de5a61fd276269"
+    },
+    {
+      "path": "data/builder/troops/raged-barbarian.json",
+      "sha256": "4fb1b705b110cd42c9e4d32d24b4c9fb4ca18d709fdf802a34536e2f35ccf1a0"
+    },
+    {
+      "path": "data/builder/troops/sneaky-archer.json",
+      "sha256": "6327f44695231e3537ffccd2b967f47b0086932e69539b19831f6ccf9330d385"
+    },
+    {
+      "path": "data/builder/walls/wall.json",
+      "sha256": "60c01d2757ca3b011f783df84af9784b32f9c0b8a0e8e2b93893f769bae511f3"
+    },
+    {
+      "path": "data/home/army-buildings/army-camp.json",
+      "sha256": "8439d790ac5ca0f6c5f94fab9c049eb74ca12e0ebf86e5fbcff32058bb33a1d9"
+    },
+    {
+      "path": "data/home/army-buildings/barracks.json",
+      "sha256": "01983a6ed8aa052dbc6c6f8271e9735939d106599f53ce05912897cd14469126"
+    },
+    {
+      "path": "data/home/army-buildings/blacksmith.json",
+      "sha256": "03c9db08e8ed3cf4b6a5b979fee632acf0f8ea42e910508c843072b225c48c54"
+    },
+    {
+      "path": "data/home/army-buildings/dark-barracks.json",
+      "sha256": "9b1b67969ae9c7ca6c531c49e0abf70d7d5c8d76f65dd04e1595bbd36d6d6788"
+    },
+    {
+      "path": "data/home/army-buildings/dark-spell-factory.json",
+      "sha256": "c1465adf3728fc807334af45c57e5f24355a7a6dc4139e9437ee77de0ea09647"
+    },
+    {
+      "path": "data/home/army-buildings/hero-hall.json",
+      "sha256": "56ac161e2d35866f3e5a5bceefa539657735888ab9a35563361c1ac22946130d"
+    },
+    {
+      "path": "data/home/army-buildings/laboratory.json",
+      "sha256": "309eba2cb128709830df6703a0c58893e1a5b059d0ffc327b78c4f0e786896a2"
+    },
+    {
+      "path": "data/home/army-buildings/pet-house.json",
+      "sha256": "0cfd082636caedfa41c3050c4121240938853cefd1525c6f36c9203c766244f4"
+    },
+    {
+      "path": "data/home/army-buildings/spell-factory.json",
+      "sha256": "fca0f69421b681b6c7970451efb1d471ae699f112b83f926d10c08197cbb6498"
+    },
+    {
+      "path": "data/home/army-buildings/workshop.json",
+      "sha256": "9f1f222bd718fdf7a04cfa71521900f93c0b10b4ff86b14d4705bcfbf8a154a7"
+    },
+    {
+      "path": "data/home/defenses/air-defense.json",
+      "sha256": "47d79b27abfeb9a41a744af732c5a042c3236d43ea6dd71dc4c7dd184cb4a966"
+    },
+    {
+      "path": "data/home/defenses/air-sweeper.json",
+      "sha256": "02eb2b4a724df714df5b41f02a476d0444f6e16d6ab52cd0261c1e1fc8bbb5f6"
+    },
+    {
+      "path": "data/home/defenses/archer-tower.json",
+      "sha256": "1ad5f8e83cf9f7ed515bd79927ba0202359c79c5ce5e6cb72a8e5f18856eaaf8"
+    },
+    {
+      "path": "data/home/defenses/bomb-tower.json",
+      "sha256": "7d863a85ffab3c3d12ffe0081aee094df4ee91592612b0e7b9727e53ee946c6c"
+    },
+    {
+      "path": "data/home/defenses/builders-hut.json",
+      "sha256": "3310a065ca65f4193eee944f10be84da1e30c5c02bc25661245293987980f6cf"
+    },
+    {
+      "path": "data/home/defenses/cannon.json",
+      "sha256": "a2411a77327f18ad30018b5384e34ee6c03b7a8f0e3429381f69de1cd0919aa7"
+    },
+    {
+      "path": "data/home/defenses/crafting-station.json",
+      "sha256": "ebb4a9da4aa0b7544146abc893acf93baf364903548ecfce895749b34c13066d"
+    },
+    {
+      "path": "data/home/defenses/eagle-artillery.json",
+      "sha256": "5951e44f6930573ca8397c2fc3a14dc04a33a0c19cc22848704ddd4b7ffb478a"
+    },
+    {
+      "path": "data/home/defenses/firespitter.json",
+      "sha256": "618e272a8e964cd777963733fc313e19c8f5ccc30b1d43978eca47830d24f8c4"
+    },
+    {
+      "path": "data/home/defenses/hidden-tesla.json",
+      "sha256": "a1e8f78c2800b45e4cf795cf6718e350070b7474a5350907675f7d1affa99f4a"
+    },
+    {
+      "path": "data/home/defenses/inferno-tower.json",
+      "sha256": "8e541fe624f16e143f0c9152b5358075e1f832264c05cf12045e99be0f3992c5"
+    },
+    {
+      "path": "data/home/defenses/monolith.json",
+      "sha256": "abd9ce5602a5a409a0239e307be285218693b7e10ac8effbcee58213840c18a2"
+    },
+    {
+      "path": "data/home/defenses/mortar.json",
+      "sha256": "a2db6c2b922a74cd0729a5555f18c7d1a49377673428fdb827fa275a37e87985"
+    },
+    {
+      "path": "data/home/defenses/multi-archer-tower.json",
+      "sha256": "bc1d3ad07f7461e10b565b3240c8b9a0b4adfd520fb647eab98381b58ebb4643"
+    },
+    {
+      "path": "data/home/defenses/multi-gear-tower.json",
+      "sha256": "d0633351fe974176d57567fb13fa1c347c6aa0b9864d69c0f154b07f50046d1b"
+    },
+    {
+      "path": "data/home/defenses/revenge-tower.json",
+      "sha256": "5044ff5a8dd76a96d3ff3d3fd3184957e2ebd48ca397a9752f9000e5228e2264"
+    },
+    {
+      "path": "data/home/defenses/ricochet-cannon.json",
+      "sha256": "fd4c0983aab3f7ffe0af77bea90e84dc936f5e00f5d522fdd5a46fb73f8a833d"
+    },
+    {
+      "path": "data/home/defenses/scattershot.json",
+      "sha256": "42c85ce18c5558d8412eca95b3de144efe760911966ed34df540fa2c7f6ca154"
+    },
+    {
+      "path": "data/home/defenses/spell-tower.json",
+      "sha256": "f36bf54d3c131f1d40de47009668a010df0ee2deb5e985344278ddf20ea2ef62"
+    },
+    {
+      "path": "data/home/defenses/super-wizard-tower.json",
+      "sha256": "04974cac945eeaf41c19e337ce54fd3d7a08ba918caa25cb7561dc0baffb0c40"
+    },
+    {
+      "path": "data/home/defenses/wizard-tower.json",
+      "sha256": "46198244e1a42c99b8e2278e09e43f1075345242e24586ed628304d662eb27e3"
+    },
+    {
+      "path": "data/home/defenses/x-bow.json",
+      "sha256": "e62d38637075397fc7cf59c949ec2305d1c91ee457de8e7882cd4e673cf854f7"
+    },
+    {
+      "path": "data/home/guardians/logger.json",
+      "sha256": "eee95f0c8a9d6204a5db0d592f83a6d8c8d53a407ab918f017a4797b2b5ef855"
+    },
+    {
+      "path": "data/home/guardians/longshot.json",
+      "sha256": "3bb0b514876a43a8ed9c33c13506bace04515ecd4c4c56de6b1788dda76dd6ce"
+    },
+    {
+      "path": "data/home/guardians/smasher.json",
+      "sha256": "a07996a3c1ca73cad94f81ecc3f437a9efe7001851c6b4e1753ca97ff2f0cae5"
+    },
+    {
+      "path": "data/home/hero-equipment/action-figure.json",
+      "sha256": "8c39805dd3987a4ca3a1cf06cda26d8fc382e4ccf039c0daae5e0449fe9fc5b3"
+    },
+    {
+      "path": "data/home/hero-equipment/archer-puppet.json",
+      "sha256": "2827cdf0dab735fb4e1d54fc38ef7e9b34b7eeab01e2afa5c4e293ee53d7e65b"
+    },
+    {
+      "path": "data/home/hero-equipment/barbarian-puppet.json",
+      "sha256": "2fea7c80c31e5e0d8b13e34e3f508d971143f3a7766a3cdfc4f412346c9b729d"
+    },
+    {
+      "path": "data/home/hero-equipment/dark-crown.json",
+      "sha256": "8fcae7400f815a824f3944464a116857037385297d1f893ef34924c903232152"
+    },
+    {
+      "path": "data/home/hero-equipment/dark-orb.json",
+      "sha256": "ae45c15e4e8012c22e027a43b044886bf1b2c983a1cfe9dae0c6064e07769dab"
+    },
+    {
+      "path": "data/home/hero-equipment/earthquake-boots.json",
+      "sha256": "1735c786de0d01487707b23ebd6aaa70fa4761100358d7093ad9ea41b6096c2e"
+    },
+    {
+      "path": "data/home/hero-equipment/electro-boots.json",
+      "sha256": "ebac2d6bb44a1c973b33937e2166d37c1c0ad1d9167596f7ff22f5d9a347a38c"
+    },
+    {
+      "path": "data/home/hero-equipment/electro-fangs.json",
+      "sha256": "c3ff44e5ef0b06b7a76aa60986b940a65c4c65aec4338ac3e7bbcb4fe31df108"
+    },
+    {
+      "path": "data/home/hero-equipment/eternal-tome.json",
+      "sha256": "e00a29ed4399106ed35f0f06d6967b7e3f8eefc6925d8add78bcb4985e2bb4d8"
+    },
+    {
+      "path": "data/home/hero-equipment/fire-heart.json",
+      "sha256": "e469b6213d59071417246dde8e891fb4ce4ac94074108a55d29a65ea5e37a154"
+    },
+    {
+      "path": "data/home/hero-equipment/fireball.json",
+      "sha256": "3c16f6a505753cd95c804c512dab1a2dce22f527a95f186df9bf9a41a7c53cfc"
+    },
+    {
+      "path": "data/home/hero-equipment/flame-blower.json",
+      "sha256": "e6318eaad5c0e68b1635d957ec292c30525a1edc89ae7e05f4a2bc17489efc11"
+    },
+    {
+      "path": "data/home/hero-equipment/frost-flake.json",
+      "sha256": "1b4fccd38ae17821d84df1dccccefda64434fbccaaf36ca0cbb851caeabadb56"
+    },
+    {
+      "path": "data/home/hero-equipment/frozen-arrow.json",
+      "sha256": "4d4db7b46ee2c00850d2b87fc218b3ef3e7074f1d8cd4457083246a4a0b10d9d"
+    },
+    {
+      "path": "data/home/hero-equipment/giant-arrow.json",
+      "sha256": "36f04955f63f20e95cdceacb42f9b36a977b07fd6b1fbeda32733938363a9bfb"
+    },
+    {
+      "path": "data/home/hero-equipment/giant-gauntlet.json",
+      "sha256": "c377f4567e02d1e056c52e29ba62ba3537a0f05211220e97cce800f3d35e47e5"
+    },
+    {
+      "path": "data/home/hero-equipment/haste-vial.json",
+      "sha256": "60bd1dda74c486b6256612112654ad7ace7990fac4a4d9ec382d4ae7c5a29362"
+    },
+    {
+      "path": "data/home/hero-equipment/healer-puppet.json",
+      "sha256": "d70c28fd8b64df46d64bb94ca7dfdb98a99a5423d1a45414863055cbc6cf90ef"
+    },
+    {
+      "path": "data/home/hero-equipment/healing-tome.json",
+      "sha256": "58a33cf5e9331874b2616566e05056d0f6131f0aab58f5a3bf987994d6265499"
+    },
+    {
+      "path": "data/home/hero-equipment/henchmen-puppet.json",
+      "sha256": "e9d6cce8e9924e386352e30a700a56fc2c6155fb129f6a69b8d4f282fe36d900"
+    },
+    {
+      "path": "data/home/hero-equipment/heroic-torch.json",
+      "sha256": "dba49960fea538bfbcfd8443ba4cd7786275bcdd2968c5574a02c3dfe8fd3655"
+    },
+    {
+      "path": "data/home/hero-equipment/hog-rider-puppet.json",
+      "sha256": "7e38d0fac214ddd84f92c81884ff772e38916c3d5a3dede8e6eb09c15cd75309"
+    },
+    {
+      "path": "data/home/hero-equipment/invisibility-vial.json",
+      "sha256": "fd8992f19f8d708ab98195a979b1c424a5ea1fb814e3221a1f565c2da785c182"
+    },
+    {
+      "path": "data/home/hero-equipment/lavaloon-puppet.json",
+      "sha256": "f9ac85fe25899dc2edbb4ddca353c7ba5ee102dd7d5f49594a27e5ece27182f2"
+    },
+    {
+      "path": "data/home/hero-equipment/life-gem.json",
+      "sha256": "1b4a7eaa5a27190243bb8fec5014da1ef05c829b9354329007dc5b9594d21c66"
+    },
+    {
+      "path": "data/home/hero-equipment/magic-mirror.json",
+      "sha256": "72c4b384283b16c9752e45549823fd0b8b301612d94adcd40b736533ca414809"
+    },
+    {
+      "path": "data/home/hero-equipment/metal-pants.json",
+      "sha256": "a1b2ecc9a507c86ceaa136c1234bf3412280bb849af6471fd3dbab9574a8af6e"
+    },
+    {
+      "path": "data/home/hero-equipment/meteor-staff.json",
+      "sha256": "b8187cef6d5aa8d237c2fe4f074f296d829b9a960a44473751b0be17290b4a6d"
+    },
+    {
+      "path": "data/home/hero-equipment/monolith-arrow.json",
+      "sha256": "4de9863354d62cbeb43a743eb3169ce2c0426608886f1aa5a86af7dd98f00f45"
+    },
+    {
+      "path": "data/home/hero-equipment/noble-iron.json",
+      "sha256": "0b1a2e3329f37b6691034b5cb77dd2b7938b919258ceff147af7106fb736c5f2"
+    },
+    {
+      "path": "data/home/hero-equipment/rage-gem.json",
+      "sha256": "85dd2f83699d07ad7e345e7b7c77091db1259b93b0bc69bae77dff583db59270"
+    },
+    {
+      "path": "data/home/hero-equipment/rage-vial.json",
+      "sha256": "a30edaa3dac292f0e411aa58a2c8471b382b25dcbfd9f799a59eda5a5d19c868"
+    },
+    {
+      "path": "data/home/hero-equipment/revenge-deck.json",
+      "sha256": "e33c11be8bd3b3b528929dbdab50aa861e76d1c74182cd922d3d8f39f2239902"
+    },
+    {
+      "path": "data/home/hero-equipment/rocket-backpack.json",
+      "sha256": "e232a0f83df1814cee9b8c9fa740728e75e3fc5cdbb3167a4715739ccac6a7f4"
+    },
+    {
+      "path": "data/home/hero-equipment/rocket-spear.json",
+      "sha256": "0b654329d807cfb41de8827ce9cc4f2d26195b7c3aa512d30766f5e7fade7205"
+    },
+    {
+      "path": "data/home/hero-equipment/royal-gem.json",
+      "sha256": "5978c181f166840e83e233d2b9de3e40bb60c8245c52492e97bf5aa89df2f607"
+    },
+    {
+      "path": "data/home/hero-equipment/seeking-shield.json",
+      "sha256": "6590f3c970bb7d4007607d3ff2fcd90a338d2cc256a65e15353622866288518d"
+    },
+    {
+      "path": "data/home/hero-equipment/snake-bracelet.json",
+      "sha256": "6f088cac379632929f1249f6293baf3c2ee01debf85e2acefb411f60f39135f3"
+    },
+    {
+      "path": "data/home/hero-equipment/spiky-ball.json",
+      "sha256": "5dc2e353d540e7c85d10c8cf79fdd58c7042b3ad7a54baad05c4c339b0c96528"
+    },
+    {
+      "path": "data/home/hero-equipment/stick-horse.json",
+      "sha256": "8c4ed0edd6fa9f8a963f9ecf3c150dbe98df996fff9695af2e25c88d925953be"
+    },
+    {
+      "path": "data/home/hero-equipment/stun-blaster.json",
+      "sha256": "b0a8e37c5f6125928954b5df7329699fd720021d4d914c9690ebcdf340962cb4"
+    },
+    {
+      "path": "data/home/hero-equipment/vampstache.json",
+      "sha256": "d75927edeb22f434c6f8f44a016225eece4fef0470d8d0e7a944a596f63ee395"
+    },
+    {
+      "path": "data/home/heroes/archer-queen.json",
+      "sha256": "2defebf11198bd478d3373d37b9497d98da8744b3eb3cf6c1096368ce3b3c714"
+    },
+    {
+      "path": "data/home/heroes/barbarian-king.json",
+      "sha256": "4b46cae39a0857d9d2dadea68a5db7e0342d6bb3925857bb1ac9251e358f7c3b"
+    },
+    {
+      "path": "data/home/heroes/dragon-duke.json",
+      "sha256": "2542cd852a57230021e9120eb410be02e95317c709310036d79cbfce18ceec85"
+    },
+    {
+      "path": "data/home/heroes/grand-warden.json",
+      "sha256": "279e827468f818269e3fedf60ad161d6a4562f4d5c232074cf19aa2c668d8ced"
+    },
+    {
+      "path": "data/home/heroes/minion-prince.json",
+      "sha256": "dcf18479942c4029c04562c1418575a892cc97ca5080471cc273e2d4bd9aade3"
+    },
+    {
+      "path": "data/home/heroes/royal-champion.json",
+      "sha256": "eba5e535e1b3f8dbb0d154e2fd59b5f490d8ab47e80c59abc6849d48ffffbc8e"
+    },
+    {
+      "path": "data/home/other/bobs-hut.json",
+      "sha256": "d394c6bcca0bb5e5630e6faf29dc2070df6cb522a0621c47f26c8bee189a18de"
+    },
+    {
+      "path": "data/home/other/helper-hut.json",
+      "sha256": "f27ca46d46da29b71f88aaa187cc83738c20fe3c22c5b9b8413b357d366f632b"
+    },
+    {
+      "path": "data/home/other/helpers/builders-apprentice.json",
+      "sha256": "c90b9109ed09bc1d1ba3bd9e9cc90b09fba6aa2714c408673863eaa1779a0ff6"
+    },
+    {
+      "path": "data/home/other/helpers/lab-assistant.json",
+      "sha256": "7987096ddf374c21b03fa149c953ff52de377af7be7a571021f01fc3173b006a"
+    },
+    {
+      "path": "data/home/other/helpers/prospector.json",
+      "sha256": "b8c587a25bf6ab166bee4bf23ad4c1745a0c0bbf318aa2ef78d68960832de306"
+    },
+    {
+      "path": "data/home/pets/angry-jelly.json",
+      "sha256": "7b8c80554a5565b415d4974c98ba38623d39f27667856802e328cfd3e97ee9cd"
+    },
+    {
+      "path": "data/home/pets/diggy.json",
+      "sha256": "44e9c560bea6a3be059a91cdf3974d39b7e007a434eed325914ad24a08bf6ad6"
+    },
+    {
+      "path": "data/home/pets/electro-owl.json",
+      "sha256": "8f4563df3ab4f0e8cd49103a1f1836c3b2df982b13ea03e0ce081a022f042fa3"
+    },
+    {
+      "path": "data/home/pets/frosty.json",
+      "sha256": "39a54f8ee2b8d7d45800beff1a7ece5c996bd925e3f7761039a903cb265d7bdb"
+    },
+    {
+      "path": "data/home/pets/greedy-raven.json",
+      "sha256": "bb13ae4889103d9ded9c7b160487293d7c185aad9a711c6f8d50d8641839b00f"
+    },
+    {
+      "path": "data/home/pets/lassi.json",
+      "sha256": "f39fce1c06ad8ae15ecb1b699c58d92f4daa45e2cde25408f558e19e3805eee5"
+    },
+    {
+      "path": "data/home/pets/mighty-yak.json",
+      "sha256": "e7f156e1da41015363e32730563bf349d9c9bfded0035bd5078e9c49071b10d1"
+    },
+    {
+      "path": "data/home/pets/phoenix.json",
+      "sha256": "171792bfcde44671aa930c30d022c09f488c99b6cb6f7675cf33b5d3cc643f82"
+    },
+    {
+      "path": "data/home/pets/poison-lizard.json",
+      "sha256": "a13528e1d46729694890e7e114460785090571f2287f2e15463bbd807a9d4378"
+    },
+    {
+      "path": "data/home/pets/sneezy.json",
+      "sha256": "f9c009c22a7b8414a04abfb9cdfd44428c7b44bb8f1492a17da031765794c5a6"
+    },
+    {
+      "path": "data/home/pets/spirit-fox.json",
+      "sha256": "498e774ff4534f08c38a6a343074819acc2dffc1eef6324c9e5d8430b5d8a625"
+    },
+    {
+      "path": "data/home/pets/unicorn.json",
+      "sha256": "606994539710b920ab825017080a0baeb062e638f8331344354cc47adb6f49a7"
+    },
+    {
+      "path": "data/home/resource-buildings/clan-castle.json",
+      "sha256": "a1995805f4efdf12c7bbbc0e2594df767b2acaf9ca5db283573323104add28bf"
+    },
+    {
+      "path": "data/home/resource-buildings/dark-elixir-drill.json",
+      "sha256": "3a640f4d25982eadd7dac0564b1093a07784224131b9caa4dd0e50f4bb3f016d"
+    },
+    {
+      "path": "data/home/resource-buildings/dark-elixir-storage.json",
+      "sha256": "bd426d039f802850269a39e6dedc52b5c1697976fba8f12cec3f77a8d6509c5d"
+    },
+    {
+      "path": "data/home/resource-buildings/elixir-collector.json",
+      "sha256": "58af98447b40f95827a229773b7f89ad94dc3425db0b32dbabcecf1292d0e392"
+    },
+    {
+      "path": "data/home/resource-buildings/elixir-storage.json",
+      "sha256": "532dcb5f9953597fa39318c4437a515138f6d3e9d34b8e0568015d4bb6e7a053"
+    },
+    {
+      "path": "data/home/resource-buildings/gold-mine.json",
+      "sha256": "b26067ca380b9cac8a6548c7d457274b75a0e4b057d0bb26ab363bfb82df7c58"
+    },
+    {
+      "path": "data/home/resource-buildings/gold-storage.json",
+      "sha256": "208945cfd69ff40149d2227403968f4eadc62cdf5d36de365a7c5432d0b7e4b0"
+    },
+    {
+      "path": "data/home/siege-machines/battle-blimp.json",
+      "sha256": "3b15b5a1e3638c685947540c45703701bb60897eee0a2925dea8e733b7e51882"
+    },
+    {
+      "path": "data/home/siege-machines/battle-drill.json",
+      "sha256": "bb20e8669d97ecea2b4d789700027df075b56c42b5d055b5b49d29585b8503cb"
+    },
+    {
+      "path": "data/home/siege-machines/flame-flinger.json",
+      "sha256": "f1f8cf2891127e78f8fd8903c9a6a3c3b95af274a780327534c398348aa3512f"
+    },
+    {
+      "path": "data/home/siege-machines/log-launcher.json",
+      "sha256": "3bdf74c348f2848dd77a2a3381857e94763a462d286d111b9726bc4e1ff8ff59"
+    },
+    {
+      "path": "data/home/siege-machines/siege-barracks.json",
+      "sha256": "1931a9bb073629790e2ba4e3fd5d23d6296544ffe061d1a2317e7e4b1a56a319"
+    },
+    {
+      "path": "data/home/siege-machines/sky-wagon.json",
+      "sha256": "16be85a8bc8cd2017a1ce1591feab28c46ea7271a635dfd6920e615a0bf1adcd"
+    },
+    {
+      "path": "data/home/siege-machines/stone-slammer.json",
+      "sha256": "816e79347835568ff16ab5c87dc40cd1a7515ed094ee38241e317e11b4beb314"
+    },
+    {
+      "path": "data/home/siege-machines/troop-launcher.json",
+      "sha256": "817cba89de5f981ba56b07d6c257fb3d86f5fb93743dec74e1d04228019f9968"
+    },
+    {
+      "path": "data/home/siege-machines/wall-wrecker.json",
+      "sha256": "3a56dc5e93c05c12be724f93b88e8d79d63f3414821c4a1e8e084f572b44d871"
+    },
+    {
+      "path": "data/home/spells/angry-spell.json",
+      "sha256": "2af8353bbb35b30e2c6710ed15601fcfb03ee4ed07fd7e80c1e97ad4e9a277b9"
+    },
+    {
+      "path": "data/home/spells/bat-spell.json",
+      "sha256": "9c36d99531b9371907c9f25cadc6429107585a081a73e563a1ad676bc0881e4b"
+    },
+    {
+      "path": "data/home/spells/clone-spell.json",
+      "sha256": "34fa9e0c6d5dc9b39a598c1fa4b76ba6fb1645af683bc2c4b289babe0e879584"
+    },
+    {
+      "path": "data/home/spells/earthquake-spell.json",
+      "sha256": "280f5e4e22c8b9b23e7ac7fcc75662fc29fde2e178808ce90231161515d610d4"
+    },
+    {
+      "path": "data/home/spells/freeze-spell.json",
+      "sha256": "2995870df91be47deec5c5be47c90a0a73ec282540779a8b69e2e3dc139f8f8b"
+    },
+    {
+      "path": "data/home/spells/haste-spell.json",
+      "sha256": "0f5bbfcecd1a8a67c37acd9522e6dc12ead49a81cb29048a0677d33288ac32d2"
+    },
+    {
+      "path": "data/home/spells/healing-spell.json",
+      "sha256": "57fd80dfcd025f2ba5606250d078323ea5d4eed8caa0794e9165ba16f2782d47"
+    },
+    {
+      "path": "data/home/spells/ice-block-spell.json",
+      "sha256": "5e20dc38ef8e0824b12d03c5ee2c4619cc2b08dec4e70a973203f82b232983d5"
+    },
+    {
+      "path": "data/home/spells/invisibility-spell.json",
+      "sha256": "6e5800747e75caebaaf16a988644ad32c4055521df6fa8c79bb4d55bdd363fa4"
+    },
+    {
+      "path": "data/home/spells/jump-spell.json",
+      "sha256": "ef1fc9dc33cafed22cb66c8d8e2c35211592196f50ca434f172311e91a54d950"
+    },
+    {
+      "path": "data/home/spells/lightning-spell.json",
+      "sha256": "0198a8e18dcbdc1db205f4f380ef5fa202c0e1a49252fa15e57b7b606c55026e"
+    },
+    {
+      "path": "data/home/spells/overgrowth-spell.json",
+      "sha256": "dffe12ee09775ac4955d5fea8e7b45af4eeffdafb121d9dfcb92a634c83a59ec"
+    },
+    {
+      "path": "data/home/spells/poison-spell.json",
+      "sha256": "f15cedebb1ece70950669e996db832ce9e781207b583e01b7ad7dbe7cc24ed32"
+    },
+    {
+      "path": "data/home/spells/rage-spell.json",
+      "sha256": "81307b289b6a3646e102a010c36d0edfcb0b50609be7869486f2ed0d5efb1780"
+    },
+    {
+      "path": "data/home/spells/recall-spell.json",
+      "sha256": "a17b9288cdcbd43edcd8f18fe7f3d523099c805190833674bb8a2534c8a8c3d5"
+    },
+    {
+      "path": "data/home/spells/revive-spell.json",
+      "sha256": "a1cc721899e305cdae4f50758c5956b09c0376708cd6196d1cb7538bf84fd2b0"
+    },
+    {
+      "path": "data/home/spells/skeleton-spell.json",
+      "sha256": "c4969dcd13c5ec10f1351b3936f4ebd05023b7adac2b3bc71e491ff0b620f930"
+    },
+    {
+      "path": "data/home/spells/totem-spell.json",
+      "sha256": "4fec05102962f99b882beed07b6baf18e9cf3b40783c5dbae4e1bc043c39224d"
+    },
+    {
+      "path": "data/home/town-hall/town-hall.json",
+      "sha256": "fb16ac01736272a64d6988268b443abb8f5bc70fdfa88b73c116abedb0be572d"
+    },
+    {
+      "path": "data/home/traps/air-bomb.json",
+      "sha256": "7f4a01214b73447b645662b6fbc2b20c0c4c66a1f99b02bd2aa3fb2433b2bd21"
+    },
+    {
+      "path": "data/home/traps/bomb.json",
+      "sha256": "c9dfc0ddbcf8b997d599bec52a393044116dd770f9456f63f9c522b9dc94346d"
+    },
+    {
+      "path": "data/home/traps/giant-bomb.json",
+      "sha256": "84f3938aa4f7dfb0478683fede9ea3f9321ca39f1adc5ca88481d38126b300c7"
+    },
+    {
+      "path": "data/home/traps/giga-bomb.json",
+      "sha256": "9ba976827beb648595814d884d14d9b3e5359e11c8c3e640cf68944d34b850d4"
+    },
+    {
+      "path": "data/home/traps/seeking-air-mine.json",
+      "sha256": "029bd97468c1211dadb5b86b82c1993d349fce38bc787c4cb91509a193a48957"
+    },
+    {
+      "path": "data/home/traps/skeleton-trap.json",
+      "sha256": "31e67209f77e9f7ceb8a4136c9da1d12470eec1e82e6d755e975cbbdd0ede646"
+    },
+    {
+      "path": "data/home/traps/spring-trap.json",
+      "sha256": "cd572728a8cb529a34373eeb9239061256a760e64a4c2c7363b991f4c39c0342"
+    },
+    {
+      "path": "data/home/traps/tornado-trap.json",
+      "sha256": "f907ed6f1744af7641921ad0be7ef5da59e0c234318d09872fd33d80cd840ecb"
+    },
+    {
+      "path": "data/home/troops/apprentice-warden.json",
+      "sha256": "bff551a271f94e86dfef0255e1390f64f2b4dbe77f7da23988d93a98e549e948"
+    },
+    {
+      "path": "data/home/troops/archer.json",
+      "sha256": "41123faddea23ba64af84fea74a99750be6d56ff3b8c34e76b4bc663301e5aee"
+    },
+    {
+      "path": "data/home/troops/baby-dragon.json",
+      "sha256": "b5f35f5d5bfde6c772033be8caaaaad1c05dd18acb457066bf87029b16c19745"
+    },
+    {
+      "path": "data/home/troops/balloon.json",
+      "sha256": "3f26396b035f453abfdf22eaa2f9df17153c76501b5e262ff36674230db2cd3b"
+    },
+    {
+      "path": "data/home/troops/barbarian.json",
+      "sha256": "81f2a9280cc957245e9a8f70e51365375c56654c235598fd0260f7784d2dd2a9"
+    },
+    {
+      "path": "data/home/troops/bowler.json",
+      "sha256": "424f95e58e7a0be18c21033a36cb6ada76f9d33e125fa8e833ec7bfa9c10110e"
+    },
+    {
+      "path": "data/home/troops/dragon-rider.json",
+      "sha256": "af62f8ce68702b8a255350a2c2cf3282211a11a16f9f6a9b93ce487c8635bfcb"
+    },
+    {
+      "path": "data/home/troops/dragon.json",
+      "sha256": "a7c4ed18bb5095e534139d6d1bc76dd568539b8f134d927013e14ba02ab4ec73"
+    },
+    {
+      "path": "data/home/troops/druid.json",
+      "sha256": "82c289f2bd25ba4d1f91de8b6ec081f4d6d0cc392d4d3d444735103af80cbf8d"
+    },
+    {
+      "path": "data/home/troops/electro-dragon.json",
+      "sha256": "298fa0ac7edacaaa6992ec77a5e0cc0d47b4ad9a3c1316c5b31d2b4b07595d5d"
+    },
+    {
+      "path": "data/home/troops/electro-titan.json",
+      "sha256": "7f258added0a4067a76faa515876df549d05f0f365861edaab6b14d1f4d9926c"
+    },
+    {
+      "path": "data/home/troops/furnace.json",
+      "sha256": "81754aefdd07531b5072d898525a3f6349c54982a59d4d92abf0f949cc3ddbd9"
+    },
+    {
+      "path": "data/home/troops/giant.json",
+      "sha256": "b976adb4a52a0a6517be531096b186abbd4011528ea67a866b955f5b32a4d8d2"
+    },
+    {
+      "path": "data/home/troops/goblin.json",
+      "sha256": "642fc4d5b583c1e5fddcf4a50058f873b883958de11f0c858df0c8ee84360d78"
+    },
+    {
+      "path": "data/home/troops/golem.json",
+      "sha256": "fff8853adab52e88bc8bcb757d5f720780aa3f52ddf8d9296d48c6d8b70f16b2"
+    },
+    {
+      "path": "data/home/troops/headhunter.json",
+      "sha256": "4bcdc0296b94d690acfe8eeb8854e86a74c120988c7421d7b85dd49837a3dfaa"
+    },
+    {
+      "path": "data/home/troops/healer.json",
+      "sha256": "7569b8596bb447397aa3898fc9c695557079bc734909397ac43111f8563aa8d5"
+    },
+    {
+      "path": "data/home/troops/hog-rider.json",
+      "sha256": "dc689b31770e31034a0ffa307babc3bf17b1a6f71cdfc86ff94436971c4aa7ec"
+    },
+    {
+      "path": "data/home/troops/ice-golem.json",
+      "sha256": "77d2030f5dcfb3a5664dfa3003c48936418318fb6c2e13a355decd0bb8f5dfc7"
+    },
+    {
+      "path": "data/home/troops/lava-hound.json",
+      "sha256": "ce8b386b5d8468ee526189a0a6de2558369cbfc6164c04a724896b834be5591d"
+    },
+    {
+      "path": "data/home/troops/meteor-golem.json",
+      "sha256": "71d29a7e60dc875397799942770b4ebfb6f5dbc42ceaa4cb554e60f6f18774a5"
+    },
+    {
+      "path": "data/home/troops/miner.json",
+      "sha256": "385e31988252ea9c3246e204d162db2d5771969ea8ff5172cc18ec93d4595094"
+    },
+    {
+      "path": "data/home/troops/minion.json",
+      "sha256": "c6b947f0bce556f82a7d90cf0a16fa6df0bb0eb35a27e8e4d1aa418d662b7ba7"
+    },
+    {
+      "path": "data/home/troops/pekka.json",
+      "sha256": "a08428a5849fe8e6fa45f31edddba3f4a2206721cad4579eb461e0c2045280e4"
+    },
+    {
+      "path": "data/home/troops/root-rider.json",
+      "sha256": "4bd318d30f662bb7739b110f7574eebd3e8e176b29eac0195492cf430d85c6c7"
+    },
+    {
+      "path": "data/home/troops/ruin-witch.json",
+      "sha256": "a0eb4893a6300949ef6bde41d6a43ec1d3f7bb2f09ddd161f7a9a2f0b59b89f3"
+    },
+    {
+      "path": "data/home/troops/thrower.json",
+      "sha256": "d823fb8bbafa5f03de0dde050a290c7eb8b3c800a0de1790acec922780b2ee4e"
+    },
+    {
+      "path": "data/home/troops/valkyrie.json",
+      "sha256": "b6a57aef87a2c3bf5355c4763c48e07c945e1556444cf5c3d05cc344fefcb618"
+    },
+    {
+      "path": "data/home/troops/wall-breaker.json",
+      "sha256": "411b25015c4cd12725be7708ea9b6c12f5ef8688a5022fbab9b7a5b443ee6a13"
+    },
+    {
+      "path": "data/home/troops/witch.json",
+      "sha256": "bc0e2a2c20381b5c4644354329779a1f45d3894a16e72423e57560039fb5a8ee"
+    },
+    {
+      "path": "data/home/troops/wizard.json",
+      "sha256": "f320e440d3fe78a983a9c9b26a9c8e16138aaf0bdef79eb63416ffec597d8b20"
+    },
+    {
+      "path": "data/home/troops/yeti.json",
+      "sha256": "683c6fd57f61b59e1329eeb21eb2b937569879cce6ccd406737ee42f531f8097"
+    },
+    {
+      "path": "data/home/walls/wall.json",
+      "sha256": "50fc91a19eaad0def3fb779b432d7e4d451792114a524384397fa1c5175ba749"
+    }
+  ]
+}

@@ -1,0 +1,54 @@
+import assert from 'node:assert/strict';
+import test, { type TestContext } from 'node:test';
+import { mkdtempSync, rmSync } from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import type { Message } from 'discord.js-selfbot-v13';
+import type { AppConfig } from '../src/config/env.js';
+import { RelayDatabase } from '../src/database/database.js';
+import { RelayService } from '../src/relay/relayService.js';
+import { buildRelayPayload, budgetEmbeds, safeUsername } from '../src/relay/payloadBuilder.js';
+import { shouldRelay } from '../src/relay/filters.js';
+import { Logger } from '../src/logging/logger.js';
+import type { ManagedWebhook } from '../src/webhooks/webhookClient.js';
+import type { ForwardedAttachments, AttachmentService } from '../src/relay/attachments.js';
+import { VoiceReporter } from '../src/voice/voiceReporter.js';
+import type { Client } from 'discord.js-selfbot-v13';
+const config: AppConfig = { discordToken: '', relayWebhookUrl: '', voiceWebhookUrl: null, relayGuildIds: new Set(['guild']), relayChannelIds: new Set(['channel']), excludedChannelIds: new Set(), voiceGuildIds: new Set(), ignoreBots: false, voiceDebounceMs: 10, mappingRetentionDays: 90, maxAttachmentBytes: 1000 };
+function message(content = 'hello'): Message { return { id: 'source', content, system: false, guild: { id: 'guild', name: 'Test', members: { cache: new Map() } }, client: { user: { id: 'self' } }, author: { id: 'sender', username: 'Tester', globalName: null, bot: false, displayAvatarURL: () => 'https://example.com/a.png' }, channel: { id: 'channel', name: 'general', isThread: () => false }, webhookId: null, attachments: new Map(), stickers: new Map(), embeds: [], mentions: { roles: new Map(), users: new Map(), channels: new Map() }, createdTimestamp: Date.now(), editedTimestamp: null, url: 'https://discord.com/channels/1/2/3' } as unknown as Message; }
+function fixture(t: TestContext) {
+  const dir=mkdtempSync(path.join(os.tmpdir(),'relay-test-')); const db=new RelayDatabase(path.join(dir,'test.sqlite'));
+  t.after(()=>{db.close();rmSync(dir,{recursive:true,force:true})});
+  const calls: {kind:string; id?:string; payload?:any}[]=[];
+  let number=0, failDelete=false, rejectFiles=false;
+  const webhook={send:async(p:any)=>{if(rejectFiles&&p.files?.length)throw {status:413};const id=String(++number);calls.push({kind:'send',id,payload:p});return{id}},edit:async(id:string,p:any)=>{calls.push({kind:'edit',id,payload:p});return{id}},delete:async(id:string)=>{if(failDelete)throw {status:503};calls.push({kind:'delete',id})}};
+  const service={download:async(_m:Message): Promise<ForwardedAttachments>=>({files:[],fallbackUrls:[]})};
+  const relay=new RelayService(config,db,webhook as unknown as ManagedWebhook,service as unknown as AttachmentService,new Logger('error'));
+  return{db,calls,relay,service,setDeleteFail:(v:boolean)=>{failDelete=v},setRejectFiles:(v:boolean)=>{rejectFiles=v}};
+}
+test('delete during attachment download removes eventual destination',async t=>{
+ const f=fixture(t);let release!:()=>void;f.service.download=async()=>{await new Promise<void>(r=>release=r);return{files:[],fallbackUrls:[]}};
+ const create=f.relay.create(message());await new Promise(r=>setImmediate(r));const del=f.relay.delete('source');release();await Promise.all([create,del]);assert.deepEqual(f.calls.map(c=>c.kind),['send','delete']);assert.equal(f.db.hasRelay('source'),false);
+});
+test('edit during create is queued instead of discarded',async t=>{
+ const f=fixture(t);let release!:()=>void;let first=true;f.service.download=async()=>{if(first){first=false;await new Promise<void>(r=>release=r)}return{files:[],fallbackUrls:[]}};
+ const create=f.relay.create(message());await new Promise(r=>setImmediate(r));const edit=f.relay.update(message('changed'));release();await Promise.all([create,edit]);assert.equal(f.calls.at(-1)?.payload.content,'changed');
+});
+test('failed delete retains mapping and persistent retry record',async t=>{const f=fixture(t);await f.relay.create(message());f.setDeleteFail(true);await f.relay.delete('source');assert.equal(f.db.hasRelay('source'),true);assert.deepEqual(f.db.pendingDeletes(),['source']);f.setDeleteFail(false);await f.relay.retryDeletes();assert.equal(f.db.hasRelay('source'),false);assert.deepEqual(f.db.pendingDeletes(),[])});
+test('embed unfurl does not label an unedited source as Edited',async t=>{const f=fixture(t);const payload=await buildRelayPayload(message(),f.service as unknown as AttachmentService);assert.ok(!payload.embeds[0]?.description?.includes('Edited'))});
+test('attachment URL fallback survives edits',async t=>{const f=fixture(t);f.service.download=async()=>({files:[],fallbackUrls:['https://example.com/file']});await f.relay.create(message());await f.relay.update(message('edited'));assert.match(f.calls.at(-1)?.payload.content,/example.com\/file/)});
+test('rejected attachment uploads become source links',async t=>{const f=fixture(t);f.setRejectFiles(true);f.service.download=async()=>({files:[{attachment:Buffer.from('abc'),name:'a.txt'}] as never[],fallbackUrls:[]});const m=message();(m.attachments as any).set('a',{url:'https://example.com/a.txt'});await f.relay.create(m);assert.equal(f.calls.length,1);assert.match(f.calls[0]?.payload.content,/example.com\/a.txt/);assert.equal(f.db.hasRelay('source'),true)});
+test('reserved webhook names fall back without losing source author metadata',()=>{assert.equal(safeUsername('MyDiscordName'),'Message Relay');assert.equal(safeUsername('ClydeFan'),'Message Relay');assert.equal(safeUsername('Normal Name'),'Normal Name')});
+test('embed text stays within total 6000 character budget',()=>{const embeds=budgetEmbeds(Array.from({length:10},()=>({description:'x'.repeat(4096),title:'t'.repeat(256)})));const size=embeds.reduce((n,e)=>n+(e.description?.length??0)+(e.title?.length??0),0);assert.ok(size<=6000)});
+test('channel selection narrows guild allowlist, skips system messages and honors thread exclusions',()=>{const m=message();assert.equal(shouldRelay(m,{...config,relayGuildIds:new Set(['guild']),relayChannelIds:new Set()}),false);assert.equal(shouldRelay({...m,system:true} as Message,config),false);const thread={...m,channel:{id:'thread',parentId:'channel',isThread:()=>true}} as unknown as Message;assert.equal(shouldRelay(thread,config),true);assert.equal(shouldRelay(thread,{...config,excludedChannelIds:new Set(['thread'])}),false)});
+test('SQLite state survives reopen and audit cleanup still runs when mapping retention is disabled',t=>{const dir=mkdtempSync(path.join(os.tmpdir(),'relay-db-'));const file=path.join(dir,'db.sqlite');const a=new RelayDatabase(file);a.replaceRelayParts('a','b','c',['d']);a.close();const b=new RelayDatabase(file);assert.equal(b.getRelayParts('a')[0]?.destinationMessageId,'d');assert.equal(b.cleanup(0).mappings,0);b.close();rmSync(dir,{recursive:true,force:true})});
+test('concurrent voice refreshes create only one status message using voice-state cache',async t=>{const f=fixture(t);let sent=0;const client={user:{id:'self'},users:{cache:new Map()},guilds:{cache:new Map([['g',{id:'g',name:'Guild',channels:{cache:new Map([['v',{id:'v',name:'Voice',isVoice:()=>true,rawPosition:0,parent:null}]])},voiceStates:{cache:new Map([['u',{id:'u',channelId:'v',member:null}]])}}]])}};const webhook={send:async()=>{sent++;await new Promise(r=>setTimeout(r,10));return{id:'voice'}},edit:async()=>({id:'voice'}),delete:async()=>{}};const voice=new VoiceReporter(client as unknown as Client,config,f.db,webhook as unknown as ManagedWebhook,new Logger('error'));await Promise.all([voice.sync(true),voice.sync(true)]);assert.equal(sent,1);await voice.stop()});
+
+test('message webhooks use original sender nickname and server avatar instead of relay label',async()=>{const m:any=message();m.member={displayName:'[DVS] Captain',displayAvatarURL:()=> 'https://example.com/server-avatar.png'};const p=await buildRelayPayload(m,{download:async()=>({files:[],fallbackUrls:[]})} as any,{relayLabel:'Enemy Fleet'});assert.equal(p.username,'[DVS] Captain');assert.equal(p.avatarURL,'https://example.com/server-avatar.png');assert.match(p.embeds[0]!.footer!.text,/Enemy Fleet/);assert.equal(p.embeds[0]!.author!.name,'[DVS] Captain');assert.equal(p.embeds[0]!.author!.icon_url,'https://example.com/server-avatar.png');});
+test('sender identity falls back to global name then username and user avatar',async()=>{const m:any=message();m.author.globalName='Global Captain';const service:any={download:async()=>({files:[],fallbackUrls:[]})};let p=await buildRelayPayload(m,service,{relayLabel:'Fleet'});assert.equal(p.username,'Global Captain');assert.equal(p.avatarURL,'https://example.com/a.png');m.author.globalName=null;p=await buildRelayPayload(m,service);assert.equal(p.username,'Tester');});
+
+
+test('old relay-label message is replaced with author identity on source edit only once',async t=>{const f=fixture(t),m=message();await f.relay.create(m);const first=f.db.getRelayParts(m.id)[0]!.destinationMessageId;f.db.setSetting(`relay-identity:${m.id}`,JSON.stringify({username:'Enemy Fleet'}));await f.relay.update({...m,content:'author style edit',editedTimestamp:Date.now()} as Message);const replacement=f.db.getRelayParts(m.id)[0]!.destinationMessageId;assert.notEqual(replacement,first);const sent=f.calls.filter(c=>c.kind==='send');assert.equal(sent.length,2);assert.equal(sent[1]!.payload.username,'Tester');assert.equal(sent[1]!.payload.avatarURL,'https://example.com/a.png');assert.ok(f.calls.some(c=>c.kind==='delete'&&c.id===first));await f.relay.update({...m,content:'second author edit',editedTimestamp:Date.now()+1} as Message);assert.equal(f.calls.filter(c=>c.kind==='send').length,2);assert.equal(f.db.getRelayParts(m.id)[0]!.destinationMessageId,replacement);});
+test('replacement survives a failed old-post deletion and retries cleanup',async t=>{const f=fixture(t),m=message();await f.relay.create(m);f.db.setSetting(`relay-identity:${m.id}`,JSON.stringify({username:'Wrong identity'}));f.setDeleteFail(true);await f.relay.update({...m,content:'first change',editedTimestamp:Date.now()} as Message);assert.ok(f.db.getSetting(`relay-retired:${m.id}`));f.setDeleteFail(false);await f.relay.update({...m,content:'second change',editedTimestamp:Date.now()+1} as Message);assert.equal(f.db.getSetting(`relay-retired:${m.id}`),null);});
+
+test('legacy posts with matching cached names are migrated to author style once',async t=>{const f=fixture(t),m=message();await f.relay.create(m);f.db.deleteSetting(`relay-author-style:${m.id}`);await f.relay.update({...m,content:'legacy edit',editedTimestamp:Date.now()} as Message);assert.equal(f.calls.filter(c=>c.kind==='send').length,2);assert.equal(f.db.getSetting(`relay-author-style:${m.id}`),'author-v2');await f.relay.update({...m,content:'next edit',editedTimestamp:Date.now()+1} as Message);assert.equal(f.calls.filter(c=>c.kind==='send').length,2);});

@@ -1,0 +1,14 @@
+services:
+  relay:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DASHBOARD_HOST: 0.0.0.0
+      DASHBOARD_PORT: 8196
+    ports:
+      - "127.0.0.1:8196:8196"
+    volumes:
+      - relay-data:/app/data
+volumes:
+  relay-data:

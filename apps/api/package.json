@@ -1,0 +1,23 @@
+{
+  "name": "@bom/api",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "dev": "tsx src/index.ts",
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "@bom/db": "0.1.0",
+    "@bom/redis": "0.1.0",
+    "@bom/shared": "0.1.0",
+    "fastify": "5.6.0",
+    "zod": "3.25.76"
+  },
+  "devDependencies": {
+    "tsx": "4.20.0",
+    "typescript": "5.8.3"
+  }
+}

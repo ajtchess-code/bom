@@ -1,0 +1,30 @@
+import assert from 'node:assert/strict';
+import test from 'node:test';
+import {mkdtempSync,rmSync} from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import {AccountManager} from '../src/accounts/manager.js';
+import {AccountStore} from '../src/accounts/store.js';
+import {Logger} from '../src/logging/logger.js';
+test('search compatibility: visible hits, credentials, cooldown, access, indexing and throttling',async()=>{
+ const dir=mkdtempSync(path.join(os.tmpdir(),'relay-search-')),store=new AccountStore(dir),guildId='123456789012345678';
+ store.save([{id:'account',name:'Test',token:'private-test-token',webhook:'',voiceWebhook:'',channels:[],excludedChannels:[],voiceGuilds:[],enabled:false,ignoreBots:false}]);
+ const manager=new AccountManager(store,new Logger('error')),internal=manager as any,original=globalThis.fetch;
+ const guild={id:guildId,members:{cache:new Map([['user',{}]])},channels:{cache:new Map([['visible',{permissionsFor:()=>({has:()=>true})}],['hidden',{permissionsFor:()=>({has:()=>false})}]])}};
+ internal.running.set('account',{client:{isReady:()=>true,user:{id:'user'},guilds:{cache:new Map([[guildId,guild]])}}});
+ try {let requested='';globalThis.fetch=async(url)=>{requested=String(url);return Response.json({total_results:2,messages:[[{id:'1',channel_id:'visible',content:'visible',hit:true,author:{username:'Tester'}}],[{id:'2',channel_id:'hidden',content:'private',hit:true}]]})};
+ const result=await manager.search('account',{guildId,query:'test & words'});assert.equal(result.state,'ready');assert.equal(result.messages.length,1);assert.equal(result.messages[0]?.content,'visible');assert.ok(requested.includes('content=test+%26+words'));assert.ok(!JSON.stringify(result).includes('private-test-token'));
+ assert.equal((await manager.search('account',{guildId,query:'again'})).state,'rate_limited');
+ await assert.rejects(()=>manager.search('account',{guildId:'456789012345678901',query:'forbidden'}),/Guild not available/);
+ internal.searchAfter.clear();
+ const threadId='223456789012345678',thread={id:threadId,type:'GUILD_PUBLIC_THREAD',guild,permissionsFor:()=>({has:()=>true})};
+ internal.running.get('account').client.channels={cache:new Map(),fetch:async()=>thread};
+ globalThis.fetch=async()=>Response.json({total_results:1,messages:[[{id:'3',channel_id:threadId,content:'thread history',hit:true}]]});
+ const threadResult=await manager.search('account',{guildId,query:'thread'});assert.equal(threadResult.messages[0]?.content,'thread history');
+ internal.searchAfter.clear();
+ const channelResult=await manager.search('account',{channelId:threadId,query:'thread'});assert.equal(channelResult.messages.length,1);assert.ok(channelResult.messages[0]?.url.includes(guildId));
+ internal.searchAfter.clear();globalThis.fetch=async()=>new Response('{}',{status:403});await assert.rejects(()=>manager.search('account',{guildId,query:'denied'}),/HTTP 403/);
+ internal.searchAfter.clear();globalThis.fetch=async()=>new Response('{}',{status:202});assert.equal((await manager.search('account',{guildId,query:'index'})).state,'indexing');
+ internal.searchAfter.clear();globalThis.fetch=async()=>Response.json({retry_after:5},{status:429});const throttle=await manager.search('account',{guildId,query:'slow'});assert.equal(throttle.state,'rate_limited');assert.equal(throttle.retryAfterMs,5000);
+ }finally{globalThis.fetch=original;internal.running.clear();await manager.close();rmSync(dir,{recursive:true,force:true})}
+});

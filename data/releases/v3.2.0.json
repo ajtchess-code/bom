@@ -1,0 +1,34 @@
+{
+  "version": "v3.2.0",
+  "title": "Feedback Center",
+  "summary": "Native bug reporting, suggestions, general feedback and automatic release notes are now part of the BOM Command Deck.",
+  "releasedAt": "2026-10-16T17:30:00Z",
+  "sections": [
+    {
+      "title": "Feedback Center",
+      "items": [
+        "Added a member-facing Bug Report system in Discord and the dashboard.",
+        "Added member suggestions with support voting, comments and staff triage.",
+        "Added private general feedback for staff review.",
+        "Added My Reports so members can follow everything they have submitted."
+      ]
+    },
+    {
+      "title": "Releases & Changelog",
+      "items": [
+        "Added an automated release-manifest system: future update packages can include one JSON release manifest and the bot imports it automatically.",
+        "When a changelog Discord channel is configured, new release manifests are posted there once and recorded so restarts do not repost them.",
+        "Added a dashboard Releases view with organized changelog sections."
+      ]
+    },
+    {
+      "title": "Operations",
+      "items": [
+        "Added staff status, severity, priority, visibility and assignment controls.",
+        "Added duplicate suggestions and merge support so repeated reports can be consolidated.",
+        "Added Discord DM notifications when followed/reported items change status.",
+        "Added a dashboard Report a problem shortcut and an error-page shortcut that carries the dashboard error reference into a bug report."
+      ]
+    }
+  ]
+}

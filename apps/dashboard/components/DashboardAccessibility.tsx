@@ -1,0 +1,11 @@
+"use client";
+import {useEffect} from 'react';
+export default function DashboardAccessibility(){
+ useEffect(()=>{
+  let current:HTMLElement|null=null,previous:HTMLElement|null=null;
+  const focusable=(root:HTMLElement)=>Array.from(root.querySelectorAll<HTMLElement>('a[href],button:not([disabled]),input:not([disabled]),select:not([disabled]),textarea:not([disabled]),[tabindex="0"]')).filter(x=>x.getClientRects().length&&!x.closest('[inert]'));
+  const scan=()=>{document.querySelectorAll<HTMLButtonElement>('button.iconCloseButton').forEach(b=>{if(!b.hasAttribute('aria-label')&&b.textContent?.trim()==='×')b.setAttribute('aria-label','Close')});const dialogs=Array.from(document.querySelectorAll<HTMLElement>('.modalBackdrop .modalCard,.modalBackdrop > .panel,.modalBackdrop > form,.modalBackdrop [role="dialog"],.commandPaletteBackdrop .commandPalette')).filter(x=>x.getClientRects().length);const next=dialogs.at(-1)??null;if(next===current)return;if(!next){if(previous?.isConnected)previous.focus();current=null;previous=null;return;}if(!current)previous=document.activeElement as HTMLElement;current=next;current.setAttribute('role','dialog');current.setAttribute('aria-modal','true');if(!current.hasAttribute('aria-label')&&!current.hasAttribute('aria-labelledby'))current.setAttribute('aria-label',current.querySelector('h2,h3')?.textContent||'Dashboard dialog');(focusable(current)[0]||current).focus();};
+  const keys=(e:KeyboardEvent)=>{if(!current||!current.isConnected)return;if(e.key==='Tab'){const items=focusable(current);if(!items.length){e.preventDefault();return;}const first=items[0],last=items[items.length-1];if(e.shiftKey&&(document.activeElement===first||!current.contains(document.activeElement))){e.preventDefault();last.focus()}else if(!e.shiftKey&&(document.activeElement===last||!current.contains(document.activeElement))){e.preventDefault();first.focus()}}if(e.key==='Escape'){const close=current.querySelector<HTMLElement>('.iconCloseButton,[aria-label="Close"],.pbDismiss');if(close){e.preventDefault();close.click()}}};
+  const observer=new MutationObserver(scan);observer.observe(document.body,{childList:true,subtree:true});document.addEventListener('keydown',keys,true);scan();return()=>{observer.disconnect();document.removeEventListener('keydown',keys,true)};
+ },[]);return null;
+}

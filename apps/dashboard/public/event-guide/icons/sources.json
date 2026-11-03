@@ -1,0 +1,245 @@
+{
+  "al-fatih": {
+    "screenshot": "image(20261024-174209).png",
+    "crop": [
+      43,
+      115,
+      94,
+      165
+    ]
+  },
+  "ice-lantern": {
+    "screenshot": "image(20261024-174209).png",
+    "crop": [
+      43,
+      170,
+      94,
+      221
+    ]
+  },
+  "pirate-token": {
+    "screenshot": "image(20261024-174209).png",
+    "crop": [
+      43,
+      226,
+      95,
+      277
+    ]
+  },
+  "elite-warrant": {
+    "screenshot": "image(20261024-174209).png",
+    "crop": [
+      358,
+      113,
+      410,
+      165
+    ]
+  },
+  "battle-mark": {
+    "screenshot": "image(20261024-174209).png",
+    "crop": [
+      358,
+      170,
+      410,
+      222
+    ]
+  },
+  "escudo": {
+    "screenshot": "image(20261024-174209).png",
+    "crop": [
+      358,
+      226,
+      410,
+      278
+    ]
+  },
+  "captains-seal": {
+    "screenshot": "image(20261024-174209).png",
+    "crop": [
+      358,
+      392,
+      410,
+      444
+    ]
+  },
+  "imperial-blueprint": {
+    "screenshot": "image(20261024-174209).png",
+    "crop": [
+      42,
+      447,
+      94,
+      499
+    ]
+  },
+  "heavy-shot": {
+    "screenshot": "image(20261024-174221).png",
+    "crop": [
+      60,
+      291,
+      112,
+      343
+    ]
+  },
+  "saxon-shot": {
+    "screenshot": "image(20261024-174221).png",
+    "crop": [
+      375,
+      291,
+      427,
+      343
+    ]
+  },
+  "chest-key": {
+    "screenshot": "image(20261024-174221).png",
+    "crop": [
+      61,
+      235,
+      113,
+      287
+    ]
+  },
+  "gold": {
+    "screenshot": "image(20261024-174221).png",
+    "crop": [
+      60,
+      348,
+      112,
+      400
+    ]
+  },
+  "volcanic-ore": {
+    "screenshot": "image(20261024-174221).png",
+    "crop": [
+      375,
+      123,
+      427,
+      175
+    ]
+  },
+  "basilisk-flag": {
+    "screenshot": "image(20261024-174221).png",
+    "crop": [
+      61,
+      123,
+      113,
+      175
+    ]
+  },
+  "coin": {
+    "screenshot": "image(20261024-174231).png",
+    "crop": [
+      365,
+      326,
+      417,
+      378
+    ]
+  },
+  "halloween-decal": {
+    "screenshot": "image(20261024-174231).png",
+    "crop": [
+      49,
+      326,
+      101,
+      378
+    ]
+  },
+  "narwhal": {
+    "screenshot": "image(20261024-174231).png",
+    "crop": [
+      49,
+      382,
+      101,
+      434
+    ]
+  },
+  "ship-paint": {
+    "screenshot": "image(20261024-174231).png",
+    "crop": [
+      49,
+      160,
+      101,
+      212
+    ]
+  },
+  "construction-license": {
+    "screenshot": "image(20261024-174155).png",
+    "crop": [
+      613,
+      523,
+      665,
+      575
+    ]
+  },
+  "voodoo-skull": {
+    "screenshot": "image(20261024-174155).png",
+    "crop": [
+      613,
+      137,
+      665,
+      189
+    ]
+  },
+  "carronade": {
+    "screenshot": "image(20261024-174155).png",
+    "crop": [
+      31,
+      394,
+      83,
+      446
+    ]
+  },
+  "iron": {
+    "screenshot": "image(20261024-174141).png",
+    "crop": [
+      23,
+      20,
+      75,
+      72
+    ]
+  },
+  "beam": {
+    "screenshot": "image(20261024-174141).png",
+    "crop": [
+      23,
+      403,
+      75,
+      455
+    ]
+  },
+  "sailcloth": {
+    "screenshot": "image(20261024-174141).png",
+    "crop": [
+      23,
+      339,
+      75,
+      391
+    ]
+  },
+  "merchant-map": {
+    "screenshot": "image(20261024-174306).png",
+    "crop": [
+      15,
+      13,
+      56,
+      54
+    ]
+  },
+  "pirate-map": {
+    "screenshot": "image(20261024-174306).png",
+    "crop": [
+      15,
+      72,
+      56,
+      113
+    ]
+  },
+  "fanatic-map": {
+    "screenshot": "image(20261024-174306).png",
+    "crop": [
+      15,
+      131,
+      56,
+      172
+    ]
+  }
+}

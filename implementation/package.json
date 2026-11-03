@@ -1,0 +1,52 @@
+{
+  "name": "bom-bot",
+  "private": true,
+  "version": "0.1.0",
+  "engines": {
+    "node": ">=20.9.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "build": "yarn workspace @bom/shared build && yarn workspace @bom/db build && yarn workspace @bom/redis build && yarn workspace @bom/controller build && yarn workspace @bom/worker build && yarn workspace @bom/api build && yarn workspace @bom/dashboard build",
+    "typecheck": "yarn workspace @bom/shared typecheck && yarn workspace @bom/db typecheck && yarn workspace @bom/redis typecheck && yarn workspace @bom/controller typecheck && yarn workspace @bom/worker typecheck && yarn workspace @bom/api typecheck && yarn workspace @bom/dashboard typecheck",
+    "dev:controller": "npm run dev -w @bom/controller",
+    "dev:worker": "npm run dev -w @bom/worker",
+    "dev:api": "npm run dev -w @bom/api",
+    "dev:dashboard": "npm run dev -w @bom/dashboard",
+    "migrate": "yarn workspace @bom/db migrate",
+    "start:novonode": "node scripts/novonode.mjs",
+    "start:host": "node scripts/bootstrap.mjs",
+    "test:game-hubs": "node --experimental-vm-modules --test scripts/tests/game-hubs-lifecycle.test.mjs",
+    "test:game-hub-ui": "node scripts/tests/game-hub-browser.mjs",
+    "test:clash-toolkit": "npm run build -w @bom/shared && node --test scripts/tests/clash-toolkit.test.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "^0.3.14",
+    "@playwright/test": "^1.56.1",
+    "@types/node": "22.15.0",
+    "@types/pg": "8.15.5",
+    "@types/react": "19.0.0",
+    "@types/react-dom": "19.0.0",
+    "ioredis-mock": "^8.13.1",
+    "tsx": "4.20.0",
+    "typescript": "5.8.3"
+  },
+  "packageManager": "yarn@1.22.22",
+  "dependencies": {
+    "@discordjs/voice": "0.18.0",
+    "discord.js": "14.27.0",
+    "fastify": "5.6.0",
+    "ioredis": "5.7.0",
+    "jose": "6.1.0",
+    "next": "16.4.0",
+    "pg": "8.16.3",
+    "react": "19.2.0",
+    "react-dom": "19.2.0",
+    "sharp": "0.34.4",
+    "shoukaku": "4.3.0",
+    "zod": "3.25.76"
+  }
+}

@@ -1,0 +1,36 @@
+{
+  "version": "v3.3.0",
+  "title": "Dashboard Experience",
+  "summary": "A dashboard-wide quality-of-life pass adds global search, notifications, personalization, safer editing, faster workflows and deeper links between BOM tools.",
+  "releasedAt": "2026-10-16T18:28:00Z",
+  "sections": [
+    {
+      "title": "Command Deck",
+      "items": [
+        "Added Ctrl/Cmd+K global command search across ships, Wiki articles, builds, Port Battles, feedback and map locations.",
+        "Added a unified notification center for Feedback activity, releases and Port Battle assignments.",
+        "Added Favorites, Recently Viewed, breadcrumbs, a personalized dashboard home and an account quick-action menu.",
+        "Added per-member dashboard preferences for density, reduced motion, compact navigation and a customizable mobile Command Dock.",
+        "Added a consistent toast system with contextual Undo actions, improved focus states and global loading skeletons."
+      ]
+    },
+    {
+      "title": "Safer & Faster Workflows",
+      "items": [
+        "Added unsaved-change protection and draft recovery to Ship Builder editing.",
+        "Added build duplication, hull swapping, section clearing, equipment favorites, recent equipment, build-completeness indicators and a warnings drawer.",
+        "Added a Port Battle readiness summary, bulk captain selection, conservative auto-placement, recent assignment context, user-defined target templates and safe undo for the last roster assignment.",
+        "Added saved Map views, persistent layers/search/view state, marker favorites and shareable marker links."
+      ]
+    },
+    {
+      "title": "Reference & Feedback",
+      "items": [
+        "Ships now remember view/filter/compare state and support direct links to individual hulls.",
+        "Wiki articles now support favorites, recent history, copy-link, read/print modes, article outlines, related articles and backlinks where available.",
+        "Feedback now remembers filters and suggests likely duplicate bugs or suggestions while a member is writing a report.",
+        "New releases surface as a dismissible What's New card until the member has seen them."
+      ]
+    }
+  ]
+}

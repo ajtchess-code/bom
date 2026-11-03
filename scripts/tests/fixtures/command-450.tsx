@@ -1,0 +1,12 @@
+import React,{useState} from 'react';import {createRoot} from 'react-dom/client';
+import ScheduleMessagePreview from '../../../apps/dashboard/components/DiscordPayloadPreview';
+import CommandHome from '../../../apps/dashboard/components/CommandHome';
+import BattleCoordination from '../../../apps/dashboard/components/BattleCoordination';
+import MusicSessionTools from '../../../apps/dashboard/components/MusicSessionTools';
+import MultiBattleBoard from '../../../apps/dashboard/components/MultiBattleBoard';
+import PortDossier from '../../../apps/dashboard/components/PortDossier';
+import SavedViewControl from '../../../apps/dashboard/components/SavedViewControl';
+import ReviewBookmarks from '../../../apps/dashboard/components/ReviewBookmarks';
+import DashboardAccessibility from '../../../apps/dashboard/components/DashboardAccessibility';
+import '../../../apps/dashboard/app/globals.css';
+function App(){const [state,setState]=useState({query:'',filter:'all'}),[bookmarks,setBookmarks]=useState<any[]>([]),[open,setOpen]=useState(false);const view=new URLSearchParams(location.search).get('view');return <main className="commandDeck commandContent" style={{display:'block',maxWidth:1200,margin:'auto'}}><DashboardAccessibility/>{view==='preview'?<ScheduleMessagePreview active={[]} guilds={[{tag:'BOM',name:'Band of Misfits'}]} battle={{id:'preview',port_name:'Aruba',rate:2,team_size:20,attacker:'BOM',defender:'DVS',signup_guild:'BOM',status:'OPEN',starts_at:'2030-01-01T12:00:00Z'}}/>:view==='home'?<CommandHome/>:view==='coordination'?<BattleCoordination battle={{id:'battle',status:'OPEN'}} manager onChanged={()=>{}}/>:view==='music'?<section className="panel"><MusicSessionTools canManage/></section>:view==='board'?<MultiBattleBoard/>:view==='dossier'?<PortDossier portKey="aruba"/>:view==='bookmarks'?<section className="panel"><ReviewBookmarks value={bookmarks} onChange={setBookmarks}/></section>:<section className="panel"><SavedViewControl section="qa" state={state} onApply={setState}/><input aria-label="Search fixture" value={state.query} onChange={e=>setState({...state,query:e.target.value})}/><button onClick={()=>setOpen(true)}>Open dialog</button>{open&&<div className="modalBackdrop"><section className="modalCard"><h2>Review change</h2><button>Confirm</button><button className="iconCloseButton" onClick={()=>setOpen(false)}>×</button></section></div>}</section>}</main>};createRoot(document.getElementById('root')!).render(<App/>);

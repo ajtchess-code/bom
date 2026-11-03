@@ -1,0 +1,26 @@
+{
+  "version": "v3.7.1",
+  "title": "Dashboard Structure Repair",
+  "summary": "Repairs the grouped navigation regression, makes DashboardShell the canonical layout owner, normalizes desktop scale, and rebuilds empty operational states so feature pages no longer look visually fragmented.",
+  "releasedAt": "2026-10-16T22:35:00Z",
+  "sections": [
+    {
+      "title": "Shell and navigation",
+      "items": [
+        "DashboardShell is now the explicit dashboard layout owner instead of leaving the legacy dashboard layout in the active tree.",
+        "Fixed grouped navigation links so icons and labels render as one horizontal row with a consistent active indicator.",
+        "Raised the desktop collapse breakpoint so normal 1440p/1080p desktop layouts keep the full sidebar instead of switching to a compressed tablet rail too early.",
+        "Improved desktop typography, control sizing, spacing and light/dark surface contrast."
+      ]
+    },
+    {
+      "title": "Feature pages",
+      "items": [
+        "Converted legacy artwork-heavy feature headers into compact operational page toolbars with actions aligned consistently.",
+        "Port Battles now uses a useful empty workspace when nothing is scheduled instead of showing a tiny schedule/select-battle strip in a large empty canvas.",
+        "Port Battle schedule rows, selection states, buttons and roster surfaces were resized for normal desktop readability.",
+        "The repair is presentation-only and does not change Port Battle, Membership, Wiki, Sentinel or Music API contracts."
+      ]
+    }
+  ]
+}

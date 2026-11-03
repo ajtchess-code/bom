@@ -1,0 +1,21 @@
+# Dashboard HTTPS endpoint. No incoming port is opened by this plugin.
+endpoint: 'https://dashboard.bandofmisfits.org/api/games/minecraft/bridge'
+# Match BOM_MINECRAFT_BRIDGE_SECRET on the API host (32+ random characters).
+secret: ''
+poll-seconds: 30
+currency-name: 'BOM Coins'
+# Set to the marker file created by your existing backup job. Read-only status.
+backup-marker: ''
+# Independent bridge catalogue. Match these prices/items to your Quartermaster.
+# Empty by default to avoid introducing an unintended economy.
+catalogue: {}
+# Example:
+# catalogue:
+#   iron_pack:
+#     name: 'Iron pack'
+#     material: IRON_INGOT
+#     amount: 16
+#     price: 100
+
+# Only enable after securing a trusted proxy/Floodgate identity forwarding setup.
+trusted-proxy-offline-mode: false

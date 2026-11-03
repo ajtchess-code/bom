@@ -1,0 +1,6 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {applyWikiOverrides,wikiGuideText,canonicalWikiShipKey} from '../../packages/shared/dist/index.js';
+test('approved corrections overlay source data without mutating snapshots or prototypes',()=>{const original=[{entity_key:'ship:pickle',data:{stats:{speed:8}}}];const result=applyWikiOverrides(original,[{entity_key:'ship:pickle',field_path:'stats.speed',value:9},{entity_key:'ship:pickle',field_path:'__proto__.polluted',value:true}]);assert.equal(result[0].data.stats.speed,9);assert.equal(original[0].data.stats.speed,8);assert.equal({}.polluted,undefined);});
+test('guides accept full text and paragraph-array imports without duplicating both',()=>{assert.equal(wikiGuideText({content:['First paragraph','Second paragraph']}),'First paragraph\n\nSecond paragraph');assert.equal(wikiGuideText({body:'',text:'Readable guide',content:['duplicate']}),'Readable guide');});
+test('ship spelling aliases resolve to one identity',()=>{assert.equal(canonicalWikiShipKey('12 Aspotolov'),canonicalWikiShipKey('12 Apostolov'));assert.equal(canonicalWikiShipKey('Horizon'),canonicalWikiShipKey('Horizont'));assert.equal(canonicalWikiShipKey('Redoubtable'),canonicalWikiShipKey('Redoutable'));});

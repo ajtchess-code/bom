@@ -1,0 +1,59 @@
+{
+  "version": "v4.0.0",
+  "title": "Unified Command OS",
+  "summary": "Turns the BOM bot and dashboard into one single-server command operating system: a shared design system, platform health/jobs/events, simpler administration with live Discord previews, a visual recruitment pipeline, richer Port Battle roster and officer intelligence, an article-first Wiki knowledge layer, a modern music workspace, unified notifications and activity, What’s New, and one-click diagnostics.",
+  "releasedAt": "2026-10-17T15:30:00Z",
+  "sections": [
+    {
+      "title": "Platform foundation",
+      "items": [
+        "Introduces shared design tokens/components, consistent errors and request correlation, configuration schema versioning, feature flags, a central background-job queue, a normalized platform event stream, and expanded per-module health checks.",
+        "The product now presents and operates as a single-server BOM deployment. Historical guild_id columns remain only as safe compatibility partition keys so upgrading does not require destructive database rewrites.",
+        "The migration runner now discovers and records every numbered SQL migration with SHA-256 checksums instead of only applying the original migration.",
+        "Administration gains a setup checklist, setting search, effective/default states, per-setting resets, unsaved-change protection, configuration validation/testing, safe export/import, and sanitized support bundles."
+      ]
+    },
+    {
+      "title": "Dashboard experience",
+      "items": [
+        "Contextual navigation now honors role access and feature flags while the existing universal command/search palette is retained and expanded rather than duplicated.",
+        "Breadcrumbs, loading skeletons, actionable empty states, responsive layouts, a deliberate light palette, restrained gold accents, unified status language, and reduced-motion support create one consistent interface.",
+        "A shared notification center supports dashboard, Discord DM, browser and per-category preferences; a guild activity feed records important cross-system changes.",
+        "Release manifests now surface through the built-in What’s New experience so major updates are discoverable after deployment."
+      ]
+    },
+    {
+      "title": "Welcome, membership & recruitment",
+      "items": [
+        "Membership administration includes live Discord-style previews and testable Welcome configuration.",
+        "Welcome assets are validated before rendering for dimensions, alpha transparency and decodability, and the previous working panel remains in place if a replacement render fails.",
+        "Recruitment is now a visual applicant pipeline with dossier/timeline history, private recruiter notes, automated trial summaries, overdue warnings, scorecards, Pass/Extend/Fail quick actions, analytics and optional anonymous reviewer voting."
+      ]
+    },
+    {
+      "title": "Port Battles",
+      "items": [
+        "Rosters gain visual slots, drag-and-drop assignment, role-gap warnings, ship-shortage/readiness guidance, reusable fleet templates, and a Copy Previous Roster workflow.",
+        "Officer-only attendance outcomes distinguish attended, late, cancellation and no-show behavior and feed reliability/commander analytics without exposing public rankings.",
+        "Finished-battle reviews record Win/Loss/Draw, recurring issue tags and officer notes; commander dashboards aggregate outcomes, roster sizes, late/no-show trends and recurring issues.",
+        "The Port Battle archive is searchable and can be filtered/reviewed as long-term fleet history."
+      ]
+    },
+    {
+      "title": "Wiki knowledge workspace",
+      "items": [
+        "The Wiki moves further toward article-first organization with explicit article relationships instead of isolated fragment pages.",
+        "Duplicate detection, source/confidence badges, source freshness monitoring, revision history with diffs and Suggest Correction workflows improve maintainability.",
+        "Comparison trays/tables and natural-language answer citations connect generated answers directly back to the supporting Wiki articles."
+      ]
+    },
+    {
+      "title": "Music & operations",
+      "items": [
+        "Music is reorganized into an immersive three-column streaming workspace with Your Library, primary content, contextual Now Playing/queue information and a persistent player while retaining BOM branding and existing playback tools.",
+        "System notifications, activity, background jobs and diagnostics now share the same platform infrastructure across modules.",
+        "A one-click support center can collect configuration state, setup readiness, recent jobs/events and environment-presence checks without exporting runtime secrets."
+      ]
+    }
+  ]
+}

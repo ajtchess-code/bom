@@ -1,0 +1,25 @@
+import {discordDmsMuted} from '@bom/db';
+import {sendBotDm} from './dmDelivery.js';
+import {db,oneOrNone} from '@bom/db';
+import {ActionRowBuilder,ButtonBuilder,ButtonStyle,MessageFlags} from 'discord.js';
+const guildId=process.env.DISCORD_GUILD_ID??'';
+const dashboard=(process.env.PUBLIC_DASHBOARD_URL??'').replace(/\/$/,'');
+export function installPBInvitations(client:any,signup:(interaction:any,battleId:string)=>Promise<any>){
+ let running=false;
+ async function tick(){if(running||!client.isReady())return;running=true;try{
+  // Claims survive restart: an uncertain delivery is never automatically sent twice.
+  await db.query(`UPDATE pb_invitations SET status='FAILED',error='Delivery interrupted; verify with the member before contacting again.',updated_at=NOW() WHERE guild_id=$1 AND status='SENDING' AND updated_at<NOW()-INTERVAL '10 minutes'`,[guildId]);
+  const row=await oneOrNone<any>(`UPDATE pb_invitations SET status='SENDING',updated_at=NOW() WHERE id=(SELECT id FROM pb_invitations WHERE guild_id=$1 AND status='QUEUED' ORDER BY created_at FOR UPDATE SKIP LOCKED LIMIT 1) RETURNING *`,[guildId]);if(!row)return;
+  try{const b=await oneOrNone<any>('SELECT * FROM pb_battles WHERE id=$1 AND guild_id=$2',[row.battle_id,guildId]);const signed=await oneOrNone('SELECT id FROM pb_signups WHERE battle_id=$1 AND user_id=$2',[row.battle_id,row.user_id]);if(!b||b.status!=='OPEN'||!b.starts_at||new Date(b.starts_at).getTime()<=Date.now()||signed){await db.query(`UPDATE pb_invitations SET status='SKIPPED',error='Battle closed, started, or member already signed up.',updated_at=NOW() WHERE id=$1`,[row.id]);return;}
+   if(await discordDmsMuted(String(row.user_id))){await db.query(`UPDATE pb_invitations SET status='SKIPPED',error='suppressed_by_dm_mute',updated_at=NOW() WHERE id=$1`,[row.id]);return;}
+   const guild=await client.guilds.fetch(guildId);const member=await guild.members.fetch(row.user_id);if(member.user.bot)throw new Error('bot_member');const unix=Math.floor(new Date(b.starts_at).getTime()/1000);
+   const buttons=new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId(`pbinvite:${row.id}`).setLabel('Sign Up with Preferred Ships').setStyle(ButtonStyle.Success));if(/^https?:\/\//.test(dashboard))buttons.addComponents(new ButtonBuilder().setURL(`${dashboard}/dashboard/port-battles?battle=${b.id}`).setLabel('Review Battle & Ships').setStyle(ButtonStyle.Link));
+   const message=await sendBotDm(member,{embeds:[{title:`Port Battle · ${b.port_name}`,description:`Your officers invite you to sign up.\n\n**${b.rate} Rate** · ${b.attacker} vs ${b.defender}\n**Starts <t:${unix}:R>**\n<t:${unix}:F>\n\nUse your saved ships for this rate, or review your ships in the dashboard. Signing up does not guarantee a roster slot. The dashboard shows any schedule changes.`,color:0xD9AA3C}],components:[buttons],allowedMentions:{parse:[]}});await db.query(`UPDATE pb_invitations SET status='SENT',message_id=$2,error=NULL,updated_at=NOW() WHERE id=$1`,[row.id,message.id]);
+  }catch(e:any){await db.query(`UPDATE pb_invitations SET status='FAILED',error=$2,updated_at=NOW() WHERE id=$1`,[row.id,Number(e?.code)===50007?'Member has closed DMs.':'Unable to deliver. Check membership, bot access, and Discord availability.']);}
+ }catch(e){console.warn('[pb-invitations] queue unavailable');}finally{running=false;}}
+ const timer=setInterval(()=>void tick(),2000);timer.unref();client.once('clientReady',()=>void tick());
+ const handle=async(i:any)=>{if(!i.isButton()||!i.customId.startsWith('pbinvite:'))return;await i.deferReply(i.guildId?{flags:MessageFlags.Ephemeral}:{});try{const row=await oneOrNone<any>('SELECT * FROM pb_invitations WHERE id=$1 AND guild_id=$2',[i.customId.slice(9),guildId]);if(!row||row.user_id!==i.user.id)return void await i.editReply({content:'This invitation belongs to another member.'});const b=await oneOrNone<any>('SELECT * FROM pb_battles WHERE id=$1 AND guild_id=$2',[row.battle_id,guildId]);if(!b||b.status!=='OPEN'||!b.starts_at||new Date(b.starts_at).getTime()<=Date.now())return void await i.editReply({content:'Signup is closed or this battle has started.'});const existing=await oneOrNone('SELECT id FROM pb_signups WHERE battle_id=$1 AND user_id=$2',[b.id,i.user.id]);if(existing)return void await i.editReply({content:'You are already signed up. Use the dashboard to review or change your signup.'});await signup(i,b.id);return void await i.editReply({content:`You are signed up for ${b.port_name} using your saved ships. Starts <t:${Math.floor(new Date(b.starts_at).getTime()/1000)}:R>.`});}catch(e:any){return void await i.editReply({content:e?.message==='preferred_ships_missing'?'Save playable and preferred ships for this battle rate in Members → My Profile & Ships, then press this button again. Use Set Preferred Ships on the signup index or in the guidance DM.':'Unable to sign up. Check your current server membership and signup role, or use the dashboard.'});}};
+ client.on('interactionCreate',handle);
+ return {tick,stop:()=>{clearInterval(timer);client.off('interactionCreate',handle);}};
+}
+

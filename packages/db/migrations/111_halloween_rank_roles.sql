@@ -1,0 +1,3 @@
+CREATE TABLE IF NOT EXISTS guild_event_rank_settings(guild_id text PRIMARY KEY,enabled boolean NOT NULL DEFAULT true,source text NOT NULL DEFAULT 'BOTH' CHECK(source IN ('PROGRESS','DONATIONS','BOTH')),updated_by text,updated_at timestamptz NOT NULL DEFAULT now());
+CREATE TABLE IF NOT EXISTS guild_event_rank_roles(guild_id text NOT NULL,board text NOT NULL CHECK(board IN ('PROGRESS','DONATIONS')),rank integer NOT NULL CHECK(rank BETWEEN 1 AND 9),role_id text NOT NULL UNIQUE,style_hash text,PRIMARY KEY(guild_id,board,rank));
+CREATE TABLE IF NOT EXISTS guild_event_rank_sync(guild_id text PRIMARY KEY,last_sync_at timestamptz,error text,features jsonb NOT NULL DEFAULT '{}');

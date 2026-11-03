@@ -1,0 +1,102 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: bom_music
+      POSTGRES_USER: bom
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-change-me}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U bom -d bom_music"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  redis:
+    image: redis:8-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  migrate:
+    build: { context: ., dockerfile: docker/Dockerfile, args: { APP: db } }
+    restart: "no"
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music
+    command: ["npm", "run", "migrate", "-w", "@bom/db"]
+    depends_on:
+      postgres: { condition: service_healthy }
+
+  api:
+    build: { context: ., dockerfile: docker/Dockerfile, args: { APP: api } }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      API_PORT: 4100
+      API_HOST: 0.0.0.0
+      DATABASE_URL: postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+  controller:
+    build: { context: ., dockerfile: docker/Dockerfile, args: { APP: controller } }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music
+      REDIS_URL: redis://redis:6379
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+
+  worker1: &worker
+    build: { context: ., dockerfile: docker/Dockerfile, args: { APP: worker } }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATABASE_URL: postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music
+      WORKER_ID: "1"
+      DISCORD_TOKEN: ${WORKER_1_TOKEN}
+      REDIS_URL: redis://redis:6379
+      LAVALINK_URL: ${LAVALINK_URL}
+      LAVALINK_PASSWORD: ${LAVALINK_PASSWORD}
+      LAVALINK_SECURE: ${LAVALINK_SECURE:-false}
+      LAVALINK_SEARCH_PREFIX: ${LAVALINK_SEARCH_PREFIX:-ytmsearch:}
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_healthy }
+      migrate: { condition: service_completed_successfully }
+  worker2: { <<: *worker, environment: { DATABASE_URL: "postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music", WORKER_ID: "2", DISCORD_TOKEN: "${WORKER_2_TOKEN}", REDIS_URL: "redis://redis:6379", LAVALINK_URL: "${LAVALINK_URL}", LAVALINK_PASSWORD: "${LAVALINK_PASSWORD}", LAVALINK_SECURE: "${LAVALINK_SECURE:-false}", LAVALINK_SEARCH_PREFIX: "${LAVALINK_SEARCH_PREFIX:-ytmsearch:}" } }
+  worker3: { <<: *worker, environment: { DATABASE_URL: "postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music", WORKER_ID: "3", DISCORD_TOKEN: "${WORKER_3_TOKEN}", REDIS_URL: "redis://redis:6379", LAVALINK_URL: "${LAVALINK_URL}", LAVALINK_PASSWORD: "${LAVALINK_PASSWORD}", LAVALINK_SECURE: "${LAVALINK_SECURE:-false}", LAVALINK_SEARCH_PREFIX: "${LAVALINK_SEARCH_PREFIX:-ytmsearch:}" } }
+  worker4: { <<: *worker, environment: { DATABASE_URL: "postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music", WORKER_ID: "4", DISCORD_TOKEN: "${WORKER_4_TOKEN}", REDIS_URL: "redis://redis:6379", LAVALINK_URL: "${LAVALINK_URL}", LAVALINK_PASSWORD: "${LAVALINK_PASSWORD}", LAVALINK_SECURE: "${LAVALINK_SECURE:-false}", LAVALINK_SEARCH_PREFIX: "${LAVALINK_SEARCH_PREFIX:-ytmsearch:}" } }
+  worker5: { <<: *worker, environment: { DATABASE_URL: "postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music", WORKER_ID: "5", DISCORD_TOKEN: "${WORKER_5_TOKEN}", REDIS_URL: "redis://redis:6379", LAVALINK_URL: "${LAVALINK_URL}", LAVALINK_PASSWORD: "${LAVALINK_PASSWORD}", LAVALINK_SECURE: "${LAVALINK_SECURE:-false}", LAVALINK_SEARCH_PREFIX: "${LAVALINK_SEARCH_PREFIX:-ytmsearch:}" } }
+  worker6: { <<: *worker, environment: { DATABASE_URL: "postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music", WORKER_ID: "6", DISCORD_TOKEN: "${WORKER_6_TOKEN}", REDIS_URL: "redis://redis:6379", LAVALINK_URL: "${LAVALINK_URL}", LAVALINK_PASSWORD: "${LAVALINK_PASSWORD}", LAVALINK_SECURE: "${LAVALINK_SECURE:-false}", LAVALINK_SEARCH_PREFIX: "${LAVALINK_SEARCH_PREFIX:-ytmsearch:}" } }
+  worker7: { <<: *worker, environment: { DATABASE_URL: "postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music", WORKER_ID: "7", DISCORD_TOKEN: "${WORKER_7_TOKEN}", REDIS_URL: "redis://redis:6379", LAVALINK_URL: "${LAVALINK_URL}", LAVALINK_PASSWORD: "${LAVALINK_PASSWORD}", LAVALINK_SECURE: "${LAVALINK_SECURE:-false}", LAVALINK_SEARCH_PREFIX: "${LAVALINK_SEARCH_PREFIX:-ytmsearch:}" } }
+  worker8: { <<: *worker, environment: { DATABASE_URL: "postgresql://bom:${POSTGRES_PASSWORD:-change-me}@postgres:5432/bom_music", WORKER_ID: "8", DISCORD_TOKEN: "${WORKER_8_TOKEN}", REDIS_URL: "redis://redis:6379", LAVALINK_URL: "${LAVALINK_URL}", LAVALINK_PASSWORD: "${LAVALINK_PASSWORD}", LAVALINK_SECURE: "${LAVALINK_SECURE:-false}", LAVALINK_SEARCH_PREFIX: "${LAVALINK_SEARCH_PREFIX:-ytmsearch:}" } }
+
+  dashboard:
+    build: { context: ., dockerfile: docker/Dockerfile, args: { APP: dashboard } }
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      PORT: 3000
+      INTERNAL_API_URL: http://api:4100
+    ports: ["127.0.0.1:3000:3000"]
+    depends_on: [api]
+
+volumes:
+  postgres_data:
+  redis_data:
