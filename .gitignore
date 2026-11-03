@@ -23,3 +23,14 @@ vendor/redis/
 *.sqlite
 *.sqlite-shm
 *.sqlite-wal
+# Generated port-battle artwork cache (re-rendered on demand)
+data/pb-art/
+*.tsbuildinfo
+# Files Next.js generates when the browser tests start the *-preview apps
+*-preview/.next/
+*-preview/AGENTS.md
+donation-preview/next-env.d.ts
+donation-preview/tsconfig.json
+halloween-preview/next-env.d.ts
+halloween-preview/tsconfig.json
+test-preview/public

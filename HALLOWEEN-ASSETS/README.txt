@@ -1,1 +1,0 @@
-Ready-to-upload PNG files. Branding: bot profile and server art. Trophies: gold/silver/bronze Discord emoji. Medals-and-ribbons: nine rank-role icons reused for progress and donation roles. Server artwork is not automatically applied; the controller handles its own bot branding and rank roles. See INSTALL-v4.4.12.txt and the asset prompts.
