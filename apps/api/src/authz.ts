@@ -20,6 +20,8 @@ const accessCache=new Map<string,{expires:number,staleUntil:number,value:any}>()
 const memberCache=new Map<string,{expires:number,staleUntil:number,value:Member|null}>();
 const accessInflight=new Map<string,Promise<any>>();
 const memberInflight=new Map<string,Promise<Member|null>>();
+// Drop per-user entries once even their stale-grace window has passed so the maps stay bounded.
+const authCacheSweep=setInterval(()=>{const now=Date.now();for(const cache of [accessCache,memberCache] as Map<string,{staleUntil:number}>[])for(const [key,entry] of cache)if(entry.staleUntil<now)cache.delete(key);},600_000);authCacheSweep.unref();
 let guildRoleCache:{expires:number;staleUntil:number;guild:any;roles:Role[]}|null=null;
 let guildRoleInflight:Promise<{expires:number;staleUntil:number;guild:any;roles:Role[]}>|null=null;
 let contextCache:{expires:number,staleUntil:number,value:any}|null=null;

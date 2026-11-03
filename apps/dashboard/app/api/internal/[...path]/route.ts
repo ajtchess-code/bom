@@ -8,7 +8,7 @@ async function proxy(req:NextRequest,ctx:{params:Promise<{path:string[]}>}){
     const expected=process.env.PUBLIC_DASHBOARD_URL?new URL(process.env.PUBLIC_DASHBOARD_URL).origin:null;
     if(expected&&origin!==expected)return Response.json({error:"invalid_origin"},{status:403});
   }
-  const {path}=await ctx.params; const qs=new URL(req.url).search; const base=process.env.INTERNAL_API_URL??"http://127.0.0.1:4100";
+  const {path}=await ctx.params; if(!path.length||path.some(part=>part===""||part==="."||part===".."||/[\\/]/.test(part)))return Response.json({error:"invalid_path"},{status:400}); const qs=new URL(req.url).search; const base=process.env.INTERNAL_API_URL??"http://127.0.0.1:4100";
   const headers=new Headers();headers.set("x-internal-token",process.env.INTERNAL_API_TOKEN??"");headers.set("x-discord-user-id",s.id);
   const method=req.method;const rawBody=method==="GET"||method==="HEAD"?undefined:await req.text();const {body,contentType}=forwardBody(method,req.headers.get("content-type"),rawBody);if(contentType)headers.set("content-type",contentType);const up=await fetch(`${base}/v1/${path.join("/")}${qs}`,{method,headers,body,cache:"no-store"});
   const h=new Headers(up.headers);h.delete("content-encoding");h.delete("content-length");

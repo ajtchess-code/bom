@@ -1,6 +1,6 @@
 import {mergeGuildCatalogue,resolveCatalogueGuild} from '@bom/shared';
 import sharp,{type OverlayOptions} from 'sharp';
-import {readFile,mkdir,access,writeFile,rename} from 'node:fs/promises';
+import {readFile,mkdir,access,writeFile,rename,readdir,stat,unlink,utimes} from 'node:fs/promises';
 import {join} from 'node:path';
 import {createHash,randomUUID} from 'node:crypto';
 const safe=(s:any)=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]!));
@@ -9,6 +9,15 @@ export const artworkFaction=(s:any)=>{const name=String(s??'').normalize('NFD').
 const isBOM=(s:any)=>['BOM','ßǾM'].includes(tagKey(s));
 const palettes:Record<string,string[]>={bom:['#fff5bd','#efbc4f','#9b5c16'],antilia:['#ffd3d8','#e63c57','#8c102a'],espaniol:['#ffe4a5','#f28637','#a92117'],'kai-severia':['#d4f5ff','#4cb6f0','#2051ab'],pirates:['#ffffff','#bcc7d4','#677383']};
 const pending=new Map<string,Promise<string|null>>();
+// Each new matchup renders a ~4 MB PNG. Reused images get their mtime refreshed; images unused
+// for PB_ART_RETENTION_DAYS (default 45) are removed so the host disk cannot fill up over time.
+const artRetentionMs=Math.max(7,Number(process.env.PB_ART_RETENTION_DAYS)||45)*86_400_000;
+let lastArtPrune=0;
+async function pruneArtworkCache(dir:string){
+ if(Date.now()-lastArtPrune<3_600_000)return;lastArtPrune=Date.now();
+ try{for(const name of await readdir(dir)){if(!/^[a-f0-9]{64}\.png$|\.tmp$/.test(name))continue;const file=join(dir,name);const info=await stat(file).catch(()=>null);if(info&&Date.now()-info.mtimeMs>(name.endsWith('.tmp')?3_600_000:artRetentionMs))await unlink(file).catch(()=>{});}}
+ catch(error:any){if(error?.code!=='ENOENT')console.warn('[pb-artwork] cache prune failed:',String(error?.message??error));}
+}
 export async function ensureBattleArtwork(b:any,guilds:any[],base:string):Promise<string|null>{
  if(!/^https?:\/\//.test(base))return null;
  try{const defaults=JSON.parse(await readFile(join(process.cwd(),'data/pb/guild-defaults.json'),'utf8'));guilds=mergeGuildCatalogue(defaults,guilds);}catch{}
@@ -16,7 +25,7 @@ export async function ensureBattleArtwork(b:any,guilds:any[],base:string):Promis
  const key=createHash('sha256').update(JSON.stringify(['cinematic-factions-v9-template-centering',b.port_name,records])).digest('hex');const url=`${base.replace(/\/$/,'')}/pb-art/${key}.png`;
  if(pending.has(key))return pending.get(key)!;
  const task=(async()=>{
- const out=join(process.cwd(),'data/pb-art',key+'.png');try{await access(out);return url;}catch{}
+ const cacheDir=join(process.cwd(),'data/pb-art'),out=join(cacheDir,key+'.png');void pruneArtworkCache(cacheDir);try{await access(out);const now=new Date();await utimes(out,now,now).catch(()=>{});return url;}catch{}
  const assets=join(process.cwd(),'apps/controller/assets/pb-matchups'),w=2048,h=800,half=w/2,parts:OverlayOptions[]=[];
  // Templates contain artwork only. Port names, roles and tags are always rendered here.
  const halves=await Promise.all(records.map(async r=>{const bom=isBOM(r.tag);const full=await sharp(join(assets,`cinematic-${bom?'antilia':artworkFaction(r.faction)}.png`)).resize(w,h,{fit:'fill'}).png().toBuffer();return sharp(full).extract({left:bom?0:1124,top:0,width:924,height:h}).resize(half,h,{fit:'fill'}).png().toBuffer();}));

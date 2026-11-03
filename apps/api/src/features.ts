@@ -1,3 +1,5 @@
+/** Query/body numbers: blank, missing or non-numeric values fall back instead of becoming NaN. */
+const numberOr=(value:unknown,fallback:number)=>{const n=Math.floor(Number(value??fallback));return Number.isFinite(n)?n:fallback;};
 import {hasMusicPermission} from './authz.js';
 import {discordRequest} from '@bom/redis';
 import { randomUUID } from "node:crypto";
@@ -85,7 +87,7 @@ export function registerFeatureRoutes(app:any,{guildId,requireMember,requireAdmi
   app.post("/v1/music/favorites",async(req:any,reply:any)=>{if(!await requireMember(req,reply))return;const uid=userId(req);const t=z.object({identifier:z.string(),sourceName:z.string(),title:z.string(),author:z.string(),uri:z.string().nullable().optional(),artworkUrl:z.string().nullable().optional()}).parse(req.body);await db.query(`INSERT INTO favorites(guild_id,user_id,identifier,title,author,source_name,uri,artwork_url) VALUES($1,$2,$3,$4,$5,$6,$7,$8) ON CONFLICT DO NOTHING`,[guildId,uid,t.identifier,t.title,t.author,t.sourceName,t.uri??null,t.artworkUrl??null]);await evaluateAchievements(guildId,uid);return{ok:true};});
   app.delete("/v1/music/favorites/:source/:identifier",async(req:any,reply:any)=>{if(!await requireMember(req,reply))return;await db.query(`DELETE FROM favorites WHERE guild_id=$1 AND user_id=$2 AND source_name=$3 AND identifier=$4`,[guildId,userId(req),req.params.source,req.params.identifier]);return{ok:true};});
 
-  app.get("/v1/music/history/search",async(req:any,reply:any)=>{if(!await requireMember(req,reply))return;const q=String(req.query?.q??"").slice(0,120),user=String(req.query?.userId??"").slice(0,20),limit=Math.min(200,Math.max(10,Number(req.query?.limit??80)));const like=`%${q}%`;return many<any>(`SELECT th.*,tp.origin,tp.surface,tp.requested_query,tp.resolver_strategy,tp.resolver_provider,tp.resolver_score,tp.resolution_attempts,tp.fallback_reason FROM track_history th LEFT JOIN track_provenance tp ON tp.history_id=th.id WHERE th.guild_id=$1 AND ($2='' OR th.title LIKE $3 OR th.author LIKE $3) AND ($4='' OR th.requester_id=$4) ORDER BY th.started_at DESC LIMIT ${limit}`,[guildId,q,like,user]);});
+  app.get("/v1/music/history/search",async(req:any,reply:any)=>{if(!await requireMember(req,reply))return;const q=String(req.query?.q??"").slice(0,120),user=String(req.query?.userId??"").slice(0,20),limit=Math.min(200,Math.max(10,numberOr(req.query?.limit,80)));const like=`%${q}%`;return many<any>(`SELECT th.*,tp.origin,tp.surface,tp.requested_query,tp.resolver_strategy,tp.resolver_provider,tp.resolver_score,tp.resolution_attempts,tp.fallback_reason FROM track_history th LEFT JOIN track_provenance tp ON tp.history_id=th.id WHERE th.guild_id=$1 AND ($2='' OR th.title LIKE $3 OR th.author LIKE $3) AND ($4='' OR th.requester_id=$4) ORDER BY th.started_at DESC LIMIT ${limit}`,[guildId,q,like,user]);});
   app.get("/v1/music/community",async(req:any,reply:any)=>{
     if(!await requireMember(req,reply))return;
     const [recent,popular,users]=await Promise.all([
@@ -113,7 +115,7 @@ export function registerFeatureRoutes(app:any,{guildId,requireMember,requireAdmi
   app.delete("/v1/admin/station-ids/:id",async(req:any,reply:any)=>{if(!await requireAdmin(req,reply))return;await db.query(`DELETE FROM station_ids WHERE guild_id=$1 AND id=$2`,[guildId,req.params.id]);return{ok:true};});
 
   app.get("/v1/admin/metrics",async(req:any,reply:any)=>{
-    if(!await requireAdmin(req,reply))return;const mins=Math.min(10080,Math.max(15,Number(req.query?.minutes??1440)));
+    if(!await requireAdmin(req,reply))return;const mins=Math.min(10080,Math.max(15,numberOr(req.query?.minutes,1440)));
     const [raw,health]=await Promise.all([
       many<any>(`SELECT metric,value_ms,worker_id,created_at FROM music_metrics WHERE guild_id=$1 AND created_at>=CURRENT_TIMESTAMP - (${mins} * INTERVAL '1 minute') ORDER BY created_at DESC LIMIT 2000`,[guildId]),
       many<any>(`SELECT * FROM worker_health_history WHERE guild_id=$1 ORDER BY created_at DESC LIMIT 400`,[guildId])

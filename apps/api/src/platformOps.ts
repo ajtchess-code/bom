@@ -1,3 +1,5 @@
+/** Query/body numbers: blank, missing or non-numeric values fall back instead of becoming NaN. */
+const numberOr=(value:unknown,fallback:number)=>{const n=Math.floor(Number(value??fallback));return Number.isFinite(n)?n:fallback;};
 import {randomUUID,createHash} from "node:crypto";
 import {db,many,oneOrNone} from "@bom/db";
 import {redis} from "@bom/redis";
@@ -180,7 +182,7 @@ export function registerPlatformOpsRoutes(app:any,deps:{guildId:string;requireMe
 
   app.get('/v1/platform/setup-checklist',async(req:any,reply:any)=>{if(!await requireAdmin(req,reply))return;return setupChecklist(guildId);});
   app.get('/v1/platform/jobs',async(req:any,reply:any)=>{if(!await requireAdmin(req,reply))return;return many<any>(`SELECT * FROM platform_jobs WHERE guild_id=$1 ORDER BY created_at DESC LIMIT 100`,[guildId]);});
-  app.post('/v1/platform/jobs',async(req:any,reply:any)=>{if(!await requireAdmin(req,reply))return;const type=clean(req.body?.jobType,80);if(!type)return reply.code(400).send({error:"job_type_required"});if(!PLATFORM_JOB_TYPES.has(type))return reply.code(400).send({error:"unsupported_job_type",allowed:[...PLATFORM_JOB_TYPES]});const id=await enqueuePlatformJob(guildId,type,req.body?.payload??{},userId(req),Math.max(1,Math.min(1000,Number(req.body?.priority??100))));return reply.code(202).send({ok:true,id});});
+  app.post('/v1/platform/jobs',async(req:any,reply:any)=>{if(!await requireAdmin(req,reply))return;const type=clean(req.body?.jobType,80);if(!type)return reply.code(400).send({error:"job_type_required"});if(!PLATFORM_JOB_TYPES.has(type))return reply.code(400).send({error:"unsupported_job_type",allowed:[...PLATFORM_JOB_TYPES]});const id=await enqueuePlatformJob(guildId,type,req.body?.payload??{},userId(req),Math.max(1,Math.min(1000,numberOr(req.body?.priority,100))));return reply.code(202).send({ok:true,id});});
   app.post('/v1/platform/jobs/:id/cancel',async(req:any,reply:any)=>{if(!await requireAdmin(req,reply))return;await db.query(`UPDATE platform_jobs SET status='CANCELLED',progress_message='Cancelled by administrator',finished_at=CURRENT_TIMESTAMP,updated_at=CURRENT_TIMESTAMP WHERE guild_id=$1 AND id=$2 AND status IN ('QUEUED','RUNNING')`,[guildId,String(req.params.id)]);return {ok:true};});
   app.post('/v1/platform/jobs/:id/retry',async(req:any,reply:any)=>{if(!await requireAdmin(req,reply))return;await db.query(`UPDATE platform_jobs SET status='QUEUED',progress=0,progress_message='Queued for retry',result='{}'::jsonb,available_at=CURRENT_TIMESTAMP,finished_at=NULL,updated_at=CURRENT_TIMESTAMP WHERE guild_id=$1 AND id=$2 AND status IN ('FAILED','CANCELLED')`,[guildId,String(req.params.id)]);return {ok:true};});
 
