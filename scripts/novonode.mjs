@@ -20,7 +20,9 @@ if(missing.length){console.error(`[startup] Missing required environment: ${miss
 // before migrations/services so runtime JavaScript matches the currently installed
 // source and dependencies (notably the PostgreSQL conversion from mysql2 -> pg).
 const yarn=process.platform==="win32"?"yarn.cmd":"yarn";
-const skipStartupBuild=/^(1|true|yes|on)$/i.test(process.env.SKIP_STARTUP_BUILD??"");
+// bootstrap.mjs (index.js / start:host) already built this start; only build when launched directly.
+const alreadyBuilt=process.env.BOM_STARTUP_BUILT==="1";
+const skipStartupBuild=alreadyBuilt||/^(1|true|yes|on)$/i.test(process.env.SKIP_STARTUP_BUILD??"");
 if(!skipStartupBuild){
   console.log("[bootstrap] Building BOM-Bot from current source...");
   const build=spawnSync(yarn,["build"],{cwd:root,env:process.env,stdio:"inherit"});
@@ -28,7 +30,7 @@ if(!skipStartupBuild){
     console.error(`[BOM-Bot] Fatal startup error: yarn build failed (${build.error?.message??build.status})`);
     process.exit(build.status||1);
   }
-}else{
+}else if(!alreadyBuilt){
   console.warn("[bootstrap] SKIP_STARTUP_BUILD enabled; existing dist/.next artifacts will be used.");
 }
 
@@ -60,10 +62,17 @@ if(localRedis){
   });
 }
 
+// Console redaction + health heartbeat (configured by BOM_LOG_* / BOM_DIAGNOSTIC_* / BOM_HEALTH_*).
+const diagnosticsPreload=`${root}/scripts/runtime-diagnostics.cjs`;
+const withDiagnostics=(name,args)=>existsSync(diagnosticsPreload)?["--require",diagnosticsPreload,...args]:args;
+
 function spawnService(name,command,args,extraEnv={},options={}){
+  const ownNodeService=command===process.execPath&&!options.env;
+  const launchArgs=ownNodeService?withDiagnostics(name,args):args;
+  const launchEnv=options.env??{...process.env,...(ownNodeService?{BOM_SERVICE:name}:{}),...extraEnv};
   const launch=()=>{
     if(shuttingDown)return;
-    const child=spawn(command,args,{cwd:options.cwd||root,env:options.env??{...process.env,...extraEnv},stdio:"inherit"});
+    const child=spawn(command,launchArgs,{cwd:options.cwd||root,env:launchEnv,stdio:"inherit"});
     children.set(name,child);
     console.log(`[startup] ${name} started (pid ${child.pid})`);
     let spawnFailed=false;
@@ -83,7 +92,8 @@ function spawnService(name,command,args,extraEnv={},options={}){
 
 async function migrate(){
   await new Promise((resolve,reject)=>{
-    const c=spawn(process.execPath,["packages/db/dist/migrate.js"],{cwd:root,env:process.env,stdio:"inherit"});
+    const c=spawn(process.execPath,withDiagnostics("migrate",["packages/db/dist/migrate.js"]),{cwd:root,env:{...process.env,BOM_SERVICE:"migrate"},stdio:"inherit"});
+    c.once("error",reject);
     c.once("exit",code=>code===0?resolve():reject(new Error(`migration failed with code ${code}`)));
   });
 }

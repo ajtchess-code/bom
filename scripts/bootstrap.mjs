@@ -65,17 +65,15 @@ if (!existsSync("node_modules") || missingModules.length || wrongZodVersion) {
   await run(yarn, ["install", "--force"]);
 }
 
-const outputs = [
-  "apps/controller/dist/index.js",
-  "apps/worker/dist/index.js",
-  "apps/api/dist/index.js",
-  "packages/db/dist/migrate.js",
-  "apps/dashboard/.next/BUILD_ID",
-];
-
-if (process.env.FORCE_BUILD === "1" || outputs.some((path) => !existsSync(path))) {
-  console.log("[bootstrap] Building BOM-Bot...");
+// Build exactly once per start. Uploads overlay old dist/.next output, so the
+// compiled code is always rebuilt from the current source unless the host opts out.
+const skipStartupBuild = /^(1|true|yes|on)$/i.test(process.env.SKIP_STARTUP_BUILD ?? "");
+if (!skipStartupBuild) {
+  console.log("[bootstrap] Building BOM-Bot from current source...");
   await run(yarn, ["build"]);
+} else {
+  console.warn("[bootstrap] SKIP_STARTUP_BUILD enabled; existing dist/.next artifacts will be used.");
 }
+process.env.BOM_STARTUP_BUILT = "1";
 
 await import("./novonode.mjs");

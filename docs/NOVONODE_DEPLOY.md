@@ -131,7 +131,7 @@ npm run start:host
 On a clean installation this command:
 
 1. installs npm workspace dependencies if `node_modules` is absent;
-2. builds the TypeScript packages/apps and the Next.js production bundle if outputs are absent;
+2. builds the TypeScript packages/apps and the Next.js production bundle once, from the current source;
 3. applies the PostgreSQL migration;
 4. starts the internal API;
 5. starts the Controller;
@@ -140,7 +140,7 @@ On a clean installation this command:
 8. optionally starts `cloudflared` if both tunnel variables are configured;
 9. restarts an individual child service if it crashes.
 
-To force a rebuild after replacing source files, set `FORCE_BUILD=1` for one startup, then remove it afterward.
+Every start rebuilds once from the uploaded source, so replaced files always take effect. To restart quickly without rebuilding (only when nothing changed), set `SKIP_STARTUP_BUILD=1`, then remove it afterward. `startup.cjs` and `startup-next-fix.cjs` are kept only as pass-throughs to `index.js` for panels that still point at them.
 
 ## 8. Cloudflare Tunnel
 
