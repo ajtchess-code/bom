@@ -48,6 +48,9 @@ import {membershipCommands,installMembership,handleMembershipInteraction} from "
 import {recruitmentCommands,installRecruitment,handleRecruitmentInteraction} from "./recruitment.js";
 import {canDiscordDm} from './notifications.js';
 import {banterCommands,installBanter,handleRoast,handleBanterStatus,banterOwnsMention,banterShouldDeferToWiki} from './banter.js';
+// A rejected background promise (Discord event handler, timer, cache refresh) must not take
+// the whole service down; the supervisor restart would drop every in-flight request.
+process.on("unhandledRejection",reason=>{console.error("[controller] unhandled promise rejection",reason);});
 
 const token=process.env.DISCORD_BOT_TOKEN, clientId=process.env.DISCORD_CLIENT_ID, guildId=process.env.DISCORD_GUILD_ID;
 if(!token||!clientId||!guildId)throw new Error("DISCORD_BOT_TOKEN, DISCORD_CLIENT_ID and DISCORD_GUILD_ID are required");

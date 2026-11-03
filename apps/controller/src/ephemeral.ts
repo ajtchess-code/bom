@@ -43,7 +43,9 @@ export function startEphemeralJanitor(){
       await redis.del(keys.ephemeralData(id));
     }
   };
-  const timer=setInterval(()=>void run(),2_000); timer.unref(); void run();
+  let running=false;
+  const tick=async()=>{if(running)return;running=true;try{await run();}catch(error){console.warn('[ephemeral] cleanup sweep failed',error);}finally{running=false;}};
+  const timer=setInterval(()=>void tick(),2_000); timer.unref(); void tick();
 }
 
 export async function editEphemeral(id:string,payload:any){

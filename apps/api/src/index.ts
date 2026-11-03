@@ -31,6 +31,9 @@ import {bootstrapFeedbackCenter,registerFeedbackRoutes} from "./feedback.js";
 import {registerMembershipRoutes} from "./membership.js";
 import {registerRecruitmentRoutes} from "./recruitment.js";
 import {registerPlatformOpsRoutes,startPlatformJobRunner,emitPlatformEvent} from "./platformOps.js";
+// A rejected background promise (Discord event handler, timer, cache refresh) must not take
+// the whole service down; the supervisor restart would drop every in-flight request.
+process.on("unhandledRejection",reason=>{console.error("[api] unhandled promise rejection",reason);});
 
 const app=Fastify({
   logger:{

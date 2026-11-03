@@ -22,6 +22,7 @@ class PostgresRedisCompat extends EventEmitter{
   private channels=new Set<string>();
   private pubCursor=new Map<string,number>();
   private pollTimer?:NodeJS.Timeout;
+  private polling=false;
   multi(){return new PostgresMulti(this);}
   async get(key:string){
     await db.query(`DELETE FROM live_kv WHERE key_name=$1 AND expires_at IS NOT NULL AND expires_at<=CURRENT_TIMESTAMP`,[key]);
@@ -46,7 +47,7 @@ class PostgresRedisCompat extends EventEmitter{
     return "OK";
   }
   async incr(key:string){
-    const r=await db.query<any>(`INSERT INTO live_kv(key_name,value_text) VALUES($1,'1') ON CONFLICT(key_name) DO UPDATE SET value_text=((CASE WHEN live_kv.expires_at<=NOW() THEN 0 ELSE live_kv.value_text::bigint END)+1)::text RETURNING value_text`,[key]);return Number(r.rows[0].value_text);
+    const r=await db.query<any>(`INSERT INTO live_kv(key_name,value_text) VALUES($1,'1') ON CONFLICT(key_name) DO UPDATE SET value_text=((CASE WHEN live_kv.expires_at<=NOW() THEN 0 ELSE live_kv.value_text::bigint END)+1)::text,expires_at=CASE WHEN live_kv.expires_at<=NOW() THEN NULL ELSE live_kv.expires_at END RETURNING value_text`,[key]);return Number(r.rows[0].value_text);
   }
   async exists(key:string){return await this.get(key)===null?0:1;}
   async ttl(key:string){const r=await db.query<any>(`SELECT CASE WHEN expires_at IS NULL THEN -1 ELSE GREATEST(-2,CEIL(EXTRACT(EPOCH FROM expires_at-NOW()))) END AS ttl FROM live_kv WHERE key_name=$1 AND (expires_at IS NULL OR expires_at>NOW())`,[key]);return Number(r.rows[0]?.ttl??-2);}
@@ -128,10 +129,14 @@ class PostgresRedisCompat extends EventEmitter{
     return this.channels.size;
   }
   private async pollPubSub(){
-    for(const channel of this.channels){
-      const last=this.pubCursor.get(channel)??0;const rows=await db.query<any>(`SELECT seq,payload FROM live_streams WHERE stream_name=$1 AND seq>$2 ORDER BY seq LIMIT 100`,[`__pub__:${channel}`,last]);
-      for(const row of rows.rows){this.pubCursor.set(channel,Number(row.seq));this.emit("message",channel,row.payload);}
-    }
+    if(this.polling)return;this.polling=true;
+    try{
+      for(const channel of this.channels){
+        const last=this.pubCursor.get(channel)??0;const rows=await db.query<any>(`SELECT seq,payload FROM live_streams WHERE stream_name=$1 AND seq>$2 ORDER BY seq LIMIT 100`,[`__pub__:${channel}`,last]);
+        for(const row of rows.rows){this.pubCursor.set(channel,Number(row.seq));this.emit("message",channel,row.payload);}
+      }
+    }catch(error){console.warn("[live-state] pub/sub poll failed; retrying",error);}
+    finally{this.polling=false;}
   }
   async quit(){if(this.pollTimer)clearInterval(this.pollTimer);this.channels.clear();return "OK";}
 }
@@ -188,7 +193,7 @@ export async function dequeue(roomId:string):Promise<QueueItem|null>{
   let best=items[0],rank=Infinity;for(const row of items){const item=JSON.parse(row.value_text),score=served.indexOf(String(item.requesterId??''));if(score<rank){best=row;rank=score;}}
   const chosen=JSON.parse(best.value_text),owner=String(chosen.requesterId??''),next=[...served.filter(x=>x!==owner),owner].slice(-200);
   await tx.query('DELETE FROM live_lists WHERE id=$1',[best.id]);await tx.query(`INSERT INTO live_kv(key_name,value_text,expires_at) VALUES($1,$2,now()+INTERVAL '1 day') ON CONFLICT(key_name) DO UPDATE SET value_text=EXCLUDED.value_text,expires_at=EXCLUDED.expires_at`,[servedKey,JSON.stringify(next)]);await tx.query('COMMIT');return chosen;
- }catch(e){await tx.query('ROLLBACK');throw e;}finally{tx.release();}
+ }catch(e){await tx.query('ROLLBACK').catch(()=>{});throw e;}finally{tx.release();}
 }
 /** Atomically remove the selected queued request without disturbing other tracks. */
 export async function dequeueByRequestId(roomId:string,requestId:string):Promise<QueueItem|null>{
@@ -196,7 +201,7 @@ export async function dequeueByRequestId(roomId:string,requestId:string):Promise
  if(stateBackend==='redis'){
   const raw=await redis.eval(`local items=redis.call('LRANGE',KEYS[1],0,-1) for _,raw in ipairs(items) do local ok,item=pcall(cjson.decode,raw) if ok and item.requestId==ARGV[1] then if redis.call('LREM',KEYS[1],1,raw)==1 then return raw end end end return false`,1,queueKey,requestId);return raw?JSON.parse(String(raw)):null;
  }
- const tx=await pool.connect();try{await tx.query('BEGIN');await tx.query('SELECT pg_advisory_xact_lock(hashtext($1))',[queueKey]);const row=(await tx.query(`SELECT id,value_text FROM live_lists WHERE key_name=$1 AND value_text::jsonb->>'requestId'=$2 ORDER BY id FOR UPDATE LIMIT 1`,[queueKey,requestId])).rows[0];if(row)await tx.query('DELETE FROM live_lists WHERE id=$1',[row.id]);await tx.query('COMMIT');return row?JSON.parse(row.value_text):null;}catch(e){await tx.query('ROLLBACK');throw e;}finally{tx.release();}
+ const tx=await pool.connect();try{await tx.query('BEGIN');await tx.query('SELECT pg_advisory_xact_lock(hashtext($1))',[queueKey]);const row=(await tx.query(`SELECT id,value_text FROM live_lists WHERE key_name=$1 AND value_text::jsonb->>'requestId'=$2 ORDER BY id FOR UPDATE LIMIT 1`,[queueKey,requestId])).rows[0];if(row)await tx.query('DELETE FROM live_lists WHERE id=$1',[row.id]);await tx.query('COMMIT');return row?JSON.parse(row.value_text):null;}catch(e){await tx.query('ROLLBACK').catch(()=>{});throw e;}finally{tx.release();}
 }
 export async function queueItems(roomId:string):Promise<QueueItem[]>{return (await redis.lrange(keys.roomQueue(roomId),0,-1)).map((x:string)=>JSON.parse(x));}
 

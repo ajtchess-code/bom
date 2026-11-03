@@ -5,6 +5,9 @@ import { randomUUID } from "node:crypto";
 import { redis, redisSub, keys, publishEvent, enqueue, streamTailId } from "@bom/redis";
 import { FILTER_PRESETS, WorkerCommand, type TrackInfo, type QueueItem } from "@bom/shared";
 import { resolveSmart, resolverSettingsFromEnv, resolverSettingsFromRow } from "./resolver.js";
+// A rejected background promise (Discord event handler, timer, cache refresh) must not take
+// the whole service down; the supervisor restart would drop every in-flight request.
+process.on("unhandledRejection",reason=>{console.error("[worker] unhandled promise rejection",reason);});
 
 function requiredEnv(name:string):string{
   const value=process.env[name];
