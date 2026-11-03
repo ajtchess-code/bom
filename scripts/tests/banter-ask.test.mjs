@@ -28,7 +28,7 @@ async function load(path,overrides={},append=''){
 let state,roles;
 await test('all bundled migrations apply, including upgrade over existing settings',async()=>{
  const files=(await readdir(root+'packages/db/migrations')).filter(x=>x.endsWith('.sql')).sort();
- for(const f of files){if(f.startsWith('032'))await query(`INSERT INTO bom_banter_settings(guild_id) VALUES('existing')`);await pg.exec(await readFile(root+'packages/db/migrations/'+f,'utf8'));}
+ for(const f of files){if(f.startsWith('032'))await query(`INSERT INTO bom_banter_settings(guild_id) VALUES('existing') ON CONFLICT DO NOTHING`);await pg.exec(await readFile(root+'packages/db/migrations/'+f,'utf8'));}
  assert.ok(files.includes('033_sentinel_schema_repair.sql'));assert.ok(files.includes('030_ask_rules_roles.sql'));assert.ok(files.includes('031_invitations_credentials.sql'));assert.equal(new Set(files).size,files.length);
  const old=(await query(`SELECT * FROM bom_banter_settings WHERE guild_id='existing'`)).rows[0];assert.equal(old.channel_cooldown_minutes,45);assert.equal(old.minimum_participants,1);
  await query(`UPDATE bom_banter_settings SET spontaneity=100,channel_cooldown_minutes=0,spontaneous_user_cooldown_seconds=0,daily_spontaneous_limit=1000,daily_total_limit=1000 WHERE guild_id='existing'`);
@@ -36,7 +36,7 @@ await test('all bundled migrations apply, including upgrade over existing settin
  state=await load(root+'packages/redis/dist/index.js',{'@bom/db':dbExports});
  const src=await readFile(root+'packages/db/dist/index.js','utf8');
  const start=src.indexOf('export async function queryRoleHistory');
- const mod=new vm.SourceTextModule(`const {oneOrNone,many}=globalThis.testDB;\n`+src.slice(start).replace(/^export \{.*credentials.*$/m,''),{context:ctx});ctx.testDB=dbExports;await mod.link(()=>{});await mod.evaluate();roles=mod.namespace;
+ const mod=new vm.SourceTextModule(`const {oneOrNone,many}=globalThis.testDB;\n`+src.slice(start).replace(/^export \{[^}]*\} from .*$/gm,''),{context:ctx});ctx.testDB=dbExports;await mod.link(()=>{});await mod.evaluate();roles=mod.namespace;
 });
 await test('PostgreSQL budgets reserve atomically across concurrent requests and refund unused replies',async()=>{
  const limits=[{key:'test:cap:total',limit:5,ttlSeconds:100},{key:'test:cap:ambient',limit:3,ttlSeconds:100}];

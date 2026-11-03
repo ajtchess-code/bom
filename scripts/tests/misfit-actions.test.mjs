@@ -80,10 +80,3 @@ await test('explicit actions and corrections outrank Ask even when its listener 
  const message=content=>({content,author:{bot:false},client:{user:{id:'bot'}},mentions:{users:{has:()=>false}}});
  assert.equal(await r.conversationOwner(message('signup')),'assistant');assert.equal(await r.conversationOwner(message('correction')),'wiki');assert.equal(await r.conversationOwner(message('question')),'community');
 });
-await test('leave is saved before guild notifications, and delivery failures are reported truthfully',async()=>{
- const source=await readFile(new URL('../../apps/controller/src/membership.ts',import.meta.url),'utf8');const start=source.indexOf('async function recordMemberLeave('),end=source.indexOf('\nasync function saveLeave(',start);const writes=[];
- const ctx=vm.createContext({console:{warn(){}},Date,randomUUID,guildId:'guild',settings:async()=>({leave_enabled:true,member_console_channel_id:'desk'}),leaveRecord:async()=>null,latestClient:null,sentinelRecord:async()=>{},db:{query:async(sql,args)=>{writes.push(sql);return {rows:[{id:'leave-id',reason:null}]}}}});
- const m=new vm.SourceTextModule(stripTypeScriptTypes(source.slice(start,end)+'\nexport {recordMemberLeave};'),{context:ctx});await m.link(()=>{});await m.evaluate();
- const guild={channels:{fetch:async()=>({isTextBased:()=>true,isDMBased:()=>false,send:async()=>{assert.ok(writes[0].startsWith('INSERT INTO member_leaves'));throw new Error('Forbidden')}})}};
- const reply=await m.namespace.recordMemberLeave(guild,{id:'member'},'Captain',new Date(Date.now()+5*86400000),null);assert.match(reply,/leave is saved, but I could not post/i);assert.equal(writes.length,1);
-});

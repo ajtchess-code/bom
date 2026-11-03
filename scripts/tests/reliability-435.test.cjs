@@ -39,10 +39,10 @@ test('MusicBrainz artist lookup is cached between requests',async()=>{
  assert.equal(await r.recommend('guild',{author:'Oceans',title:'Waves'},[{author:'Oceans',title:'Tidal'}]),'Oceans Storm');
  assert.equal(r.numberOfFetches(),1);
 });
-test('dashboard autoplay toggle is wired to actual room autoplay flag',()=>{
+test('room autoplay flag stays writable through the API and the dashboard states the queue-end policy (4.4.12)',()=>{
  assert.match(src('apps/api/src/features.ts'),/autoplayEnabled:z\.boolean\(\)\.optional/);
  assert.match(src('apps/api/src/features.ts'),/UPDATE music_rooms SET autoplay=\$3/);
- assert.match(src('apps/dashboard/components/MusicDashboard.tsx'),/Auto-play next song/);
+ assert.match(src('apps/dashboard/components/MusicDashboard.tsx'),/Playback stops when the queue ends/);
 });
 test('PB edits perform revision-checked conditional updates',()=>{
  const s=src('apps/api/src/wosbWorkspace.ts');
