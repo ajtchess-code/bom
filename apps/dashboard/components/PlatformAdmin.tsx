@@ -99,6 +99,8 @@ export default function PlatformAdmin() {
       await api("/settings/reset", { method: "POST", body: JSON.stringify({ section: "featureFlags" }) });
       setNotice("Feature flags reset to defaults.");
       await load();
+    } catch (e: any) {
+      setNotice(e?.message ?? "Couldn't reset feature flags.");
     } finally {
       setBusy(false);
     }

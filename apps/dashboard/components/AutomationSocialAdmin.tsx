@@ -385,6 +385,8 @@ export default function AutomationSocialAdmin({ voiceOnly = false }: { voiceOnly
           : `Import failed (${r.status})`,
       );
       if (r.ok) await refresh();
+    } catch (e: any) {
+      say(e?.message ?? "Couldn't queue those items. Check your connection and try again.");
     } finally {
       setBusy(false);
     }

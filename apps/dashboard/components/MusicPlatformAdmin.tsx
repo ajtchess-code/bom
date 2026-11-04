@@ -4,8 +4,19 @@ import { FormEvent, useEffect, useState } from "react";
 async function api(path: string, init: RequestInit = {}) {
   const h = new Headers(init.headers);
   if (init.body && !h.has("content-type")) h.set("content-type", "application/json");
-  return fetch(path, { ...init, headers: h });
+  const r = await fetch(path, { ...init, headers: h });
+  // Keep the server's explanation for failed saves so notices say why.
+  if (!r.ok) {
+    const body = await r
+      .clone()
+      .json()
+      .catch(() => null);
+    (r as any).reason = body?.message ?? body?.error ?? null;
+  }
+  return r;
 }
+const why = (r: any, fallback: string) =>
+  r.reason ? `${fallback}: ${r.reason}` : `${fallback} (${r.status})`;
 const AUTOPLAY = ["SIMILAR", "SAME_ARTIST", "DISCOVERY", "FAMILIAR", "PARTY", "DEEP_CUTS", "BOM_RADIO"],
   TRANSITIONS = ["OFF", "GAPLESS", "FADE_2S", "FADE_5S", "SMOOTH_DJ", "RADIO"],
   MOODS = ["ENERGETIC", "RELAXED", "SAD", "FOCUSED", "PARTY", "NOSTALGIC", "CHILL", "HEAVY", "HAPPY", "DARK"],
@@ -108,7 +119,7 @@ export default function MusicPlatformAdmin() {
       stationIdsEnabled: Boolean(features.station_ids_enabled),
     };
     const r = await api("/api/internal/music/features", { method: "PUT", body: JSON.stringify(body) });
-    setNotice(r.ok ? "Music platform defaults saved." : `Save failed (${r.status})`);
+    setNotice(r.ok ? "Music platform defaults saved." : why(r, "Save failed"));
     if (r.ok) await load();
   }
 
@@ -128,7 +139,7 @@ export default function MusicPlatformAdmin() {
       method: "PUT",
       body: JSON.stringify(body),
     });
-    setNotice(r.ok ? "Resolver and ducking settings saved live." : `Resolver save failed (${r.status})`);
+    setNotice(r.ok ? "Resolver and ducking settings saved live." : why(r, "Resolver save failed"));
     if (r.ok) await load();
   }
   async function addSchedule(e: FormEvent) {
@@ -142,7 +153,7 @@ export default function MusicPlatformAdmin() {
         enabled: true,
       }),
     });
-    setNotice(r.ok ? "Radio schedule added." : `Schedule failed (${r.status})`);
+    setNotice(r.ok ? "Radio schedule added." : why(r, "Schedule failed"));
     if (r.ok) await load();
   }
   async function addStation(e: FormEvent) {
@@ -151,7 +162,7 @@ export default function MusicPlatformAdmin() {
       method: "POST",
       body: JSON.stringify({ ...station, enabled: true }),
     });
-    setNotice(r.ok ? "Station ID added." : `Station ID failed (${r.status})`);
+    setNotice(r.ok ? "Station ID added." : why(r, "Station ID failed"));
     if (r.ok) await load();
   }
   async function saveAchievement(a: any) {
@@ -166,7 +177,7 @@ export default function MusicPlatformAdmin() {
         enabled: Boolean(a.enabled),
       }),
     });
-    setNotice(r.ok ? `${a.name} saved.` : `Achievement save failed (${r.status})`);
+    setNotice(r.ok ? `${a.name} saved.` : why(r, "Achievement save failed"));
     if (r.ok) await load();
   }
   async function addAchievement(e: FormEvent) {
@@ -186,7 +197,7 @@ export default function MusicPlatformAdmin() {
         enabled: Boolean(newAchievement.enabled),
       }),
     });
-    setNotice(r.ok ? "Custom achievement added." : `Achievement failed (${r.status})`);
+    setNotice(r.ok ? "Custom achievement added." : why(r, "Achievement failed"));
     if (r.ok) await load();
   }
   async function diagnostics() {

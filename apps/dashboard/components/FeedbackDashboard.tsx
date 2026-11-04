@@ -224,6 +224,8 @@ export default function FeedbackDashboard({ initial }: { initial: any }) {
         (x.items ?? []).find((i: any) => i.id === selected.id) ||
         (x.mine ?? []).find((i: any) => i.id === selected.id);
       if (updated) await openItem(updated);
+    } catch (e: any) {
+      setNotice(e?.message ?? "Couldn't save your reaction. Try again.");
     } finally {
       setBusy(false);
     }
@@ -273,6 +275,8 @@ export default function FeedbackDashboard({ initial }: { initial: any }) {
         setSelected(updated);
         setDetail(await api(`/items/${selected.id}`));
       }
+    } catch (e: any) {
+      setNotice(e?.message ?? "Couldn't update this item. Try again.");
     } finally {
       setBusy(false);
     }
