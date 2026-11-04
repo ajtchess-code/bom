@@ -2,30 +2,15 @@
 import MusicSessionTools from "./MusicSessionTools";
 
 import { FormEvent, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent } from "react";
-import { LANGUAGES, normalizeLocale, tr } from "@bom/shared";
-import GlobalRadioBrowser from "./GlobalRadioBrowser";
+import { normalizeLocale, tr } from "@bom/shared";
 
 type Summary = any;
-type MusicTab =
-  | "player"
-  | "queue"
-  | "discover"
-  | "history"
-  | "lyrics"
-  | "profile"
-  | "audio"
-  | "radio"
-  | "podcasts";
+type MusicTab = "player" | "queue" | "history" | "audio";
 const tabs: [MusicTab, string, string][] = [
   ["player", "Now Playing", "◉"],
   ["queue", "Queue", "≡"],
-  ["discover", "Discover", "✦"],
   ["history", "History", "◷"],
-  ["lyrics", "Lyrics", "♫"],
-  ["profile", "Profile", "♛"],
-  ["audio", "Audio", "≋"],
-  ["radio", "Radio", "◉"],
-  ["podcasts", "Podcasts", "♬"],
+  ["audio", "Volume & Sound", "≋"],
 ];
 const workerColors: Record<string, string> = {
   "1": "#9B4DFF",
@@ -371,27 +356,11 @@ export default function MusicDashboard({ initial }: { initial: Summary }) {
       <header className="top musicTop">
         <div>
           <span className="eyebrow">BOM MUSIC</span>
-          <h2>Music Deck</h2>
-          <small className="musicTagline">Music for the whole crew.</small>
+          <h2>Music</h2>
         </div>
         <div className="topTools">
-          <select
-            aria-label={tr(locale, "language")}
-            className="select"
-            value={locale}
-            onChange={(e) => void saveLanguage(e.target.value)}
-          >
-            {LANGUAGES.map((l) => (
-              <option key={l.value} value={l.value}>
-                {l.emoji} {l.label}
-              </option>
-            ))}
-          </select>
           <div className="statusPill">
             <i /> {online > 0 ? "Music online" : "Music unavailable"}
-          </div>
-          <div className="statusPill">
-            ♫ {Math.round(Number(data.quality?.targetBps ?? 0) / 1000) || "—"} kbps
           </div>
         </div>
       </header>
@@ -667,24 +636,6 @@ export default function MusicDashboard({ initial }: { initial: Summary }) {
             </section>
           )}
 
-          {tab === "radio" && (
-            <GlobalRadioBrowser
-              kind="radio"
-              canQueue={Boolean(can("USE_MUSIC") && voice?.connected)}
-              queue={async (stream) => {
-                await action("QUEUE", { query: stream });
-              }}
-            />
-          )}
-          {tab === "podcasts" && (
-            <GlobalRadioBrowser
-              kind="podcasts"
-              canQueue={Boolean(can("USE_MUSIC") && voice?.connected)}
-              queue={async (stream) => {
-                await action("QUEUE", { query: stream });
-              }}
-            />
-          )}
           {tab === "queue" && (
             <section className="panel musicPanel">
               <div className="panelHead">
@@ -762,107 +713,6 @@ export default function MusicDashboard({ initial }: { initial: Summary }) {
             </section>
           )}
 
-          {tab === "discover" && (
-            <>
-              <section className="panel musicPanel">
-                <div className="panelHead">
-                  <div>
-                    <h3>Discover</h3>
-                    <span>Built from your listening, likes, skips and BOM-wide activity</span>
-                  </div>
-                </div>
-                <div className="albumCarousel">
-                  {recommendations.map((r: any) => (
-                    <button
-                      key={`${r.author}-${r.title}`}
-                      onClick={() => void action("QUEUE", { query: r.query })}
-                    >
-                      <div className="carouselArt">♫</div>
-                      <b>{r.title}</b>
-                      <small>{r.author}</small>
-                      <em>{r.reason}</em>
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <section className="musicMetricStrip">
-                <div>
-                  <b>{stats.total?.plays ?? 0}</b>
-                  <small>tracks played</small>
-                </div>
-                <div>
-                  <b>{Math.round(Number(stats.total?.duration ?? 0) / 3600000)}</b>
-                  <small>hours queued</small>
-                </div>
-                <div>
-                  <b>{community.topRequesters?.[0]?.member?.name ?? "—"}</b>
-                  <small>top requester</small>
-                </div>
-                <div>
-                  <b>
-                    {stats.hours?.[0]?.hour !== undefined
-                      ? `${String(stats.hours[0].hour).padStart(2, "0")}:00`
-                      : "—"}
-                  </b>
-                  <small>busiest hour</small>
-                </div>
-              </section>
-              <section className="panel musicPanel">
-                <div className="panelHead">
-                  <h3>Recently Played by BOM</h3>
-                  <span>guild discovery feed</span>
-                </div>
-                <div className="recentFeed">
-                  {community.recent?.slice(0, 12).map((x: any) => (
-                    <button
-                      key={x.id}
-                      onClick={() => void action("QUEUE", { query: `${x.author} ${x.title}` })}
-                    >
-                      {x.artwork_url ? <img src={x.artwork_url} alt="" /> : <i>♫</i>}
-                      <span>
-                        <b>{x.title}</b>
-                        <small>{x.author}</small>
-                      </span>
-                      <em>Queue again</em>
-                    </button>
-                  ))}
-                </div>
-              </section>
-              <section className="panelGrid musicStatsGrid">
-                <div className="panel">
-                  <div className="panelHead">
-                    <h3>Popular with BOM</h3>
-                    <span>30 days</span>
-                  </div>
-                  <div className="miniCharts">
-                    {community.popular?.slice(0, 8).map((x: any, i: number) => (
-                      <div key={`${x.author}-${x.title}`}>
-                        <span>{i + 1}</span>
-                        <b>{x.title}</b>
-                        <small>{x.author}</small>
-                        <em>{x.plays} plays</em>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="panel">
-                  <div className="panelHead">
-                    <h3>Forgotten Favorites</h3>
-                    <span>deep cuts</span>
-                  </div>
-                  <p className="muted">
-                    Switch Autoplay to <b>Deep Cuts</b> to surface tracks the guild has only played once or
-                    twice.
-                  </p>
-                  <div className="discoveryCallout">
-                    ☠ <b>BOM Radio</b>
-                    <span>Turn on community radio in Administration for hands-free continuous music.</span>
-                  </div>
-                </div>
-              </section>
-            </>
-          )}
-
           {tab === "history" && (
             <section className="panel musicPanel">
               <div className="panelHead">
@@ -897,193 +747,6 @@ export default function MusicDashboard({ initial }: { initial: Summary }) {
                 )}
               </div>
             </section>
-          )}
-
-          {tab === "lyrics" && (
-            <section className="karaokeStage">
-              <div className="karaokeBackdrop" />
-              <span className="eyebrow">LIVE LYRICS · KARAOKE MODE</span>
-              <h3>{track ? `${track.title} — ${track.author}` : "Nothing playing"}</h3>
-              <div className="karaokeLines">
-                {lines.length ? (
-                  lines.slice(Math.max(0, lyricIndex - 2), lyricIndex + 4).map((l: any, offset: number) => {
-                    const actual = Math.max(0, lyricIndex - 2) + offset;
-                    return (
-                      <p
-                        key={`${l.time}-${actual}`}
-                        className={
-                          actual === lyricIndex ? "current" : actual < lyricIndex ? "past" : "future"
-                        }
-                      >
-                        {l.text}
-                      </p>
-                    );
-                  })
-                ) : (
-                  <Empty
-                    title="Lyrics are still over the horizon"
-                    text="Lyrics are unavailable for this track or the provider is temporarily unavailable."
-                  />
-                )}
-              </div>
-              <button
-                disabled={!room?.state?.workerId}
-                onClick={async () => {
-                  const r = await api("/api/internal/music/lyrics/retry", { method: "POST", body: "{}" });
-                  setNotice(
-                    r.ok
-                      ? "Lyrics retry requested; the provider may still be cooling down."
-                      : "Lyrics could not be retried yet.",
-                  );
-                }}
-              >
-                Retry lyrics
-              </button>
-            </section>
-          )}
-
-          {tab === "profile" && (
-            <>
-              <section className="profileHero">
-                <div className="profileCrest">☠</div>
-                <div>
-                  <span className="eyebrow">YOUR MUSIC PROFILE</span>
-                  <h2>{userMetrics.minutes ?? 0} minutes aboard</h2>
-                  <p>
-                    {userMetrics.requests ?? 0} requests · {userMetrics.likes ?? 0} likes ·{" "}
-                    {userMetrics.favorites ?? 0} favorites
-                  </p>
-                </div>
-                <div className="profileStats">
-                  <b>
-                    {userMetrics.sessions ?? 0}
-                    <small>sessions</small>
-                  </b>
-                  <b>
-                    {achievements.length}
-                    <small>achievements</small>
-                  </b>
-                </div>
-              </section>
-              <section className="panel profileSettings">
-                <div className="panelHead">
-                  <h3>Recommendation Profile</h3>
-                  <span>tune how BOM learns your taste</span>
-                </div>
-                <div className="profileSettingsGrid">
-                  <label>
-                    Visibility
-                    <select
-                      value={profileDraft.displayMode}
-                      onChange={(e) => setProfileDraft({ ...profileDraft, displayMode: e.target.value })}
-                    >
-                      <option>PUBLIC</option>
-                      <option>PRIVATE</option>
-                    </select>
-                  </label>
-                  <label>
-                    Preferred mood
-                    <select
-                      value={profileDraft.preferredMood}
-                      onChange={(e) => setProfileDraft({ ...profileDraft, preferredMood: e.target.value })}
-                    >
-                      <option value="">Automatic</option>
-                      {[
-                        "ENERGETIC",
-                        "RELAXED",
-                        "SAD",
-                        "FOCUSED",
-                        "PARTY",
-                        "NOSTALGIC",
-                        "CHILL",
-                        "HEAVY",
-                        "HAPPY",
-                        "DARK",
-                      ].map((x) => (
-                        <option key={x}>{x}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <label>
-                    Discovery
-                    <select
-                      value={profileDraft.discoveryLevel}
-                      onChange={(e) => setProfileDraft({ ...profileDraft, discoveryLevel: e.target.value })}
-                    >
-                      <option>FAMILIAR</option>
-                      <option>BALANCED</option>
-                      <option>ADVENTUROUS</option>
-                    </select>
-                  </label>
-                  <label>
-                    Favorite genres
-                    <input
-                      value={profileDraft.favoriteGenres}
-                      onChange={(e) => setProfileDraft({ ...profileDraft, favoriteGenres: e.target.value })}
-                      placeholder="rock, metal, synthwave"
-                    />
-                  </label>
-                  <button className="goldButton" onClick={() => void saveProfile()}>
-                    Save profile
-                  </button>
-                </div>
-              </section>
-              <section className="panelGrid">
-                <div className="panel">
-                  <div className="panelHead">
-                    <h3>Top Artists</h3>
-                    <span>your listening</span>
-                  </div>
-                  <div className="rankingList">
-                    {userMetrics.topArtists?.map((x: any, i: number) => (
-                      <div key={x.author}>
-                        <b>{i + 1}</b>
-                        <span>{x.author}</span>
-                        <em>{x.plays} plays</em>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="panel">
-                  <div className="panelHead">
-                    <h3>Achievements</h3>
-                    <span>configurable by admins</span>
-                  </div>
-                  <div className="achievementGrid">
-                    {achievements.map((a: any) => (
-                      <div key={a.code}>
-                        <i>{a.icon}</i>
-                        <b>{a.name}</b>
-                        <small>{a.description}</small>
-                      </div>
-                    ))}
-                    {!achievements.length && <p className="muted">Your first achievement is waiting.</p>}
-                  </div>
-                </div>
-              </section>
-              <section className="panel">
-                <div className="panelHead">
-                  <h3>Favorites</h3>
-                  <span>your saved library</span>
-                </div>
-                <div className="albumCarousel compact">
-                  {favorites.map((f: any) => (
-                    <button
-                      key={`${f.source_name}-${f.identifier}`}
-                      onClick={() => void action("QUEUE", { query: `${f.author} ${f.title}` })}
-                    >
-                      {f.artwork_url ? (
-                        <img src={f.artwork_url} alt="" />
-                      ) : (
-                        <div className="carouselArt">★</div>
-                      )}
-                      <b>{f.title}</b>
-                      <small>{f.author}</small>
-                    </button>
-                  ))}
-                </div>
-              </section>
-            </>
           )}
 
           {tab === "audio" && (
