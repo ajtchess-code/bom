@@ -5,6 +5,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import CommandIcon from "./CommandIcon";
+import { adminSectionTitle } from "./AdminNavigation";
 import {
   visibleSections,
   locate,
@@ -195,6 +196,14 @@ export default function DashboardShell({
   );
   const here = locate(sections, pathname),
     activeSection = here?.section ?? null;
+  const deepPage = Boolean(here && pathname !== here.tab.href && !here.tab.exact);
+  const pageTitle = deepPage
+    ? ((pathname.startsWith("/dashboard/admin/") ? adminSectionTitle(pathname.split("/")[3] ?? "") : null) ??
+      (() => {
+        const last = pathname.split("/").filter(Boolean).at(-1) ?? "";
+        return /^[0-9a-f-]{16,}$|^\d+$/i.test(last) ? section.title : prettySegment(last);
+      })())
+    : (here?.section.label ?? section.title);
   const routeFeature = featureForRoute(pathname);
   const disabledFeature =
     routeFeature && platform?.featureFlags?.[routeFeature] === false ? routeFeature : null;
@@ -774,17 +783,17 @@ export default function DashboardShell({
         </a>
         <header className="commandTopbar">
           <div className="topbarContext">
-            {here && pathname !== here.tab.href && crumbs.length > 2 && (
+            {deepPage && here && (
               <nav className="dashboardBreadcrumbs" aria-label="Breadcrumb">
-                {crumbs.slice(0, -1).map((c) => (
-                  <span key={c.href}>
-                    <Link href={c.href}>{c.label}</Link>
-                    <i>/</i>
-                  </span>
-                ))}
+                <span>
+                  <Link href={here.tab.href}>
+                    {here.section.tabs.length > 1 ? here.tab.label : here.section.label}
+                  </Link>
+                  <i>/</i>
+                </span>
               </nav>
             )}
-            <p className="topbarTitle">{here?.section.label ?? section.title}</p>
+            <p className="topbarTitle">{pageTitle}</p>
           </div>
           <div className="topbarActions">
             <button

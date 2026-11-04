@@ -604,3 +604,52 @@ body:before { display: none !important; }
   .mpProgress { width: 100%; }
 }
 .commandContent form.mpAdd input:not([type="checkbox"]):not([type="radio"]):not([type="range"]) { border: 0 !important; background: transparent !important; outline: none !important; padding: 8px 0 !important; }
+
+/* ==========================================================================
+ * Admin: grouped navigation, overview, and settings forms.
+ * ======================================================================== */
+.adminWorkspace { display: grid !important; grid-template-columns: 220px minmax(0, 1fr) !important; gap: 24px !important; align-items: start; }
+.adminSectionContent { min-width: 0; }
+.adminNav { position: sticky; top: 80px; display: grid; gap: 12px; max-height: calc(100vh - 100px); overflow-y: auto; padding-right: 4px; }
+.adminNav nav { display: grid; gap: 2px; }
+.adminNav nav > a, .adminNavGroup a { display: grid; padding: 7px 10px; border-radius: var(--cc-radius-sm); color: var(--cc-text-soft); font-size: 0.84rem; font-weight: 550; }
+.adminNav nav > a:hover, .adminNavGroup a:hover { background: var(--cc-surface-2); color: var(--cc-text); }
+.adminNav a.active { background: var(--cc-accent-soft); color: var(--cc-text); box-shadow: inset 2px 0 0 var(--cc-accent); }
+.adminNav a small { color: var(--cc-muted); font-size: 0.7rem; font-weight: 400; }
+.adminNavGroup { display: grid; gap: 1px; margin-top: 10px; }
+.adminNavGroup h4 { margin: 0 0 4px; padding: 0 10px; color: var(--cc-faint); font-size: 0.66rem !important; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; }
+.adminNavEmpty { padding: 8px 10px; color: var(--cc-muted); font-size: 0.8rem; }
+.adminNavSearch { width: 100%; }
+.adminNavMobile { display: none; }
+.adminOverview { display: grid; gap: 22px; }
+.adminOverviewGroup h2 { margin: 0 0 10px !important; color: var(--cc-muted); font-size: 0.75rem !important; letter-spacing: 0.08em; text-transform: uppercase; }
+.adminOverviewGrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); gap: 12px; }
+.adminOverviewCard { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--cc-border); border-radius: var(--cc-radius-lg); background: var(--cc-surface); color: var(--cc-text); transition: border-color 0.15s ease; }
+.adminOverviewCard:hover { border-color: var(--cc-accent); }
+.adminOverviewCard b { font-size: 0.92rem; }
+.adminOverviewCard small { color: var(--cc-muted); font-size: 0.78rem; line-height: 1.4; }
+@media (max-width: 900px) {
+  .adminWorkspace { grid-template-columns: 1fr !important; }
+  .adminNav { position: static; max-height: none; }
+  .adminNav nav, .adminNavSearch { display: none; }
+  .adminNavMobile { display: block; }
+  .adminNavMobile select { width: 100%; }
+}
+
+/* Settings forms: checkboxes are checkboxes, labels sit above fields, and
+ * nothing pushes the page sideways. */
+.commandContent input[type="checkbox"], .commandContent input[type="radio"] {
+  width: 18px !important; height: 18px !important; min-width: 18px !important; min-height: 0 !important;
+  flex: none !important; margin: 0 !important; padding: 0 !important; accent-color: var(--cc-accent);
+  -webkit-appearance: auto !important; appearance: auto !important; background: none !important; border: 0 !important; box-shadow: none !important;
+}
+.commandContent .checkLine, .commandContent label:has(> input[type="checkbox"]:first-child) {
+  display: flex !important; flex-direction: row !important; align-items: center !important; gap: 10px !important;
+  min-height: 0 !important; align-self: center; font-weight: 550;
+}
+.commandContent :is(.adminFormGrid, .adminCard, .panel) label { min-width: 0; }
+.commandContent :is(input, select, textarea) { max-width: 100%; }
+.adminSectionContent > * { max-width: 100%; }
+.adminSectionContent :is(table, pre) { display: block; max-width: 100%; overflow-x: auto; }
+.commandContent :is(.stackForm, .customAchievementForm, .featureSettingsGrid) { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)) !important; gap: 12px !important; align-items: end; min-width: 0; }
+.commandContent :is(.stackForm, .customAchievementForm, .featureSettingsGrid) > * { min-width: 0; }
