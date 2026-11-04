@@ -72,6 +72,7 @@ export function DetailedSignup({
             <option value="ATTENDING">Attending</option>
             <option value="LATE">Running Late</option>
             <option value="WAITLIST">Waitlist</option>
+            <option value="TENSIONING">Tensioning (not in PB)</option>
           </select>
         </label>
         {status === "LATE" && (
@@ -162,7 +163,7 @@ export function DetailedSignup({
             confirming the fleet.
           </p>
           <div className="pbFlareChoices">
-            {["Red Flare", "Gold Flare", "Blue Flare"].map((color) => (
+            {["Red Flare", "Gold Flare"].map((color) => (
               <label key={color}>
                 <input
                   type="checkbox"
@@ -666,7 +667,7 @@ export function GuestSignupModal({
         <fieldset className="pbFlareSignup">
           <legend>Signal Flare volunteering</legend>
           <div className="pbFlareChoices">
-            {["Red Flare", "Gold Flare", "Blue Flare"].map((color) => (
+            {["Red Flare", "Gold Flare"].map((color) => (
               <label key={color}>
                 <input
                   type="checkbox"

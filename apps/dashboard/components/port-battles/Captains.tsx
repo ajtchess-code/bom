@@ -274,7 +274,7 @@ export function AssignedCaptain({
             onChange={(e) => onChange({ flareDuty: e.target.value || null })}
           >
             <option value="">No Flare Duty</option>
-            {["Red Flare", "Gold Flare", "Blue Flare"]
+            {["Red Flare", "Gold Flare"]
               .filter(
                 (color) => (signup.flare_capabilities ?? []).includes(color) || signup.flare_duty === color,
               )

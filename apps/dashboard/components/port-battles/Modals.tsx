@@ -343,7 +343,6 @@ export function TacticalBriefModal({
     "Secondary Horn",
     "Red Flare",
     "Gold Flare",
-    "Blue Flare",
     "Fleet Commander",
     "Flank Commander",
     "Siege Commander",

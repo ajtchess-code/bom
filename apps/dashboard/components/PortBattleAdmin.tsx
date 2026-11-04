@@ -309,7 +309,7 @@ export default function PortBattleAdmin({ initial, catalogue }: Props) {
           override them here with existing Discord custom emojis.
         </p>
         <div className="pbDutyEmojiSettings">
-          {["horn", "red-flare", "gold-flare", "blue-flare"].map((key) => (
+          {["horn", "red-flare", "gold-flare"].map((key) => (
             <label key={key}>
               <img src={`/wosb/pb/duties/${key}.png`} alt="" width="32" height="32" />
               {key.replaceAll("-", " ")}

@@ -220,9 +220,11 @@ export default function PortBattlesDashboard({
       setNotice(
         status === "WAITLIST"
           ? "You are on the waitlist."
-          : status === "LATE"
-            ? `Marked Running Late (+${late}).`
-            : "Attending saved.",
+          : status === "TENSIONING"
+            ? "Marked as Tensioning (not in the PB)."
+            : status === "LATE"
+              ? `Marked Running Late (+${late}).`
+              : "Attending saved.",
       );
       await load(battle.id);
     } catch (e: any) {
@@ -643,13 +645,19 @@ export default function PortBattlesDashboard({
         ? `Assigned to ${s.confirmed_ship}`
         : s.signup_status === "WAITLIST"
           ? "Waitlist"
-          : "Signup pool",
+          : s.signup_status === "TENSIONING"
+            ? "Tensioning (not in PB)"
+            : "Signup pool",
       fields,
     });
   }
   const signups = detail?.signups ?? [],
     confirmed = signups.filter((x: any) => x.confirmed_ship),
-    pending = signups.filter((x: any) => !x.confirmed_ship && x.signup_status !== "WAITLIST"),
+    // Tensioners take part outside the PB, so they stay out of the roster pool.
+    pending = signups.filter(
+      (x: any) => !x.confirmed_ship && x.signup_status !== "WAITLIST" && x.signup_status !== "TENSIONING",
+    ),
+    tensioning = signups.filter((x: any) => x.signup_status === "TENSIONING"),
     waitlist = signups.filter((x: any) => !x.confirmed_ship && x.signup_status === "WAITLIST"),
     targets = detail?.battle?.ship_targets ?? battle?.ship_targets ?? {};
   const targetShips = [
@@ -1018,6 +1026,7 @@ export default function PortBattlesDashboard({
                     </span>
                     {lateCount > 0 && <span>{lateCount} Running Late</span>}
                     <span>{waitlist.length} Waitlisted</span>
+                    {tensioning.length > 0 && <span>{tensioning.length} Tensioning</span>}
                   </div>
                   <details>
                     <summary>Readiness - {readinessScore}%</summary>
@@ -1165,6 +1174,12 @@ export default function PortBattlesDashboard({
                         />
                       ))}
                     </div>
+                    {tensioning.length > 0 && (
+                      <div className="pbDropZone tension" aria-label="Tensioning, not in the PB">
+                        <b>Tensioning · not in PB</b>
+                        <p className="uiMuted">{tensioning.map((s: any) => s.display_name).join(", ")}</p>
+                      </div>
+                    )}
                   </div>
                   <div className="panel pbFleet">
                     <div className="panelHead">
