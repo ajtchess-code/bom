@@ -664,9 +664,20 @@ async function chooseRoomForUser(interaction:any):Promise<RoomRow|null>{
   return ensureVoiceRoom(String(voice));
 }
 
+// Permission rules change rarely; caching them for 30 seconds keeps every button
+// press from waiting on a database round trip.
+const musicRuleCache=new Map<string,{at:number;rows:Promise<{role_id:string;allowed:boolean}[]>}>();
+function musicPermissionRules(permission:string){
+  const hit=musicRuleCache.get(permission);
+  if(hit&&Date.now()-hit.at<30_000)return hit.rows;
+  const rows=many<{role_id:string;allowed:boolean}>(`SELECT role_id,allowed FROM music_permission_rules WHERE guild_id=$1 AND permission=$2`,[guildId,permission]);
+  musicRuleCache.set(permission,{at:Date.now(),rows});
+  rows.catch(()=>musicRuleCache.delete(permission));
+  return rows;
+}
 async function rolePermission(roles:string[],manageGuild:boolean,permission:MusicPermission){
   if(manageGuild)return true;
-  const rules=await many<{role_id:string;allowed:boolean}>(`SELECT role_id,allowed FROM music_permission_rules WHERE guild_id=$1 AND permission=$2`,[guildId,permission]);
+  const rules=await musicPermissionRules(permission);
   let allowed=permission==="USE_MUSIC" && rules.length===0;
   for(const rule of rules)if(roles.includes(String(rule.role_id))){if(!rule.allowed)return false;allowed=true;}
   return allowed;
@@ -705,6 +716,9 @@ function queueText(q:QueueItem[]){
 }
 async function handleMusicCommand(interaction:any){
   const sub=interaction.commandName==="play"?"play":interaction.options.getSubcommand(false)??"controls";
+  // Acknowledge straight away so Discord never shows "application did not respond"
+  // while we look up the voice channel, permissions and queue.
+  await deferInteractionReply(interaction,{flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2});
   const room=await chooseRoomForUser(interaction);
   if(!room)return void await ephem(interaction,simpleEphemeral("Music","Join a voice channel first, then try again. A free music bot will join you."));
   if(!await hasMusicPermission(interaction,"USE_MUSIC"))return void await ephem(interaction,simpleEphemeral("Permission denied","You don't have permission to use music in this server."));
@@ -714,13 +728,12 @@ async function handleMusicCommand(interaction:any){
     const query=String(interaction.options.getString("song",true)).trim();
     if(!query)return void await ephem(interaction,simpleEphemeral("Music","Tell me what to play."));
     if(!await claimRequestWindow(room.id,uid))return void await ephem(interaction,simpleEphemeral("Slow down","Wait a moment before adding another song."));
-    await deferInteractionReply(interaction,{flags:MessageFlags.Ephemeral});
     try{
       const busy=Boolean(state.workerId)&&!["IDLE","ERROR"].includes(String(state.status));
       await submit(room,query,uid,undefined,{surface:"DISCORD"});
       const pos=busy?(await queueItems(room.id)).length:0;
-      return void await editInteractionReply(interaction,{content:busy?`Added **${query.slice(0,100)}** to the queue (position ${pos}).`:`Starting **${query.slice(0,100)}** in ${room.name}.`});
-    }catch(err:any){return void await editInteractionReply(interaction,{content:`Couldn't play that: ${String(err?.message??err).slice(0,300)}`});}
+      return void await ephem(interaction,simpleEphemeral(busy?"Added to the queue":"Starting now",busy?`**${query.slice(0,100)}** is number ${pos} in ${room.name}.`:`**${query.slice(0,100)}** is starting in ${room.name}.`));
+    }catch(err:any){return void await ephem(interaction,simpleEphemeral("Couldn't play that",String(err?.message??err).slice(0,300)));}
   }
   if(sub==="nowplaying"){
     const q=await queueItems(room.id);
