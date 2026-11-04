@@ -19,13 +19,14 @@ if(missing.length){console.error(`[startup] Missing required environment: ${miss
 // release can survive even when the TypeScript source has changed. Always rebuild
 // before migrations/services so runtime JavaScript matches the currently installed
 // source and dependencies (notably the PostgreSQL conversion from mysql2 -> pg).
-const yarn=process.platform==="win32"?"yarn.cmd":"yarn";
+import { yarnArgs } from "./yarn-cmd.mjs";
 // bootstrap.mjs (index.js / start:host) already built this start; only build when launched directly.
 const alreadyBuilt=process.env.BOM_STARTUP_BUILT==="1";
 const skipStartupBuild=alreadyBuilt||/^(1|true|yes|on)$/i.test(process.env.SKIP_STARTUP_BUILD??"");
 if(!skipStartupBuild){
   console.log("[bootstrap] Building BOM-Bot from current source...");
-  const build=spawnSync(yarn,["build"],{cwd:root,env:process.env,stdio:"inherit"});
+  const yb=yarnArgs(["build"]);
+  const build=spawnSync(yb.command,yb.args,{cwd:root,env:process.env,stdio:"inherit"});
   if(build.error||build.status!==0){
     console.error(`[BOM-Bot] Fatal startup error: yarn build failed (${build.error?.message??build.status})`);
     process.exit(build.status||1);
@@ -239,7 +240,8 @@ for(let i=1;i<=workerCount;i++){
 }
 if(!launchedWorkers)console.warn("[startup] No music workers are configured; dashboard/controller will run but audio cannot start.");
 
-spawnService("dashboard",yarn,["workspace","@bom/dashboard","start"],{PORT:dashboardPort,INTERNAL_API_URL:`http://127.0.0.1:${apiPort}`});
+const yd=yarnArgs(["workspace","@bom/dashboard","start"]);
+spawnService("dashboard",yd.command,yd.args,{PORT:dashboardPort,INTERNAL_API_URL:`http://127.0.0.1:${apiPort}`});
 
 if(intelRelay){
   spawnService("intel-relay",process.execPath,[intelRelay.entry],{}, {cwd:intelRelay.cwd,env:intelRelay.env});

@@ -5,7 +5,8 @@ import process from "node:process";
 
 loadRootEnv();
 
-const yarn = process.platform === "win32" ? "yarn.cmd" : "yarn";
+import { yarnArgs } from "./yarn-cmd.mjs";
+const runYarn = (args) => { const y = yarnArgs(args); return run(y.command, y.args); };
 
 
 const retiredWaveformPaths = [
@@ -62,7 +63,7 @@ if (!existsSync("node_modules") || missingModules.length || wrongZodVersion) {
       missingModules.length ? `; missing: ${missingModules.join(", ")}` : ""
     }${wrongZodVersion ? `; zod=${zodVersion ?? "missing"}, need 3.25.76` : ""}...`,
   );
-  await run(yarn, ["install", "--force"]);
+  await runYarn(["install", "--force"]);
 }
 
 // Build exactly once per start. Uploads overlay old dist/.next output, so the
@@ -70,7 +71,7 @@ if (!existsSync("node_modules") || missingModules.length || wrongZodVersion) {
 const skipStartupBuild = /^(1|true|yes|on)$/i.test(process.env.SKIP_STARTUP_BUILD ?? "");
 if (!skipStartupBuild) {
   console.log("[bootstrap] Building BOM-Bot from current source...");
-  await run(yarn, ["build"]);
+  await runYarn(["build"]);
 } else {
   console.warn("[bootstrap] SKIP_STARTUP_BUILD enabled; existing dist/.next artifacts will be used.");
 }
