@@ -6,30 +6,54 @@ const row=(components:any[])=>({type:1,components});
 const text=(content:string)=>({type:10,content});
 const sep=()=>({type:14,divider:true,spacing:1});
 
-// Public "now playing" panel: what's playing, who asked for it, progress, what's
-// next, and plain controls. No visualizer, trivia or origin badges.
-export function publicRoomPanel(room:{id:string,name:string},state:RoomRuntimeState,queued=0,_metadata:any=null,locale="en-US",opts:{visualizerUrl?:string;accentColor?:number;requesterId?:string;next?:any;currentLyric?:string|null;mediaEnabled?:boolean}={}){
-  const now=state.track,accent=opts.accentColor??0xd6a83a,paused=state.status==="PAUSED";
-  const requester=opts.requesterId??state.requesterId;
-  const who=requester?(/^\d+$/.test(requester)?`<@${requester}>`:escapeMd(requester)):"";
-  const body:any[]=[];
-  if(now){
-    body.push(text(`## ${paused?"⏸":"▶"} ${escapeMd(now.title)}`));
-    body.push(text(`**${escapeMd(now.author)}** · ${now.isStream?"Live":formatMs(now.length)}${who?` · requested by ${who}`:""}`));
-    if(!now.isStream)body.push(text(`${progressBar(Number(state.position??0),Number(now.length??0),20)}  ${formatMs(state.position??0)} / ${formatMs(now.length)}`));
-    const next=opts.next?escapeMd(String(opts.next.display??opts.next.trackInfo?.title??opts.next.query??"Queued track")).slice(0,120):null;
-    body.push(text(next?`**Up next:** ${next}${queued>1?` · ${queued-1} more`:""}`:queued?`${queued} in queue`:"Nothing queued after this."));
-  }else{
-    body.push(text(`## 🎵 ${escapeMd(room.name)}`),text(`Nothing is playing. Use **/play** or press **Add song**.${queued?` ${queued} in queue.`:""}`));
+// ---- Music panels -----------------------------------------------------------
+// One shared "now playing" block used by the public player, /music nowplaying
+// and private controls: small label, title, artist, progress, requester, and
+// what's next. Album art shows as a thumbnail when Discord accepts media; the
+// caller falls back to mediaEnabled:false if it doesn't.
+const qTitle=(q:any)=>String(q?.trackInfo?.title??q?.display??q?.originalQuery??q?.query??"Queued song");
+const qAuthor=(q:any)=>q?.trackInfo?.author?String(q.trackInfo.author):"";
+const mention=(id?:string|null)=>!id?"":/^\d+$/.test(id)?`<@${id}>`:escapeMd(id==="autoplay"?"Autoplay":id);
+function nowPlayingBlock(room:{id:string,name:string},state:RoomRuntimeState,queued:number,opts:{requesterId?:string;upNext?:any[];next?:any;mediaEnabled?:boolean}={}){
+  const now=state.track,paused=state.status==="PAUSED",out:any[]=[];
+  if(!now){
+    out.push(text(`-# ${escapeMd(room.name)}\n### Nothing playing\nUse **/play** or press **Add song**.${queued?` ${queued} waiting in the queue.`:""}`));
+    return out;
   }
-  body.push(sep(),row([
-    button(`music:pause:${room.id}`,paused?tr(locale,"resume"):tr(locale,"pause"),ButtonStyle.Secondary,paused?"▶️":"⏸️"),
-    button(`music:skip:${room.id}`,"Skip",ButtonStyle.Primary,"⏭️"),
-    button(`music:stop:${room.id}`,"Stop",ButtonStyle.Danger,"⏹️"),
+  const length=Number(now.length??0),pos=Number(state.position??0);
+  const head=`-# ${paused?"⏸  PAUSED":"▶  NOW PLAYING"} · ${escapeMd(room.name)}\n### ${escapeMd(now.title).slice(0,180)}\n${escapeMd(now.author)}`;
+  const art=opts.mediaEnabled!==false&&now.artworkUrl&&/^https:\/\//.test(String(now.artworkUrl))?String(now.artworkUrl):null;
+  out.push(art?{type:9,components:[text(head)],accessory:{type:11,media:{url:art},description:`Artwork for ${now.title}`.slice(0,1024)}}:text(head));
+  const requester=mention(opts.requesterId??state.requesterId);
+  out.push(text([
+    now.isStream?"`LIVE`":`\`${formatMs(pos)}\` ${progressBar(pos,length,18)} \`${formatMs(length)}\``,
+    `-# ${[requester&&`Requested by ${requester}`,queued?`${queued} in queue`:"Queue empty"].filter(Boolean).join(" · ")}`,
+  ].join("\n")));
+  const upNext=(opts.upNext?.length?opts.upNext:opts.next?[opts.next]:[]).slice(0,3);
+  if(upNext.length){
+    out.push(sep());
+    out.push(text(`**Up next**\n${upNext.map((q:any,i:number)=>`${i+1}. ${escapeMd(qTitle(q)).slice(0,90)}${qAuthor(q)?` · ${escapeMd(qAuthor(q)).slice(0,40)}`:""}`).join("\n")}${queued>upNext.length?`\n-# +${queued-upNext.length} more`:""}`));
+  }
+  return out;
+}
+function controlRows(room:{id:string},state:RoomRuntimeState,locale:string,extra:any[]=[]){
+  const paused=state.status==="PAUSED",live=Boolean(state.track);
+  const rows=[row([
+    {...button(`music:pause:${room.id}`,paused?tr(locale,"resume"):tr(locale,"pause"),paused?ButtonStyle.Success:ButtonStyle.Secondary,paused?"▶️":"⏸️"),disabled:!live},
+    {...button(`music:skip:${room.id}`,"Skip",ButtonStyle.Secondary,"⏭️"),disabled:!live},
+    {...button(`music:stop:${room.id}`,"Stop",ButtonStyle.Danger,"⏹️"),disabled:!live},
     button(`music:queue:${room.id}`,tr(locale,"queue"),ButtonStyle.Secondary,"📃"),
-    button(`music:add:${room.id}`,"Add song",ButtonStyle.Success,"➕"),
-  ]));
-  return {flags:MessageFlags.IsComponentsV2,components:[{type:17,accent_color:accent,components:body}]} as any;
+    button(`music:add:${room.id}`,"Add song",ButtonStyle.Primary,"➕"),
+  ])];
+  if(extra.length)rows.push(row(extra));
+  return rows;
+}
+export function publicRoomPanel(room:{id:string,name:string},state:RoomRuntimeState,queued=0,_metadata:any=null,locale="en-US",opts:{visualizerUrl?:string;accentColor?:number;requesterId?:string;next?:any;upNext?:any[];currentLyric?:string|null;mediaEnabled?:boolean}={}){
+  return {flags:MessageFlags.IsComponentsV2,allowedMentions:{parse:[]},components:[{type:17,accent_color:opts.accentColor??0xd6a83a,components:[
+    ...nowPlayingBlock(room,state,queued,opts),
+    sep(),
+    ...controlRows(room,state,locale),
+  ]}]} as any;
 }
 function progressBar(position:number,duration:number,width=24){const p=duration>0?Math.max(0,Math.min(1,position/duration)):0,done=Math.max(0,Math.min(width,Math.round(p*width)));return `${"━".repeat(Math.max(0,done-1))}${done?"●":"○"}${"─".repeat(Math.max(0,width-done))}`;}
 
@@ -50,24 +74,28 @@ Requested by ${/^\d+$/.test(requesterId)?`<@${requesterId}>`:escapeMd(requesterI
 }
 
 // Private controls (from /music controls): same essentials, only visible to you.
-export function privatePanel(room:{id:string,name:string},state:RoomRuntimeState,note?:string,locale="en-US"){
-  const t=state.track,paused=state.status==="PAUSED";
-  return {flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2,components:[{type:17,accent_color:0xd6a83a,components:[
-    text(`## 🎵 ${escapeMd(room.name)}`),
-    text(t?`${paused?"⏸":"▶"} **${escapeMd(t.title)}** — ${escapeMd(t.author)}\n${t.isStream?"Live":`${formatMs(state.position??0)} / ${formatMs(t.length)}`}`:tr(locale,"nothingPlaying")),
+// Private controls (from /music controls): same block, only visible to you.
+export function privatePanel(room:{id:string,name:string},state:RoomRuntimeState,note?:string,locale="en-US",opts:{upNext?:any[];queued?:number}={}){
+  return {flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2,allowedMentions:{parse:[]},components:[{type:17,accent_color:0xd6a83a,components:[
+    ...nowPlayingBlock(room,state,opts.queued??opts.upNext?.length??0,{upNext:opts.upNext,mediaEnabled:false}),
     ...(note?[text(`> ${note}`)]:[]),
     sep(),
-    row([
-      button(`music:pause:${room.id}`,paused?tr(locale,"resume"):tr(locale,"pause"),ButtonStyle.Secondary),
-      button(`music:skip:${room.id}`,"Skip",ButtonStyle.Primary),
-      button(`music:stop:${room.id}`,"Stop",ButtonStyle.Danger),
-      button(`music:queue:${room.id}`,tr(locale,"queue")),
-    ]),
-    row([
-      button(`music:add:${room.id}`,"Add song",ButtonStyle.Success),
-      button(`music:lyrics:${room.id}`,tr(locale,"lyrics")),
-      button(`music:close:${room.id}`,tr(locale,"close")),
-    ]),
+    ...controlRows(room,state,locale,[button(`music:lyrics:${room.id}`,tr(locale,"lyrics"),ButtonStyle.Secondary,"📜"),button(`music:close:${room.id}`,tr(locale,"close"),ButtonStyle.Secondary)]),
+  ]}]} as any;
+}
+
+// Queue view: numbered, with artist, length and who asked for it.
+export function queuePanel(room:{id:string,name:string},queue:any[]){
+  const shown=queue.slice(0,15);
+  const lines=shown.map((q:any,i:number)=>{
+    const len=Number(q?.trackInfo?.length??0);
+    return `\`${String(i+1).padStart(2," ")}\` **${escapeMd(qTitle(q)).slice(0,80)}**${qAuthor(q)?` · ${escapeMd(qAuthor(q)).slice(0,40)}`:""}${len?` · ${formatMs(len)}`:""}${q?.requesterId?` · ${mention(q.requesterId)}`:""}`;
+  });
+  const total=queue.every((q:any)=>Number(q?.trackInfo?.length)>0)?queue.reduce((n:number,q:any)=>n+Number(q.trackInfo.length),0):0;
+  return {flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2,allowedMentions:{parse:[]},components:[{type:17,accent_color:0xd6a83a,components:[
+    text(`-# ${escapeMd(room.name)}\n### Queue`),
+    text(lines.length?lines.join("\n"):"The queue is empty. Use **/play** to add a song."),
+    ...(queue.length?[text(`-# ${queue.length} song${queue.length===1?"":"s"}${total?` · about ${formatMs(total)}`:""}${queue.length>shown.length?` · showing first ${shown.length}`:""}`)]:[]),
   ]}]} as any;
 }
 export function simpleEphemeral(title:string,body:string){

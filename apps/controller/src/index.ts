@@ -36,7 +36,7 @@ import { redis, keys, enqueue, dequeue, dequeueByRequestId, queueItems, getRoomS
 import { FILTER_PRESETS, SkipMode, tr, type MusicPermission, type QueueItem, type WorkerEvent } from "@bom/shared";
 import type { RoomRow } from "./types.js";
 import { allocateWorker, releaseWorker, renewRoomLease, quarantineWorker } from "./allocator.js";
-import { publicRoomPanel, privatePanel, simpleEphemeral, modalAdd, liveLyricsPanel, filterPanel } from "./ui.js";
+import { publicRoomPanel, privatePanel, queuePanel, simpleEphemeral, modalAdd, liveLyricsPanel, filterPanel } from "./ui.js";
 import { classify } from "./requests.js";
 import { recommend } from "./recommend.js";
 import { startEphemeralJanitor, trackEphemeral, renewEphemeral, renewEphemeralByMessage, expireEphemeralNow, editEphemeral, getEphemeral } from "./ephemeral.js";
@@ -587,7 +587,7 @@ async function refreshPanelNow(room:RoomRow,repost=false){
       return;
     }
     const visualizerUrl=state.track?`${process.env.PUBLIC_DASHBOARD_URL??"https://dashboard.bandofmisfits.org"}/music/visualizers/worker-${String(state.workerId??"1")}.gif?v=1`:undefined;
-    const opts={visualizerUrl,accentColor:await workerAccent(state.workerId),requesterId:state.requesterId,next:queue[0]??null,currentLyric:currentLyricLine(lyrics,Number(state.position??0)),mediaEnabled:true};
+    const opts={visualizerUrl,accentColor:await workerAccent(state.workerId),requesterId:state.requesterId,next:queue[0]??null,upNext:queue.slice(0,3),currentLyric:currentLyricLine(lyrics,Number(state.position??0)),mediaEnabled:true};
     const payload=publicRoomPanel(room,state,queue.length,metadata,locale,opts);
     const fallback=publicRoomPanel(room,state,queue.length,metadata,locale,{...opts,visualizerUrl:undefined,mediaEnabled:false});
     const editExisting=async()=>{if(!room.controller_message_id||repost)return false;let m:any;try{m=await channel.messages.fetch(room.controller_message_id);}catch(err:any){if(Number(err.code)===10008)return false;throw err;}if(samePBPanel(m,payload))return true;try{await m.edit({...payload,content:null,embeds:[]});}catch(err:any){if(Number(err.code)!==50035)throw err;diagWarn("discord-player","media render rejected; using text-safe fallback",{roomId:room.id,error:err.message});await m.edit({...fallback,content:null,embeds:[]});}return true;};
@@ -642,7 +642,7 @@ async function ephem(interaction:any,payload:any){
 
 async function openPrivate(interaction:any, room:RoomRow, note?:string){
   const mapKey=keys.ephemeralUserRoom(interaction.user.id,room.id); const previous=await redis.get(mapKey); if(previous)await expireEphemeralNow(previous);
-  const state=await getRoomState(room.id); const locale=await userLocale(interaction.user.id,room); const sent=await sendEphemeral(interaction,privatePanel(room,state,note,locale));
+  const state=await getRoomState(room.id); const locale=await userLocale(interaction.user.id,room); const sent=await sendEphemeral(interaction,privatePanel(room,state,note,locale,{upNext:(await queueItems(room.id)).slice(0,3),queued:(await queueItems(room.id)).length}));
   if(!sent)return;
   const id=await trackEphemeral(clientId!,sent.token,sent.messageId,undefined,{kind:"private",roomId:room.id,locale,userId:interaction.user.id});
   await redis.set(mapKey,id,"PX",16*60_000);
@@ -724,9 +724,9 @@ async function handleMusicCommand(interaction:any){
   }
   if(sub==="nowplaying"){
     const q=await queueItems(room.id);
-    return void await ephem(interaction,{...publicRoomPanel(room,state,q.length,null,"en-US",{next:q[0]}),flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2});
+    return void await ephem(interaction,{...publicRoomPanel(room,state,q.length,null,"en-US",{next:q[0],upNext:q.slice(0,3)}),flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2});
   }
-  if(sub==="queue")return void await ephem(interaction,simpleEphemeral(`${room.name} · Queue`,queueText(await queueItems(room.id))));
+  if(sub==="queue")return void await ephem(interaction,queuePanel(room,await queueItems(room.id)));
   if(!state.workerId)return void await ephem(interaction,simpleEphemeral("Music","Nothing is playing in your voice channel."));
   if(sub==="skip")return void await ephem(interaction,simpleEphemeral("Skip",await requestSkip(room,state,uid)));
   if(!await canControlRoom(room,uid))return void await ephem(interaction,simpleEphemeral("Not allowed","Only a DJ can do that while others are listening."));
@@ -955,7 +955,7 @@ client.on("interactionCreate",async interaction=>{
     if(interaction.isStringSelectMenu()&&interaction.customId.startsWith("music:language:")){
       const roomId=interaction.customId.split(":").at(-1)!;if(!await safeDeferUpdate(interaction))return;const room=await roomById(roomId);if(!room)return;const locale=interaction.values[0]??"en-US";
       await db.query(`INSERT INTO user_music_preferences(guild_id,user_id,language) VALUES($1,$2,$3) ON CONFLICT (guild_id,user_id) DO UPDATE SET language=EXCLUDED.language`,[guildId,interaction.user.id,locale]);
-      await renewPrivate(interaction,roomId);const state=await getRoomState(roomId);return void await editInteractionReply(interaction,{components:privatePanel(room,state,undefined,locale).components});
+      await renewPrivate(interaction,roomId);const state=await getRoomState(roomId);return void await editInteractionReply(interaction,{components:privatePanel(room,state,undefined,locale,{upNext:(await queueItems(roomId)).slice(0,3),queued:(await queueItems(roomId)).length}).components});
     }
     if(interaction.isStringSelectMenu()&&/^music:filter[12]:/.test(interaction.customId)){
       const roomId=interaction.customId.split(":").at(-1)!;if(!await safeDeferUpdate(interaction))return;const room=await roomById(roomId);if(!room)return;const locale=await userLocale(interaction.user.id,room);const preset=interaction.values[0]??"";
@@ -988,7 +988,7 @@ client.on("interactionCreate",async interaction=>{
       if(!await hasMusicPermission(interaction,"USE_MUSIC"))return void await ephem(interaction,simpleEphemeral("Permission denied","You do not have permission to use music controls in this server."));
       if(action==="add"){try{await interaction.showModal(modalAdd(room.id,"en-US"));}catch(err:any){if(unknownInteraction(err)){diagWarn("interaction","control-desk music request expired",{roomId:room.id,userId:interaction.user?.id??null});return;}throw err;}return;}
       if(action==="controls")return void await openPrivate(interaction,room);
-      if(action==="queue"){await deferInteractionReply(interaction,{flags:MessageFlags.Ephemeral});const q=await queueItems(room.id);const lines=q.slice(0,20).map((x,i)=>`${i+1}. ${(x.display??x.query).slice(0,90)}`);return void await editInteractionReply(interaction,{content:lines.length?`**${room.name} · Queue**\n${lines.join("\n")}`:`**${room.name} · Queue**\nThe queue is empty.`});}
+      if(action==="queue")return void await ephem(interaction,queuePanel(room,await queueItems(room.id)));
     }
     if(!interaction.isButton())return;
     const [scope,action,roomId]=interaction.customId.split(":"); if(scope!=="music"||!roomId)return;
@@ -1007,7 +1007,7 @@ client.on("interactionCreate",async interaction=>{
     const state=await getRoomState(roomId);
     if(action==="controls")return void await openPrivate(interaction,room);
     if(action==="close"){ const id=await redis.get(keys.ephemeralUserRoom(interaction.user.id,roomId)); if(id)await expireEphemeralNow(id); await redis.del(keys.ephemeralUserRoom(interaction.user.id,roomId)); return; }
-    if(action==="queue"){ const q=await queueItems(roomId); const lines=q.slice(0,20).map((x,i)=>`${i+1}. ${(x.display??x.query).slice(0,90)}`); return void await ephem(interaction,simpleEphemeral("Queue",lines.length?lines.join("\n"):"The queue is empty.")); }
+    if(action==="queue")return void await ephem(interaction,queuePanel(room,await queueItems(roomId)));
     if(action==="lyrics")return void await openLyrics(interaction,room,state,locale);
     if(action==="lyricsrefresh"){ const id=await redis.get(keys.ephemeralLyricsUserRoom(interaction.user.id,roomId));if(id){const rec=await getEphemeral(id);if(rec?.messageId===interaction.message?.id)await renewEphemeral(id,interaction.token);}await refreshLyricsPanels(roomId);return; }
     if(action==="lyricsclose"){ const id=await redis.get(keys.ephemeralLyricsUserRoom(interaction.user.id,roomId));if(id)await expireEphemeralNow(id);await redis.del(keys.ephemeralLyricsUserRoom(interaction.user.id,roomId));return; }
