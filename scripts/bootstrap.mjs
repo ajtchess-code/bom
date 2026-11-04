@@ -64,6 +64,9 @@ if (!existsSync("node_modules") || missingModules.length || wrongZodVersion) {
     }${wrongZodVersion ? `; zod=${zodVersion ?? "missing"}, need 3.25.76` : ""}...`,
   );
   await runYarn(["install", "--force"]);
+  // The download cache lives inside the server's disk quota and duplicates
+  // node_modules; drop it so small hosts don't run out of space.
+  await runYarn(["cache", "clean"]).catch((err) => console.warn(`[bootstrap] yarn cache clean skipped: ${err.message}`));
 }
 
 // Build exactly once per start. Uploads overlay old dist/.next output, so the
