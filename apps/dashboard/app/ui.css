@@ -119,3 +119,25 @@
 .homeCard > header { margin: 0 !important; padding: 0 !important; border: 0 !important; align-items: baseline !important; min-height: 0 !important; }
 .homeCard > header h2 { margin: 0 !important; }
 .homeNowGrid > .homeQuiet { grid-column: 1 / -1; }
+
+/* Replacements for former inline styles. */
+.uiBareFieldset { border: 0; padding: 0; margin: 0; min-width: 0; }
+.uiStackLg { display: grid; gap: 20px; }
+.uiProgress { width: 100%; accent-color: var(--cc-accent); }
+.uiPadY { padding: 8px 0; }
+.uiPadSm { padding: 6px; }
+.uiPadMd { padding: 20px; }
+.uiPadLg { padding: 24px; min-width: 0; }
+.uiGapBelow { margin-bottom: 16px; }
+.uiScrollBox { max-height: 280px; overflow-y: auto; padding: 8px; }
+.uiScrollX { overflow-x: auto; max-width: 100%; }
+.uiPre { white-space: pre-wrap; overflow-wrap: anywhere; }
+.uiBlock { display: block; }
+.uiWarnText { color: var(--cc-warn); }
+.uiInlineIcon { vertical-align: middle; margin-right: 6px; }
+.uiPage { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+/* Consistent inline empty and loading messages inside cards and lists. */
+.uiEmpty { margin: 6px 0; padding: 14px 16px; border: 1px dashed var(--cc-border); border-radius: calc(var(--cc-radius) - 2px); color: var(--cc-muted); font-size: 0.8rem; text-align: center; }
+.uiLoading { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 6px 0; padding: 14px 16px; color: var(--cc-muted); font-size: 0.8rem; }
+.uiLoading::before { content: ""; width: 16px; height: 16px; border: 2px solid var(--cc-border); border-top-color: var(--cc-accent); border-radius: 50%; animation: uiSpin 0.8s linear infinite; }

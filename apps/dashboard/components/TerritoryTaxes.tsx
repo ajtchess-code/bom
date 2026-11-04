@@ -3,7 +3,7 @@ import TerritoryGuildSelect from './TerritoryGuildSelect';
 export default function TerritoryTaxes({value,onChange,guilds,now}:{value:any[];onChange:(taxes:any[])=>void;guilds:any[];now:number}) {
  const edit=(index:number,patch:any)=>onChange(value.map((t,i)=>i===index?{...t,...patch}:t));
  return <div className="territoryTaxes"><header className="panelHead"><strong>Taxes</strong><button type="button" className="outlineButton territoryTimerAdjust" onClick={()=>onChange([...value,{id:crypto.randomUUID(),tag:'',_new:true}])}>Add tax</button></header>
- {!value.length&&<p className="muted">No taxing guilds recorded.</p>}
+ {!value.length&&<p className="uiEmpty">No taxing guilds recorded.</p>}
  {value.map((tax,index)=>{const left=Math.max(0,(Date.parse(tax.protected_until??'')||0)-now),newTax=tax._new||tax.renew;return <section className="territoryTax" key={tax.id}>
  <TerritoryGuildSelect label={`Taxing Guild ${index+1}`} value={tax.tag} guilds={guilds} onChange={tag=>edit(index,{tag})}/>
  <small>{newTax?'Starts a 3.2 day timer automatically.':left?`Tax remaining: ${(left/3600000).toFixed(1)} hours`:'Tax timer has expired.'}</small>
