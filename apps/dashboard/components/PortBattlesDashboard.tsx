@@ -794,7 +794,6 @@ export default function PortBattlesDashboard({
             {!battles.some((b) => ["OPEN", "CLOSED"].includes(b.status)) && (
               <p className="uiEmpty">No Port Battles Scheduled</p>
             )}
-            <Link href="/dashboard/after-action-reports">After Action Reports →</Link>
           </aside>
           <TerritoryMap
             mapData={mapData}
