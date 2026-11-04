@@ -73,17 +73,15 @@ export async function buildRelayPayload(message: Message, service: AttachmentSer
   const avatarURL=message.member?.displayAvatarURL?.()||message.author.displayAvatarURL?.()||message.author.defaultAvatarURL;
   const channelName = 'name' in message.channel ? message.channel.name : message.channel.id;
   const policy=policyFor(options.policy),now=options.now??Date.now(),priority=priorityForMessage(message,policy);
-  const sourceUnix=Math.floor(message.createdTimestamp/1000),eventAt=message.editedTimestamp??message.createdTimestamp,age=Math.max(0,now-eventAt),delayed=age>policy.staleAfterSeconds*1000;
-  const label=options.relayLabel??'Intel Relay',thread=message.channel.isThread?.()?` · Thread: ${channelName}`:'';
-  const source:APIEmbed={author:{name:truncate(author,256),...(avatarURL?{icon_url:avatarURL}:{})},title:truncate(`${priority.label}${delayed?' · DELAYED':''}`,256),color:priority.priority===2?0xED4245:priority.priority===1?0xF0B232:delayed?0xC27C0E:0x5865F2,
-   description:`**${labelText(truncate(author,180))}** · ${labelText(truncate(message.guild?.name??'Server',150))} / #${labelText(truncate(String(channelName),150))}${thread}\nSource <t:${sourceUnix}:f> · <t:${sourceUnix}:R>${message.editedTimestamp?` · **Edited** <t:${Math.floor(message.editedTimestamp/1000)}:f>`:''}${policy.showSourceLinks?`\n[Open Source — access required](${message.url})`:''}`,
-   footer:{text:`${label} · ${delayed?'Delayed report':'Fresh report'} · Received ${new Date(now).toISOString()} · ${priority.label}`},timestamp:new Date(eventAt).toISOString()};
-  if(message.reference?.messageId){try{const reply=await message.fetchReference();(source.fields??=[]).push({name:'Reply context',value:truncate(`${reply.author.username}: ${cleanContent(reply)||'[attachment]'}`,policy.compact?350:1024)});}catch{(source.fields??=[]).push({name:'Reply context',value:'Earlier message unavailable'});}}
+  // The relayed post is just the message. Source, timing and delivery details live
+  // in the Intel dashboard's live feed. Replies keep one small context line.
+  let replyLine='';
+  if(message.reference?.messageId){try{const reply=await message.fetchReference();const who=reply.member?.displayName??reply.author.globalName??reply.author.username;replyLine=`-# ↪ replying to **${labelText(truncate(who,80))}**: ${labelText(truncate((cleanContent(reply)||'[attachment]').replace(/\s+/g,' '),120))}`;}catch{replyLine='-# ↪ replying to an earlier message';}}
+  if(replyLine)content=[replyLine,content].filter(Boolean).join('\n');
   const attachments=[...message.attachments.values()];
-  if(attachments.length)(source.fields??=[]).push({name:`Attachments · ${attachments.length}`,value:truncate(attachments.map(a=>`${String(a.contentType??'').startsWith('image/')?'Image':String(a.contentType??'').startsWith('video/')?'Video':String(a.contentType??'').startsWith('audio/')?'Audio':'File'}: ${a.name??'Attachment'}${a.size?` · ${Math.ceil(a.size/1024)} KB`:''}`).join('\n'),policy.compact?600:1024)});
   const images:APIEmbed[]=attachments.filter(a=>a.contentType?.startsWith('image/')).slice(0,4).map(a=>({url:message.url,image:{url:a.name&&forwarded.files.some(f=>f.name===a.name)?'attachment://'+a.name:a.url}}));
   const copied=message.embeds.slice(0,Math.max(0,9-images.length)).map(e=>{const raw=e.toJSON() as APIEmbed;if(policy.compact){delete raw.thumbnail;if(raw.description)raw.description=truncate(raw.description,900);}return raw;});
-  return {chunks:splitContent(content,1900),username:safeUsername(author),...(avatarURL?{avatarURL}:{}),priority:priority.priority,embeds:budgetEmbeds([source,...images,...copied]),files:forwarded.files};
+  return {chunks:splitContent(content,1900),username:safeUsername(author),...(avatarURL?{avatarURL}:{}),priority:priority.priority,embeds:budgetEmbeds([...images,...copied]),files:forwarded.files};
 }
 export function createOptionsForPart(payload: BuiltRelayPayload, index: number): WebhookMessageCreateOptions {
   return { content: partContent(payload,index), username: payload.username, ...(payload.avatarURL ? { avatarURL: payload.avatarURL } : {}), allowedMentions: { parse: [],roles:index===0?payload.alertRoles??[]:[] }, ...(index === 0 ? { embeds: payload.embeds, files: payload.files } : {}) };

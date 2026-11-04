@@ -184,6 +184,43 @@ export class AccountManager {
     const file=path.join(this.store.directory,routeId==='primary'&&!a.guildId?`${a.id}-${legacy}.sqlite`:`${a.id}-${routeId}-${destination}.sqlite`);
     const db=new RelayDatabase(file);try{return run(db)}finally{db.close();}
   }
+  /**
+   * Live feed: every relay and sub-relay's message archive merged into one
+   * newest-first stream, so the dashboard can show all intel in one place and
+   * filter it. Each row keeps the details that used to sit in the Discord embed.
+   */
+  public feed(raw:unknown){
+    const f=z.object({
+      query:z.string().trim().max(200).optional(),
+      relay:z.string().max(160).optional(),
+      guildId:z.string().regex(/^\d{15,22}$/).optional(),
+      channelId:z.string().regex(/^\d{15,22}$/).optional(),
+      priority:z.coerce.number().int().min(0).max(2).optional(),
+      status:z.enum(['queued','delivered','failed','deleted','paused']).optional(),
+      before:z.coerce.number().int().positive().optional(),
+      limit:z.coerce.number().int().min(1).max(200).default(100),
+    }).parse(raw??{});
+    const routes=this.accounts.flatMap(a=>[{account:a,routeId:'primary',name:a.name},...(a.subRelays??[]).map(s=>({account:a,routeId:s.id,name:s.name}))]);
+    const rows:any[]=[];
+    for(const r of routes){
+      const key=`${r.account.id}:${r.routeId}`;
+      if(f.relay&&f.relay!==key)continue;
+      try{
+        const res=this.withRouteDb(r.account.id,r.routeId,db=>db.archiveHistory({query:f.query,guildId:f.guildId,channelId:f.channelId,status:f.status,before:f.before,limit:100}));
+        for(const row of res.rows)if(f.priority===undefined||Number(row.priority)===f.priority)rows.push({...row,fingerprint:undefined,relayKey:key,relayName:r.name,accountName:r.account.name});
+      }catch(error){this.logger.warn('Live feed could not read a relay archive.',{relay:key});}
+    }
+    rows.sort((a,b)=>Number(b.source_at)-Number(a.source_at)||String(b.source_id).localeCompare(String(a.source_id)));
+    const servers=new Map<string,string>(),channels=new Map<string,{name:string;guildId:string}>();
+    for(const row of rows){servers.set(row.guild_id,row.guild_name);channels.set(row.channel_id,{name:row.channel_name,guildId:row.guild_id});}
+    return {
+      now:Date.now(),
+      rows:rows.slice(0,f.limit),
+      relays:routes.map(r=>({key:`${r.account.id}:${r.routeId}`,name:r.name,account:r.account.name,sub:r.routeId!=='primary'})),
+      servers:[...servers].map(([id,name])=>({id,name})),
+      channels:[...channels].map(([id,c])=>({id,name:c.name,guildId:c.guildId})),
+    };
+  }
   public async tools(accountId:string,raw:unknown,actor='dashboard'){
     const request=z.object({action:z.enum(['configure','pause','resume','refresh','scope','preview','archive','deliveries','summary','diagnostics','save-view','delete-view','views','revisions','restore']),routeId:z.string().max(80).default('primary'),minutes:z.number().int().min(0).max(10080).default(0),policy:routePolicySchema.optional(),draft:z.record(z.string(),z.unknown()).optional(),filters:z.record(z.string(),z.unknown()).default({}),name:z.string().trim().max(80).optional(),id:z.string().max(100).optional(),revisionId:z.number().int().positive().optional(),sample:z.string().max(32000).optional(),scenario:z.enum(['normal','long','edited','attachments','delayed']).default('normal')}).parse(raw);
     const {account,route,runtime}=this.route(accountId,request.routeId),action=request.action;

@@ -53,6 +53,7 @@ export class DashboardServer {
     const actor='session-'+createHash('sha256').update(cookie).digest('hex').slice(0,10);
     try {
       if (url.pathname === '/api/logout' && req.method === 'POST') { this.sessions.delete(cookie); res.setHeader('Set-Cookie', 'relay_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return this.json(res, 200, { ok: true }); }
+      if (url.pathname === '/api/feed' && req.method === 'GET') return this.json(res, 200, this.manager.feed(Object.fromEntries([...url.searchParams].filter(([, v]) => v !== ''))));
       if (url.pathname === '/api/accounts' && req.method === 'GET') return this.json(res, 200, this.manager.list());
       if (url.pathname === '/api/accounts' && req.method === 'POST') return this.json(res, 200, { id: await this.manager.save(null, await this.body(req),actor) });
       const match = url.pathname.match(/^\/api\/accounts\/([a-f0-9-]+)(?:\/(guilds|channels|toggle|search|conversations|history|tools))?$/);
