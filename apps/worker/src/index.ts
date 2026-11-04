@@ -232,7 +232,7 @@ async function play(cmd:Extract<WorkerCommand,{type:"PLAY"}>){
       void (async()=>{for(let i=1;i<=steps&&runtime?.requestId===cmd.requestId;i++){await new Promise(r=>setTimeout(r,step));try{const target=Math.round(i/steps*Number(runtime?.baseVolume??100));await player.setGlobalVolume?.(target);if(i===steps)diag("audio-volume","fade-in reached target volume",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,targetVolume:target,reportedVolume:Number(player.volume??target)});}catch{}}})();
       if(!info.isStream&&info.length>transitionMs+500){
         const remaining=Math.max(500,info.length-Number(cmd.startPositionMs??0)-transitionMs);
-        const timer=setTimeout(()=>{void (async()=>{const steps=8,step=Math.max(25,Math.floor(transitionMs/steps));for(let i=steps-1;i>=0&&runtime?.requestId===cmd.requestId;i--){try{await player.setGlobalVolume?.(Math.round(i/steps*100));}catch{};await new Promise(r=>setTimeout(r,step));}})();},remaining);
+        const timer=setTimeout(()=>{void (async()=>{const steps=8,step=Math.max(25,Math.floor(transitionMs/steps));for(let i=steps-1;i>=0&&runtime?.requestId===cmd.requestId;i--){try{await player.setGlobalVolume?.(Math.round(i/steps*Number(runtime?.baseVolume??100)));}catch{};await new Promise(r=>setTimeout(r,step));}})();},remaining);
         timer.unref?.();if(runtime?.requestId===cmd.requestId)runtime.transitionTimer=timer;
       }
     }
@@ -389,4 +389,23 @@ client.once("clientReady",async()=>{
   void commandLoop();
 });
 client.on("guildCreate",g=>{if(g.id!==guildId)void g.leave().catch(()=>{});});
+// If someone disconnects or moves this bot in Discord, the player is gone or in
+// the wrong room. Stop cleanly (the controller clears the queue and frees the
+// bot) instead of holding the lease forever while playing to nobody.
+client.on("voiceStateUpdate",(oldState,newState)=>{
+  if(newState.guild.id!==guildId||newState.id!==client.user?.id)return;
+  const r=runtime;if(!r)return;
+  if(newState.channelId&&newState.channelId===r.voiceChannelId)return;
+  if(!oldState.channelId||oldState.channelId!==r.voiceChannelId)return;
+  diagWarn("voice","worker removed from its voice channel; stopping",{roomId:r.roomId,from:oldState.channelId,to:newState.channelId??null});
+  void (async()=>{
+    if(runtime!==r)return;
+    ignoredEndPlayers.add(r.player);runtime=null;if(r.transitionTimer)clearTimeout(r.transitionTimer);
+    await r.player.stopTrack?.().catch(()=>{});
+    await shoukaku.leaveVoiceChannel(guildId).catch(()=>{});connectedVoiceChannelId=null;
+    const lease=await redis.get(keys.workerLease(workerId)).catch(()=>null);if(lease===r.roomId)await redis.del(keys.workerLease(workerId)).catch(()=>{});
+    await setPresence().catch(()=>{});
+    await publishEvent({type:"TRACK_END",workerId,roomId:r.roomId,guildId:r.guildId,requestId:r.requestId,traceId:r.traceId,reason:"STOPPED"}).catch(()=>{});
+  })();
+});
 await client.login(token);

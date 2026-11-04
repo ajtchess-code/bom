@@ -184,7 +184,12 @@ When the Controller reaches the configured Discord guild, it creates the default
 2. sign in with Discord;
 3. create a Music Room with a request channel and voice channel;
 4. configure role permissions and skip mode;
-5. type a song/search/URL into the request channel or open `/music`.
+5. join a voice channel and use `/play <song>`, or type `play <song>` (or paste a link) in that voice channel's chat.
+
+Music commands: `/play`, `/music nowplaying`, `/music queue`, `/music skip`, `/music pause`,
+`/music stop`, `/music volume`, `/music controls`. Pause, stop and volume need a DJ role unless
+you're the only person listening. A bot leaves after its queue ends, if it is disconnected, or two
+minutes after everyone leaves the channel.
 
 ## 10. Useful environment controls
 

@@ -6,45 +6,31 @@ const row=(components:any[])=>({type:1,components});
 const text=(content:string)=>({type:10,content});
 const sep=()=>({type:14,divider:true,spacing:1});
 
-export function publicRoomPanel(room:{id:string,name:string},state:RoomRuntimeState,queued=0,metadata:any=null,locale="en-US",opts:{visualizerUrl?:string;accentColor?:number;requesterId?:string;next?:any;currentLyric?:string|null;mediaEnabled?:boolean}={}){
-  const now=state.track,accent=opts.accentColor??0xD6A83A,mediaEnabled=opts.mediaEnabled!==false;
-  const requester=opts.requesterId??state.requesterId;const origin=state.origin??"USER";const surface=state.surface??"DISCORD";
-  const progress=now?progressBar(Number(state.position??0),Number(now.length??0),24):"";
-  const header=[
-    text(now?`## ${state.status==="PAUSED"?"⏸":"▶"} ${escapeMd(now.title)}`:`## 🎵 ${escapeMd(room.name)}`),
-    text(now?`**${escapeMd(now.author)}** · ${formatMs(now.length)} · ${escapeMd(now.sourceName??"source")}\n${requester?`Requested by ${/^\d+$/.test(requester)?`<@${requester}>`:escapeMd(requester)}`:""} · **${escapeMd(origin)}** via ${escapeMd(surface)}`:`${tr(locale,"readyRequests")} · ${tr(locale,"queue")} ${queued}`)
-  ];
-  // Discord Components V2 Section (type 9) requires a valid accessory.
-  // When artwork/media is disabled, use plain text components instead of an
-  // accessory-less Section so the text-safe fallback is truly valid.
-  // Keep the canonical public player on component shapes Discord accepts
-  // consistently through discord.js. Raw Section/Thumbnail accessories were
-  // rejected by the API in production with BASE_TYPE_REQUIRED even though the
-  // nested object contained a thumbnail type. The public player therefore
-  // uses Text Displays + a lightweight looping BOM visualizer; album artwork stays
-  // on the dashboard instead of expanding into an oversized Discord image.
-  const body:any[]=[...header];
+// Public "now playing" panel: what's playing, who asked for it, progress, what's
+// next, and plain controls. No visualizer, trivia or origin badges.
+export function publicRoomPanel(room:{id:string,name:string},state:RoomRuntimeState,queued=0,_metadata:any=null,locale="en-US",opts:{visualizerUrl?:string;accentColor?:number;requesterId?:string;next?:any;currentLyric?:string|null;mediaEnabled?:boolean}={}){
+  const now=state.track,accent=opts.accentColor??0xd6a83a,paused=state.status==="PAUSED";
+  const requester=opts.requesterId??state.requesterId;
+  const who=requester?(/^\d+$/.test(requester)?`<@${requester}>`:escapeMd(requester)):"";
+  const body:any[]=[];
   if(now){
-    if(mediaEnabled&&opts.visualizerUrl)body.push({type:12,items:[{media:{url:opts.visualizerUrl},description:`Animated BOM music visualizer for ${now.title}`} ]});
-    body.push(text(`${progress}\n**${formatMs(state.position??0)} / ${formatMs(now.length)}** · ${queued} queued`));
-    if(opts.currentLyric)body.push(text(`♪ *${escapeMd(opts.currentLyric)}*`));
-    if(opts.next)body.push(text(`**Up next:** ${escapeMd(opts.next.display??opts.next.trackInfo?.title??opts.next.query??"Queued track")}${opts.next.requesterId&&/^\d+$/.test(String(opts.next.requesterId))?` · <@${opts.next.requesterId}>`:""}`));
-    if(metadata?.fact)body.push(text(`💡 ${escapeMd(String(metadata.fact))}`));
+    body.push(text(`## ${paused?"⏸":"▶"} ${escapeMd(now.title)}`));
+    body.push(text(`**${escapeMd(now.author)}** · ${now.isStream?"Live":formatMs(now.length)}${who?` · requested by ${who}`:""}`));
+    if(!now.isStream)body.push(text(`${progressBar(Number(state.position??0),Number(now.length??0),20)}  ${formatMs(state.position??0)} / ${formatMs(now.length)}`));
+    const next=opts.next?escapeMd(String(opts.next.display??opts.next.trackInfo?.title??opts.next.query??"Queued track")).slice(0,120):null;
+    body.push(text(next?`**Up next:** ${next}${queued>1?` · ${queued-1} more`:""}`:queued?`${queued} in queue`:"Nothing queued after this."));
+  }else{
+    body.push(text(`## 🎵 ${escapeMd(room.name)}`),text(`Nothing is playing. Use **/play** or press **Add song**.${queued?` ${queued} in queue.`:""}`));
   }
   body.push(sep(),row([
-    button(`music:pause:${room.id}`,state.status==="PAUSED"?tr(locale,"resume"):tr(locale,"pause"),ButtonStyle.Secondary,state.status==="PAUSED"?"▶️":"⏸️"),
-    button(`music:skip:${room.id}`,tr(locale,"voteSkip"),ButtonStyle.Primary,"⏭️"),
+    button(`music:pause:${room.id}`,paused?tr(locale,"resume"):tr(locale,"pause"),ButtonStyle.Secondary,paused?"▶️":"⏸️"),
+    button(`music:skip:${room.id}`,"Skip",ButtonStyle.Primary,"⏭️"),
+    button(`music:stop:${room.id}`,"Stop",ButtonStyle.Danger,"⏹️"),
     button(`music:queue:${room.id}`,tr(locale,"queue"),ButtonStyle.Secondary,"📃"),
-    button(`music:lyrics:${room.id}`,tr(locale,"lyrics"),ButtonStyle.Secondary,"📜")
-  ]),row([
-    button(`music:add:${room.id}`,tr(locale,"addMusic"),ButtonStyle.Success,"➕"),
-    button(`music:filters:${room.id}`,tr(locale,"filters"),ButtonStyle.Secondary,"🎚️"),
-    button(`music:recommend:${room.id}`,tr(locale,"recommendations"),ButtonStyle.Secondary,"✨")
+    button(`music:add:${room.id}`,"Add song",ButtonStyle.Success,"➕"),
   ]));
-  if(!now)body.push(text(tr(locale,"requestHint")));
   return {flags:MessageFlags.IsComponentsV2,components:[{type:17,accent_color:accent,components:body}]} as any;
 }
-
 function progressBar(position:number,duration:number,width=24){const p=duration>0?Math.max(0,Math.min(1,position/duration)):0,done=Math.max(0,Math.min(width,Math.round(p*width)));return `${"━".repeat(Math.max(0,done-1))}${done?"●":"○"}${"─".repeat(Math.max(0,width-done))}`;}
 
 function languageSelect(roomId:string,locale:string){
@@ -63,26 +49,27 @@ Requested by ${/^\d+$/.test(requesterId)?`<@${requesterId}>`:escapeMd(requesterI
   ]}]} as any;
 }
 
+// Private controls (from /music controls): same essentials, only visible to you.
 export function privatePanel(room:{id:string,name:string},state:RoomRuntimeState,note?:string,locale="en-US"){
-  const t=state.track;
-  const components:any[]=[{type:17,accent_color:0xD6A83A,components:[
-    text(`## ${escapeMd(room.name)} — ${tr(locale,"privateControls")}`),
-    text(t?`**${escapeMd(t.title)}** — ${escapeMd(t.author)}\n${state.status} • ${formatMs(state.position??0)} / ${formatMs(t.length)}`:tr(locale,"nothingPlaying")),
+  const t=state.track,paused=state.status==="PAUSED";
+  return {flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2,components:[{type:17,accent_color:0xd6a83a,components:[
+    text(`## 🎵 ${escapeMd(room.name)}`),
+    text(t?`${paused?"⏸":"▶"} **${escapeMd(t.title)}** — ${escapeMd(t.author)}\n${t.isStream?"Live":`${formatMs(state.position??0)} / ${formatMs(t.length)}`}`:tr(locale,"nothingPlaying")),
     ...(note?[text(`> ${note}`)]:[]),
     sep(),
     row([
-      button(`music:pause:${room.id}`,state.status==="PAUSED"?tr(locale,"resume"):tr(locale,"pause"),ButtonStyle.Secondary),
-      button(`music:skip:${room.id}`,tr(locale,"voteSkip"),ButtonStyle.Primary),
+      button(`music:pause:${room.id}`,paused?tr(locale,"resume"):tr(locale,"pause"),ButtonStyle.Secondary),
+      button(`music:skip:${room.id}`,"Skip",ButtonStyle.Primary),
+      button(`music:stop:${room.id}`,"Stop",ButtonStyle.Danger),
       button(`music:queue:${room.id}`,tr(locale,"queue")),
-      button(`music:lyrics:${room.id}`,tr(locale,"lyrics"))
     ]),
-    row([button(`music:add:${room.id}`,tr(locale,"addMusic"),ButtonStyle.Success),button(`music:filters:${room.id}`,tr(locale,"filters")),button(`music:close:${room.id}`,tr(locale,"close"),ButtonStyle.Danger)]),
-    languageSelect(room.id,locale),
-    text(tr(locale,"inactivity"))
-  ]}];
-  return {flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2,components} as any;
+    row([
+      button(`music:add:${room.id}`,"Add song",ButtonStyle.Success),
+      button(`music:lyrics:${room.id}`,tr(locale,"lyrics")),
+      button(`music:close:${room.id}`,tr(locale,"close")),
+    ]),
+  ]}]} as any;
 }
-
 export function simpleEphemeral(title:string,body:string){
   return {flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2,components:[{type:17,accent_color:0xD6A83A,components:[text(`## ${title}`),text(body)]}]} as any;
 }

@@ -16,7 +16,15 @@ function scoreHeartbeat(h:any){
 
 export async function allocateWorker(roomId:string, preferred?:string|null, traceId?:string):Promise<string>{
   const existing=await redis.get(keys.roomWorker(roomId));
-  if(existing){diag("reusing existing worker",{traceId,roomId,workerId:existing});return existing;}
+  if(existing){
+    // Only reuse a bot that is still alive and healthy; a crashed or quarantined
+    // bot would otherwise keep this room stuck until its lease expires.
+    const [hb,quarantine]=await Promise.all([redis.get(keys.workerHeartbeat(existing)),redis.get(`music:worker:${existing}:quarantine`)]);
+    if(hb&&!quarantine){diag("reusing existing worker",{traceId,roomId,workerId:existing});return existing;}
+    diag("dropping stale room mapping",{traceId,roomId,workerId:existing,online:Boolean(hb),quarantined:Boolean(quarantine)});
+    await redis.del(keys.roomWorker(roomId));
+    if(await redis.get(keys.workerLease(existing))===roomId)await redis.del(keys.workerLease(existing));
+  }
   const count=Math.min(8,Math.max(1,Number(process.env.WORKER_COUNT??8)));
   const reserved=await redis.get(`music:radio:reserved:${process.env.DISCORD_GUILD_ID??''}`).catch(()=>null);
   const ids=Array.from({length:count},(_,i)=>String(i+1)).filter(id=>!reserved|| (preferred==='8'?id==='8':id!=='8'));
@@ -37,7 +45,7 @@ export async function allocateWorker(roomId:string, preferred?:string|null, trac
     return c.workerId;
   }
   console.warn(`[worker-lease] no worker available ${JSON.stringify({traceId,roomId,preferred:preferred??null,candidates:rows.map(x=>({workerId:x.workerId,score:x.score,lease:x.lease,quarantined:Boolean(x.quarantine),online:Boolean(x.heartbeat)}))})}`);
-  throw new Error("All music workers are currently busy");
+  throw new Error("All music bots are busy in other voice channels right now. Try again when one frees up.");
 }
 
 export async function quarantineWorker(workerId:string,reason:string,seconds=60){

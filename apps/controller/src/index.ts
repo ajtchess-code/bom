@@ -103,7 +103,16 @@ const commands=[
       .addRoleOption(o=>o.setName("manager_role").setDescription("Role allowed to manage Port Battles").setRequired(true))
       .addRoleOption(o=>o.setName("signup_role").setDescription("Optional role allowed to sign up").setRequired(false)))
     .addSubcommand(sc=>sc.setName("refresh").setDescription("Rebuild all active Port Battle Discord panels now")),
-  new SlashCommandBuilder().setName("music").setDescription("Open your private music controls"),
+  new SlashCommandBuilder().setName("play").setDescription("Play a song in your voice channel")
+    .addStringOption(o=>o.setName("song").setDescription("Song name, artist, or a link").setRequired(true)),
+  new SlashCommandBuilder().setName("music").setDescription("Music controls for your voice channel")
+    .addSubcommand(sc=>sc.setName("controls").setDescription("Open your private music controls"))
+    .addSubcommand(sc=>sc.setName("nowplaying").setDescription("Show what's playing"))
+    .addSubcommand(sc=>sc.setName("queue").setDescription("Show the queue"))
+    .addSubcommand(sc=>sc.setName("skip").setDescription("Skip the current song (or vote to skip)"))
+    .addSubcommand(sc=>sc.setName("pause").setDescription("Pause or resume"))
+    .addSubcommand(sc=>sc.setName("stop").setDescription("Stop music, clear the queue and disconnect the bot"))
+    .addSubcommand(sc=>sc.setName("volume").setDescription("Set the volume").addIntegerOption(o=>o.setName("level").setDescription("0-150 (100 is normal)").setRequired(true).setMinValue(0).setMaxValue(150))),
   new SlashCommandBuilder().setName("music-admin").setDescription("Open music administration"),
   ...feedbackCommands,
   ...membershipCommands,
@@ -679,6 +688,61 @@ async function userMusicPermission(userId:string,permission:MusicPermission){
   const guild=client.guilds.cache.get(guildId!);if(!guild)return false;const member=guild.members.cache.get(userId)??await guild.members.fetch(userId).catch(()=>null);if(!member)return false;
   return rolePermission([...member.roles.cache.keys()].map(String),member.permissions.has(PermissionFlagsBits.ManageGuild),permission);
 }
+// Pause/stop/volume: DJs and music managers always; anyone else when they are
+// the only person listening (no one to annoy).
+async function canControlRoom(room:RoomRow,userId:string){
+  if(await userMusicPermission(userId,"MANAGE_MUSIC")||await userMusicPermission(userId,"DJ"))return true;
+  const vc=client.guilds.cache.get(guildId!)?.channels.cache.get(room.voice_channel_id);
+  const humans=vc?.isVoiceBased()?[...vc.members.values()].filter(m=>!m.user.bot):[];
+  return humans.length<=1&&humans.some(m=>m.id===userId);
+}
+function queueText(q:QueueItem[]){
+  if(!q.length)return "The queue is empty.";
+  const lines=q.slice(0,15).map((x,i)=>`${i+1}. ${(x.display??x.trackInfo?.title??x.originalQuery??x.query).slice(0,90)}${x.requesterId&&/^\d+$/.test(x.requesterId)?` · <@${x.requesterId}>`:""}`);
+  return lines.join("\n")+(q.length>15?`\n…and ${q.length-15} more`:"");
+}
+async function handleMusicCommand(interaction:any){
+  const sub=interaction.commandName==="play"?"play":interaction.options.getSubcommand(false)??"controls";
+  const room=await chooseRoomForUser(interaction);
+  if(!room)return void await ephem(interaction,simpleEphemeral("Music","Join a voice channel first, then try again. A free music bot will join you."));
+  if(!await hasMusicPermission(interaction,"USE_MUSIC"))return void await ephem(interaction,simpleEphemeral("Permission denied","You don't have permission to use music in this server."));
+  if(sub==="controls")return void await openPrivate(interaction,room);
+  const state=await getRoomState(room.id),uid=interaction.user.id;
+  if(sub==="play"){
+    const query=String(interaction.options.getString("song",true)).trim();
+    if(!query)return void await ephem(interaction,simpleEphemeral("Music","Tell me what to play."));
+    if(!await claimRequestWindow(room.id,uid))return void await ephem(interaction,simpleEphemeral("Slow down","Wait a moment before adding another song."));
+    await deferInteractionReply(interaction,{flags:MessageFlags.Ephemeral});
+    try{
+      const busy=Boolean(state.workerId)&&!["IDLE","ERROR"].includes(String(state.status));
+      await submit(room,query,uid,undefined,{surface:"DISCORD"});
+      const pos=busy?(await queueItems(room.id)).length:0;
+      return void await editInteractionReply(interaction,{content:busy?`Added **${query.slice(0,100)}** to the queue (position ${pos}).`:`Starting **${query.slice(0,100)}** in ${room.name}.`});
+    }catch(err:any){return void await editInteractionReply(interaction,{content:`Couldn't play that: ${String(err?.message??err).slice(0,300)}`});}
+  }
+  if(sub==="nowplaying"){
+    const q=await queueItems(room.id);
+    return void await ephem(interaction,{...publicRoomPanel(room,state,q.length,null,"en-US",{next:q[0]}),flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2});
+  }
+  if(sub==="queue")return void await ephem(interaction,simpleEphemeral(`${room.name} · Queue`,queueText(await queueItems(room.id))));
+  if(!state.workerId)return void await ephem(interaction,simpleEphemeral("Music","Nothing is playing in your voice channel."));
+  if(sub==="skip")return void await ephem(interaction,simpleEphemeral("Skip",await requestSkip(room,state,uid)));
+  if(!await canControlRoom(room,uid))return void await ephem(interaction,simpleEphemeral("Not allowed","Only a DJ can do that while others are listening."));
+  if(sub==="pause"){
+    const resume=state.status==="PAUSED";
+    await publishWorkerCommand(state.workerId,{type:resume?"RESUME":"PAUSE",roomId:room.id,guildId:guildId!});
+    return void await ephem(interaction,simpleEphemeral("Music",resume?"Resumed.":"Paused."));
+  }
+  if(sub==="stop"){
+    await publishWorkerCommand(state.workerId,{type:"STOP",roomId:room.id,guildId:guildId!});
+    return void await ephem(interaction,simpleEphemeral("Music","Stopped and cleared the queue."));
+  }
+  if(sub==="volume"){
+    const level=Math.max(0,Math.min(150,Number(interaction.options.getInteger("level",true))));
+    await publishWorkerCommand(state.workerId,{type:"VOLUME",roomId:room.id,guildId:guildId!,volume:level});
+    return void await ephem(interaction,simpleEphemeral("Volume",`Volume set to ${level}.`));
+  }
+}
 async function requestSkip(room:RoomRow,state:any,userId:string){
   if(!state.workerId)return "Nothing is playing.";
   const guild=client.guilds.cache.get(guildId!),vc=guild?.channels.cache.get(room.voice_channel_id);const members=vc?.isVoiceBased()?[...vc.members.values()].filter(m=>!m.user.bot):[];
@@ -786,7 +850,12 @@ client.on("messageCreate",async message=>{
   if(String(message.channelId)!==String(voiceChannelId)&&String(message.channelId)!==String(deskSettings?.member_console_channel_id??''))return;
   if(!await messageMusicPermission(message,"USE_MUSIC"))return;
   const content=message.content.trim();if(!content&&!message.attachments.size)return;
-  const firstAttachment=message.attachments.first();const query=firstAttachment?.url??content;if(!query)return;
+  // People chat in voice-channel text too. Only treat a message as a request when
+  // it is a link, an audio attachment, or starts with "play" (e.g. "play daft punk").
+  const firstAttachment=message.attachments.first();
+  const prefixed=/^[!/]?(?:play|p)\s+(.+)$/i.exec(content)?.[1]?.trim();
+  const link=/^https?:\/\/\S+$/i.test(content)?content:undefined;
+  const query=firstAttachment?.url??prefixed??link;if(!query)return;
   try{
     const room=await ensureVoiceRoom(String(voiceChannelId));
     if(!await claimRequestWindow(room.id,message.author.id))return;
@@ -795,6 +864,23 @@ client.on("messageCreate",async message=>{
   }catch(err:any){await message.reply({content:`Could not queue that request: ${err.message}`,allowedMentions:{repliedUser:false}}).then(m=>setTimeout(()=>void m.delete().catch(()=>{}),8000));}
 });
 
+// When everyone leaves a voice channel, stop its music after two minutes so the
+// bot isn't playing to nobody and is free for another channel.
+const emptyRoomTimers=new Map<string,NodeJS.Timeout>();
+const humansIn=(channelId:string)=>{const vc=client.guilds.cache.get(guildId!)?.channels.cache.get(channelId);return vc?.isVoiceBased()?[...vc.members.values()].filter(m=>!m.user.bot).length:0;};
+function cancelEmptyRoomStop(channelId:string){const t=emptyRoomTimers.get(channelId);if(t){clearTimeout(t);emptyRoomTimers.delete(channelId);}}
+async function scheduleEmptyRoomStop(channelId:string){
+  if(humansIn(channelId)>0||emptyRoomTimers.has(channelId))return;
+  const room=await roomByVoice(channelId);if(!room)return;
+  if(!(await getRoomState(room.id)).workerId)return;
+  const t=setTimeout(()=>{emptyRoomTimers.delete(channelId);void (async()=>{
+    if(humansIn(channelId)>0)return;
+    const state=await getRoomState(room.id);if(!state.workerId)return;
+    diag("music-session","voice channel empty; stopping music",{roomId:room.id,voiceChannelId:channelId});
+    await publishWorkerCommand(state.workerId,{type:"STOP",roomId:room.id,guildId:guildId!});
+  })().catch(err=>console.warn("[music] empty-room stop failed",err));},120_000);
+  t.unref?.();emptyRoomTimers.set(channelId,t);
+}
 client.on("voiceStateUpdate",async(oldState,newState)=>{
   try{
     if(oldState.member?.user.bot||newState.member?.user.bot)return;const userId=newState.id;if(newState.guild.id!==guildId)return;
@@ -807,6 +893,8 @@ client.on("voiceStateUpdate",async(oldState,newState)=>{
     }else await redis.del(userVoiceKey(userId));
     if(oldState.channelId!==newState.channelId)diagDebug("voice-state",newState.channelId?"member joined or moved voice channel":"member left voice",{userId,fromChannelId:oldState.channelId??null,toChannelId:newState.channelId??null});
     if(oldState.channelId&&oldState.channelId!==newState.channelId){const room=await roomByVoice(oldState.channelId);if(room){const state=await getRoomState(room.id);if(state.historyId)await endListening(state.historyId,userId);}}
+    if(oldState.channelId&&oldState.channelId!==newState.channelId)void scheduleEmptyRoomStop(oldState.channelId);
+    if(newState.channelId&&oldState.channelId!==newState.channelId)cancelEmptyRoomStop(newState.channelId);
     if(newState.channelId&&oldState.channelId!==newState.channelId){const room=await roomByVoice(newState.channelId);if(room){const state=await getRoomState(room.id);if(state.historyId&&state.status!=="IDLE")await beginListening(state.historyId,room,userId);}}
   }catch(err){console.warn("voice listener tracking failed",err);}
 });
@@ -828,11 +916,7 @@ client.on("interactionCreate",async interaction=>{
       if(interaction.commandName==="feedback-admin")return void await handleFeedbackAdminCommand(interaction,client,guildId!);
       if(await handleMembershipInteraction(interaction))return;
       if(await handleRecruitmentInteraction(interaction))return;
-      if(interaction.commandName==="music"){
-        const room=await chooseRoomForUser(interaction); if(!room)return void await ephem(interaction,simpleEphemeral("Music","Join a Discord voice channel first. BOM will automatically send an available music bot to you."));
-        if(!await hasMusicPermission(interaction,"USE_MUSIC"))return void await ephem(interaction,simpleEphemeral("Permission denied","You do not have permission to use music controls in this server."));
-        return void await openPrivate(interaction,room);
-      }
+      if(interaction.commandName==="music"||interaction.commandName==="play")return void await handleMusicCommand(interaction);
       if(interaction.commandName==="music-admin"){
         await ensureGuild();
         if(!hasDashboardAdmin(interaction))return void await ephem(interaction,simpleEphemeral("Permission denied","You need the configured dashboard administrator role or Manage Server."));
@@ -928,8 +1012,14 @@ client.on("interactionCreate",async interaction=>{
     if(action==="filters")return void await ephem(interaction,filterPanel(room,locale));
     if(action==="recommend"){ const q=await recommend(guildId!,state.track?{title:state.track.title,author:state.track.author}:undefined); return void await ephem(interaction,simpleEphemeral(tr(locale,"recommendations"),q??"I don't have enough listening history yet.")); }
     if(action==="pause"&&state.workerId){
-      if(!await hasMusicPermission(interaction,"MANAGE_MUSIC")&&!await hasMusicPermission(interaction,"DJ"))return void await ephem(interaction,simpleEphemeral("Permission denied","Pause and resume require a DJ or music-management role."));
+      if(!await canControlRoom(room,interaction.user.id))return void await ephem(interaction,simpleEphemeral("Not allowed","Only a DJ can pause while others are listening."));
       await publishWorkerCommand(state.workerId,{type:state.status==="PAUSED"?"RESUME":"PAUSE",roomId,guildId:guildId!}); return;
+    }
+    if(action==="stop"){
+      if(!state.workerId)return void await ephem(interaction,simpleEphemeral("Music","Nothing is playing."));
+      if(!await canControlRoom(room,interaction.user.id))return void await ephem(interaction,simpleEphemeral("Not allowed","Only a DJ can stop the music while others are listening."));
+      await publishWorkerCommand(state.workerId,{type:"STOP",roomId,guildId:guildId!});
+      return void await ephem(interaction,simpleEphemeral("Music","Stopped and cleared the queue."));
     }
     if(action==="skip"&&state.workerId){const result=await requestSkip(room,state,interaction.user.id);return void await ephem(interaction,simpleEphemeral(tr(locale,"voteSkip"),result));}
     if(action==="more")return void await ephem(interaction,simpleEphemeral("More controls",`Dashboard: ${process.env.PUBLIC_DASHBOARD_URL??"not configured"}`));
