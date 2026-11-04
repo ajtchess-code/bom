@@ -1,6 +1,7 @@
 import { loadRootEnv } from "./load-env.mjs";
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync, rmSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync, readdirSync } from "node:fs";
+import { createHash } from "node:crypto";
 import process from "node:process";
 
 loadRootEnv();
@@ -57,6 +58,19 @@ try {
 } catch {}
 const wrongZodVersion = zodVersion !== "3.25.76";
 
+// A completed install writes this stamp. If the host's own installer or a full
+// disk left node_modules half-written, the stamp is missing and we reinstall.
+const manifestFiles = ["package.json", ...["apps", "packages"].flatMap((dir) => {
+  try { return readdirSync(dir).map((name) => `${dir}/${name}/package.json`).filter((f) => existsSync(f)); } catch { return []; }
+})];
+const manifestHash = createHash("sha256").update(manifestFiles.map((f) => f + "\n" + readFileSync(f, "utf8")).join("\n")).digest("hex");
+const stampPath = "node_modules/.bom-install-stamp";
+let stampOk = false;
+try { stampOk = readFileSync(stampPath, "utf8").trim() === manifestHash; } catch {}
+const missingBins = ["tsc", "next"].filter((bin) => !existsSync(`node_modules/.bin/${bin}`));
+if (!stampOk) missingModules.push("(no completed-install stamp)");
+missingModules.push(...missingBins.map((bin) => `.bin/${bin}`));
+
 if (!existsSync("node_modules") || missingModules.length || wrongZodVersion) {
   console.log(
     `[bootstrap] Installing workspace dependencies${
@@ -66,6 +80,7 @@ if (!existsSync("node_modules") || missingModules.length || wrongZodVersion) {
   await runYarn(["install", "--force"]);
   // The download cache lives inside the server's disk quota and duplicates
   // node_modules; drop it so small hosts don't run out of space.
+  writeFileSync(stampPath, manifestHash + "\n");
   await runYarn(["cache", "clean"]).catch((err) => console.warn(`[bootstrap] yarn cache clean skipped: ${err.message}`));
 }
 
