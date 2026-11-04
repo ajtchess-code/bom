@@ -141,3 +141,4 @@
 .uiEmpty { margin: 6px 0; padding: 14px 16px; border: 1px dashed var(--cc-border); border-radius: calc(var(--cc-radius) - 2px); color: var(--cc-muted); font-size: 0.8rem; text-align: center; }
 .uiLoading { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 6px 0; padding: 14px 16px; color: var(--cc-muted); font-size: 0.8rem; }
 .uiLoading::before { content: ""; width: 16px; height: 16px; border: 2px solid var(--cc-border); border-top-color: var(--cc-accent); border-radius: 50%; animation: uiSpin 0.8s linear infinite; }
+.uiCenterPage { min-height: 100vh; display: grid; place-items: center; }
