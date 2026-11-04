@@ -77,7 +77,7 @@ if (!existsSync("node_modules") || missingModules.length || wrongZodVersion) {
       missingModules.length ? `; missing: ${missingModules.join(", ")}` : ""
     }${wrongZodVersion ? `; zod=${zodVersion ?? "missing"}, need 3.25.76` : ""}...`,
   );
-  await runYarn(["install", "--force"]);
+  await runYarn(["install", "--force", "--production=false"]);
   // The download cache lives inside the server's disk quota and duplicates
   // node_modules; drop it so small hosts don't run out of space.
   writeFileSync(stampPath, manifestHash + "\n");
