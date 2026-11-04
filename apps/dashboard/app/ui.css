@@ -142,3 +142,387 @@
 .uiLoading { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 6px 0; padding: 14px 16px; color: var(--cc-muted); font-size: 0.8rem; }
 .uiLoading::before { content: ""; width: 16px; height: 16px; border: 2px solid var(--cc-border); border-top-color: var(--cc-accent); border-radius: 50%; animation: uiSpin 0.8s linear infinite; }
 .uiCenterPage { min-height: 100vh; display: grid; place-items: center; }
+
+/* ==========================================================================
+ * Design tokens: the single source of truth.
+ * globals.css grew three overlapping sets (--bom-*, --ui-*, --cc-*) whose
+ * theme blocks override each other. These rules load last and win at the same
+ * specificity, so every legacy name now resolves to the --cc-* palette below.
+ * ======================================================================== */
+:root,
+html[data-theme="dark"] {
+  --cc-bg: #181a20;
+  --cc-sidebar: #1d2028;
+  --cc-topbar: #1d2028;
+  --cc-surface: #222630;
+  --cc-surface-2: #282d38;
+  --cc-surface-3: #303641;
+  --cc-field: #1b1e26;
+  --cc-border: #383e49;
+  --cc-border-strong: #4a5260;
+  --cc-text: #f3f4f6;
+  --cc-text-soft: #c8cdd5;
+  --cc-muted: #9aa2ae;
+  --cc-faint: #737c89;
+  --cc-accent: #d9aa3c;
+  --cc-accent-hover: #e8ba4b;
+  --cc-accent-soft: rgba(217, 170, 60, 0.13);
+  --cc-on-accent: #1a1406;
+  --cc-good: #50c878;
+  --cc-warn: #e2a84f;
+  --cc-danger: #ef6b6b;
+  --cc-info: #66a8ff;
+  --cc-shadow: 0 1px 2px rgba(0, 0, 0, 0.16), 0 10px 30px rgba(0, 0, 0, 0.14);
+  --cc-shadow-pop: 0 24px 64px rgba(0, 0, 0, 0.4);
+}
+html[data-theme="light"] {
+  --cc-bg: #f5f6f8;
+  --cc-sidebar: #ffffff;
+  --cc-topbar: #ffffff;
+  --cc-surface: #ffffff;
+  --cc-surface-2: #f7f8fa;
+  --cc-surface-3: #eef1f5;
+  --cc-field: #f2f4f7;
+  --cc-border: #dce0e6;
+  --cc-border-strong: #c8ced7;
+  --cc-text: #20242c;
+  --cc-text-soft: #454b57;
+  --cc-muted: #687180;
+  --cc-faint: #929aa7;
+  --cc-accent: #b27f16;
+  --cc-accent-hover: #c79222;
+  --cc-accent-soft: rgba(178, 127, 22, 0.1);
+  --cc-on-accent: #ffffff;
+  --cc-good: #338b55;
+  --cc-warn: #a87018;
+  --cc-danger: #c65353;
+  --cc-info: #276ba8;
+  --cc-shadow: 0 1px 2px rgba(28, 34, 43, 0.04), 0 8px 26px rgba(28, 34, 43, 0.055);
+  --cc-shadow-pop: 0 22px 60px rgba(28, 34, 43, 0.16);
+}
+:root,
+html[data-theme="dark"],
+html[data-theme="light"] {
+  /* Shape and type scale */
+  --cc-radius-sm: 8px;
+  --cc-radius: 10px;
+  --cc-radius-lg: 14px;
+  --cc-font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --cc-display: "Space Grotesk", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --cc-fs-page: 1.75rem;   /* 28px page titles */
+  --cc-fs-section: 1.125rem; /* 18px section titles */
+  --cc-fs-card: 1rem;      /* 16px card titles */
+  --cc-fs-body: 0.875rem;  /* 14px body */
+  --cc-fs-small: 0.75rem;  /* 12px meta */
+
+  /* Legacy --ui-* names */
+  --ui-bg: var(--cc-bg);
+  --ui-bg-elev: var(--cc-bg);
+  --ui-sidebar: var(--cc-sidebar);
+  --ui-topbar: var(--cc-topbar);
+  --ui-surface: var(--cc-surface);
+  --ui-surface-2: var(--cc-surface-2);
+  --ui-surface-3: var(--cc-surface-3);
+  --ui-surface-soft: var(--cc-surface-2);
+  --ui-border: var(--cc-border);
+  --ui-border-strong: var(--cc-border-strong);
+  --ui-text: var(--cc-text);
+  --ui-text-soft: var(--cc-text-soft);
+  --ui-muted: var(--cc-muted);
+  --ui-faint: var(--cc-faint);
+  --ui-accent: var(--cc-accent);
+  --ui-accent-strong: var(--cc-accent-hover);
+  --ui-accent-soft: var(--cc-accent-soft);
+  --ui-success: var(--cc-good);
+  --ui-warning: var(--cc-warn);
+  --ui-danger: var(--cc-danger);
+  --ui-shadow: var(--cc-shadow);
+  --ui-shadow-pop: var(--cc-shadow-pop);
+  --ui-radius: var(--cc-radius-lg);
+  --ui-radius-sm: var(--cc-radius);
+  --ui-font: var(--cc-font);
+  --ui-display: var(--cc-display);
+
+  /* Legacy --bom-* names (these had no light-mode values before) */
+  --bom-void: var(--cc-bg);
+  --bom-ink: var(--cc-bg);
+  --bom-ink-2: var(--cc-bg);
+  --bom-obsidian: var(--cc-sidebar);
+  --bom-surface: var(--cc-surface);
+  --bom-surface-2: var(--cc-surface-2);
+  --bom-surface-3: var(--cc-surface-3);
+  --bom-line: var(--cc-border);
+  --bom-line-soft: var(--cc-border);
+  --bom-stroke: var(--cc-border);
+  --bom-stroke-soft: var(--cc-border);
+  --bom-gold: var(--cc-accent);
+  --bom-gold-bright: var(--cc-accent-hover);
+  --bom-gold-deep: var(--cc-accent);
+  --bom-gold-1: var(--cc-accent-hover);
+  --bom-gold-2: var(--cc-accent-hover);
+  --bom-gold-3: var(--cc-accent);
+  --bom-gold-4: var(--cc-accent);
+  --bom-gold-glow: var(--cc-accent-soft);
+  --bom-white: var(--cc-text);
+  --bom-text: var(--cc-text);
+  --bom-fog: var(--cc-muted);
+  --bom-muted: var(--cc-muted);
+  --bom-green: var(--cc-good);
+  --bom-red: var(--cc-danger);
+  --bom-blue: var(--cc-info);
+  --bom-info: var(--cc-info);
+  --bom-radius-xs: 6px;
+  --bom-radius-sm: var(--cc-radius-sm);
+  --bom-radius: var(--cc-radius);
+  --bom-radius-lg: var(--cc-radius-lg);
+  --radius-xl: var(--cc-radius-lg);
+  --radius-lg: var(--cc-radius-lg);
+  --radius-md: var(--cc-radius);
+  --shadow-panel: var(--cc-shadow);
+
+  /* Oldest short names */
+  --bg: var(--cc-bg);
+  --panel: var(--cc-surface);
+  --panel2: var(--cc-surface-2);
+  --surface: var(--cc-surface);
+  --surface-2: var(--cc-surface-2);
+  --line: var(--cc-border);
+  --border: var(--cc-border);
+  --gold: var(--cc-accent);
+  --gold2: var(--cc-accent-hover);
+  --text: var(--cc-text);
+  --text-2: var(--cc-text-soft);
+  --muted: var(--cc-muted);
+}
+html,
+body {
+  background: var(--cc-bg) !important;
+  background-image: none !important;
+  color: var(--cc-text) !important;
+  font-family: var(--cc-font) !important;
+}
+body:before { display: none !important; }
+
+/* ==========================================================================
+ * Sidebar brand: compact, one line, no animation.
+ * ======================================================================== */
+.commandBrand.floatingBrand {
+  min-height: 0 !important;
+  height: auto !important;
+  flex-direction: row !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  gap: 10px !important;
+  padding: 14px 12px 18px !important;
+}
+.commandBrand.floatingBrand .brandCrest {
+  width: 36px !important;
+  height: 36px !important;
+  animation: none !important;
+  filter: none !important;
+}
+.commandBrand.floatingBrand .brandWords { text-align: left !important; }
+.commandBrand.floatingBrand .brandWords b {
+  font-size: 0.92rem !important;
+  letter-spacing: 0 !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+  color: var(--cc-text) !important;
+  animation: none !important;
+}
+.sidebarCollapsed .commandBrand.floatingBrand { justify-content: center !important; }
+
+/* ==========================================================================
+ * Top bar: section name on the left, search / notifications / theme / you on
+ * the right. Same layout on phones, just tighter.
+ * ======================================================================== */
+.commandTopbar { display: flex !important; align-items: center !important; justify-content: space-between !important; gap: 12px !important; }
+.topbarContext { display: grid; gap: 1px; min-width: 0; flex: 1; }
+.topbarTitle { margin: 0; font-family: var(--cc-display); font-size: 1rem; font-weight: 700; color: var(--cc-text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.topbarActions { display: flex !important; align-items: center !important; gap: 8px !important; margin-left: auto !important; }
+.topbarSearch { display: inline-flex; align-items: center; gap: 8px; min-width: 200px; height: 36px; padding: 0 10px; border: 1px solid var(--cc-border); border-radius: var(--cc-radius); background: var(--cc-field); color: var(--cc-muted); font: inherit; font-size: 0.8rem; cursor: pointer; }
+.topbarSearch:hover { border-color: var(--cc-accent); color: var(--cc-text); }
+.topbarSearch kbd { margin-left: auto; padding: 1px 6px; border: 1px solid var(--cc-border); border-radius: 6px; background: var(--cc-surface); color: var(--cc-faint); font: 600 0.65rem/1.4 var(--cc-font); }
+.topbarStatus { display: none !important; }
+.noticeButton > b { background: var(--cc-accent) !important; color: var(--cc-on-accent) !important; box-shadow: 0 0 0 2px var(--cc-topbar) !important; }
+.topbarPopover { background: var(--cc-surface) !important; border-color: var(--cc-border) !important; box-shadow: var(--cc-shadow-pop) !important; color: var(--cc-text); }
+.topbarPopover header small, .notificationList small { color: var(--cc-muted) !important; }
+.notificationList > a { border-color: var(--cc-border) !important; }
+.notificationList > a.unread { background: var(--cc-accent-soft) !important; }
+.noticeKind { background: var(--cc-accent-soft) !important; color: var(--cc-accent) !important; }
+.commandPalette { background: var(--cc-surface) !important; border: 1px solid var(--cc-border) !important; color: var(--cc-text) !important; box-shadow: var(--cc-shadow-pop) !important; }
+.commandPaletteSearch input { color: var(--cc-text) !important; }
+@media (max-width: 720px) {
+  .topbarSearch { min-width: 0; width: 36px; padding: 0; justify-content: center; }
+  .topbarSearch span, .topbarSearch kbd { display: none; }
+  .topbarUser > span { display: none !important; }
+  .commandTopbar { padding: 0 12px !important; }
+}
+
+/* ==========================================================================
+ * Type scale: 28px page, 18px section, 16px card, 14px body, 12px meta.
+ * ======================================================================== */
+.commandContent { font-size: var(--cc-fs-body); }
+.commandContent h1 { font-size: var(--cc-fs-page) !important; line-height: 1.2 !important; letter-spacing: -0.01em !important; }
+.commandContent h2 { font-size: var(--cc-fs-section) !important; line-height: 1.3 !important; }
+.commandContent h3 { font-size: var(--cc-fs-card) !important; line-height: 1.35 !important; }
+.commandContent h4 { font-size: var(--cc-fs-body) !important; }
+.commandContent :is(.panel, .opsCard, .homeCard, .adminCard) h2 { font-size: var(--cc-fs-card) !important; }
+.commandContent small, .commandContent .muted { font-size: var(--cc-fs-small); }
+.commandContent .eyebrow, .commandContent .cardKicker { font-size: 0.68rem !important; letter-spacing: 0.1em !important; color: var(--cc-muted) !important; }
+.goldPulseText { animation: none !important; background: none !important; -webkit-text-fill-color: currentColor !important; color: var(--cc-accent) !important; }
+
+/* ==========================================================================
+ * Page headers: every page opens the same way. Title, one line of context,
+ * actions on the right. Decorative hero backgrounds are dropped.
+ * ======================================================================== */
+.commandContent :is(.experienceHero, .recruitmentHero, .wikiPortalHero, .sentinelHero, .prHero, .pbCommandHeading,
+  .feedbackHero, .banterHero, .aiConfigHero, .builderHero, .shipsExperienceHero, .pageHeading, .top, .homeNowHeader) {
+  display: flex !important;
+  flex-wrap: wrap !important;
+  align-items: flex-end !important;
+  justify-content: space-between !important;
+  gap: 12px 20px !important;
+  min-height: 0 !important;
+  margin: 0 0 18px !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: none !important;
+  box-shadow: none !important;
+  color: var(--cc-text) !important;
+}
+.commandContent :is(.experienceHero, .recruitmentHero, .wikiPortalHero, .sentinelHero, .prHero, .pbCommandHeading,
+  .feedbackHero, .banterHero, .aiConfigHero, .builderHero, .shipsExperienceHero, .pageHeading, .top, .homeNowHeader)
+  :is(h1, h2):first-of-type {
+  margin: 2px 0 4px !important;
+  font-size: var(--cc-fs-page) !important;
+  line-height: 1.2 !important;
+  color: var(--cc-text) !important;
+  background: none !important;
+  -webkit-text-fill-color: currentColor !important;
+}
+.commandContent :is(.experienceHero, .recruitmentHero, .wikiPortalHero, .sentinelHero, .prHero, .pbCommandHeading,
+  .feedbackHero, .banterHero, .aiConfigHero, .builderHero, .shipsExperienceHero, .pageHeading, .top, .homeNowHeader) > div > p,
+.commandContent :is(.experienceHero, .recruitmentHero, .pageHeading, .top, .homeNowHeader) p {
+  margin: 0 !important;
+  max-width: 70ch;
+  color: var(--cc-muted) !important;
+  font-size: var(--cc-fs-body) !important;
+}
+.commandContent :is(.experienceHero, .sentinelHero, .prHero, .feedbackHero, .banterHero, .aiConfigHero, .builderHero, .shipsExperienceHero)::before,
+.commandContent :is(.experienceHero, .sentinelHero, .prHero, .feedbackHero, .banterHero, .aiConfigHero, .builderHero, .shipsExperienceHero)::after {
+  display: none !important;
+}
+
+/* ==========================================================================
+ * Buttons: primary, secondary, danger, small. Every legacy class maps here.
+ * ======================================================================== */
+.commandDeck :is(.goldButton, .primaryAction, .outlineButton, .secondaryAction, .textButton, .dangerAction, .dangerButton, .uiButton) {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  min-height: 36px !important;
+  padding: 7px 14px !important;
+  border-radius: var(--cc-radius) !important;
+  font-family: var(--cc-font) !important;
+  font-size: 0.8rem !important;
+  font-weight: 650 !important;
+  line-height: 1.2 !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  box-shadow: none !important;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease !important;
+}
+.commandDeck :is(.goldButton, .primaryAction, .uiButton.primary) {
+  border: 1px solid transparent !important;
+  background: var(--cc-accent) !important;
+  color: var(--cc-on-accent) !important;
+}
+.commandDeck :is(.goldButton, .primaryAction, .uiButton.primary):hover:not(:disabled) { background: var(--cc-accent-hover) !important; }
+.commandDeck :is(.outlineButton, .secondaryAction, .uiButton:not(.primary)) {
+  border: 1px solid var(--cc-border-strong) !important;
+  background: var(--cc-surface) !important;
+  color: var(--cc-text) !important;
+}
+.commandDeck :is(.outlineButton, .secondaryAction, .uiButton:not(.primary)):hover:not(:disabled) { border-color: var(--cc-accent) !important; background: var(--cc-surface-2) !important; }
+.commandDeck .textButton { border: 1px solid transparent !important; background: transparent !important; color: var(--cc-accent) !important; padding-inline: 8px !important; }
+.commandDeck :is(.dangerAction, .dangerButton) {
+  border: 1px solid color-mix(in srgb, var(--cc-danger) 55%, transparent) !important;
+  background: transparent !important;
+  color: var(--cc-danger) !important;
+}
+.commandDeck :is(.dangerAction, .dangerButton):hover:not(:disabled) { background: color-mix(in srgb, var(--cc-danger) 12%, transparent) !important; }
+.commandDeck :is(.tinyButton, .miniButton, .compactButton) {
+  min-height: 28px !important;
+  padding: 4px 10px !important;
+  border: 1px solid var(--cc-border-strong) !important;
+  border-radius: var(--cc-radius-sm) !important;
+  background: var(--cc-surface) !important;
+  color: var(--cc-text) !important;
+  font-size: 0.74rem !important;
+  font-weight: 600 !important;
+}
+.commandDeck :is(.goldButton, .primaryAction, .outlineButton, .secondaryAction, .textButton, .dangerAction, .dangerButton, .uiButton, .tinyButton, .miniButton, .compactButton):disabled {
+  opacity: 0.5 !important;
+  cursor: not-allowed !important;
+}
+.commandDeck :is(.goldButton, .primaryAction, .outlineButton, .secondaryAction, .textButton, .dangerAction, .dangerButton, .uiButton, .tinyButton, .miniButton, .compactButton):focus-visible {
+  outline: 2px solid var(--cc-accent) !important;
+  outline-offset: 2px !important;
+}
+
+/* ==========================================================================
+ * Cards: one surface style; cards inside cards go flat instead of stacking
+ * borders and shadows.
+ * ======================================================================== */
+.commandContent :is(.panel, .opsCard, .homeCard, .adminCard) {
+  border: 1px solid var(--cc-border) !important;
+  border-radius: var(--cc-radius-lg) !important;
+  background: var(--cc-surface) !important;
+  box-shadow: var(--cc-shadow) !important;
+  color: var(--cc-text);
+}
+.commandContent :is(.panel, .opsCard, .homeCard, .adminCard) :is(.panel, .opsCard, .homeCard, .adminCard) {
+  border-color: var(--cc-border) !important;
+  border-radius: var(--cc-radius) !important;
+  background: var(--cc-surface-2) !important;
+  box-shadow: none !important;
+}
+.commandContent .panelHead { border-color: var(--cc-border) !important; }
+
+/* Form fields share the field token. */
+.commandContent :is(input:not([type="checkbox"]):not([type="radio"]):not([type="range"]), select, textarea) {
+  border-color: var(--cc-border) !important;
+  background-color: var(--cc-field) !important;
+  color: var(--cc-text) !important;
+  border-radius: var(--cc-radius-sm) !important;
+}
+.commandContent :is(input, select, textarea):focus-visible { outline: 2px solid var(--cc-accent) !important; outline-offset: 1px; border-color: var(--cc-accent) !important; }
+/* Breadcrumb and section name share one line. */
+.topbarContext { display: flex !important; align-items: center; gap: 6px; }
+.topbarContext .dashboardBreadcrumbs { font-size: 0.85rem !important; color: var(--cc-muted) !important; flex: none; }
+.topbarContext .dashboardBreadcrumbs a { color: var(--cc-muted) !important; max-width: 160px; }
+.topbarContext .dashboardBreadcrumbs a:hover { color: var(--cc-accent) !important; }
+.topbarContext .dashboardBreadcrumbs i { color: var(--cc-faint) !important; }
+@media (max-width: 720px) { .topbarContext .dashboardBreadcrumbs { display: none !important; } }
+@media (max-width: 720px) {
+  .topbarContext { display: flex !important; }
+  .topbarTitle { font-size: 0.95rem; }
+  .topbarSearch { flex: none !important; width: 36px !important; min-width: 0 !important; max-width: 36px !important; padding: 0 !important; justify-content: center !important; }
+  .commandContent :is(.experienceHero, .recruitmentHero, .wikiPortalHero, .sentinelHero, .prHero, .pbCommandHeading,
+    .feedbackHero, .banterHero, .aiConfigHero, .builderHero, .shipsExperienceHero, .pageHeading, .top, .homeNowHeader) {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+  .commandContent :is(.experienceHero, .recruitmentHero, .wikiPortalHero, .sentinelHero, .prHero, .pbCommandHeading,
+    .feedbackHero, .banterHero, .aiConfigHero, .builderHero, .shipsExperienceHero, .pageHeading, .top, .homeNowHeader) > * {
+    text-align: left !important;
+    margin-left: 0 !important;
+    align-self: flex-start !important;
+  }
+}
+@media (max-width: 820px) { .topbarContext { display: flex !important; } }

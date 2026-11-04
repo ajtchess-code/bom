@@ -436,6 +436,16 @@ export default function DashboardShell({
       const typing =
         ["input", "textarea", "select"].includes(tag) ||
         Boolean((e.target as HTMLElement)?.isContentEditable);
+      if ((e.key === "k" || e.key === "K") && (e.metaKey || e.ctrlKey)) {
+        e.preventDefault();
+        setPaletteOpen((v) => !v);
+        return;
+      }
+      if (e.key === "/" && !typing) {
+        e.preventDefault();
+        setPaletteOpen(true);
+        return;
+      }
       if (e.key === "Escape") {
         setPaletteOpen(false);
         setNoticeOpen(false);
@@ -763,8 +773,43 @@ export default function DashboardShell({
           Skip to content
         </a>
         <header className="commandTopbar">
-          <div className="topbarContext" />
+          <div className="topbarContext">
+            {here && pathname !== here.tab.href && crumbs.length > 2 && (
+              <nav className="dashboardBreadcrumbs" aria-label="Breadcrumb">
+                {crumbs.slice(0, -1).map((c) => (
+                  <span key={c.href}>
+                    <Link href={c.href}>{c.label}</Link>
+                    <i>/</i>
+                  </span>
+                ))}
+              </nav>
+            )}
+            <p className="topbarTitle">{here?.section.label ?? section.title}</p>
+          </div>
           <div className="topbarActions">
+            <button
+              type="button"
+              className="topbarSearch"
+              onClick={() => setPaletteOpen(true)}
+              aria-label="Search (Ctrl+K)"
+            >
+              <CommandIcon name="search" size={16} />
+              <span>Search</span>
+              <kbd>Ctrl K</kbd>
+            </button>
+            <button
+              type="button"
+              className={`iconTopButton noticeButton ${noticeOpen ? "active" : ""}`}
+              aria-label={`Notifications${experience.unread ? `, ${experience.unread} unread` : ""}`}
+              aria-expanded={noticeOpen}
+              onClick={() => {
+                setNoticeOpen((v) => !v);
+                setAccountOpen(false);
+              }}
+            >
+              <CommandIcon name="bell" size={18} />
+              {experience.unread > 0 && <b>{experience.unread > 9 ? "9+" : experience.unread}</b>}
+            </button>
             <button
               className="iconTopButton themeToggle"
               title={`Switch to ${theme === "dark" ? "light" : "dark"} mode`}
@@ -804,6 +849,47 @@ export default function DashboardShell({
               <CommandIcon name="menu" size={20} />
             </button>
           </div>
+          {noticeOpen && (
+            <aside className="topbarPopover noticePopover" aria-label="Notifications">
+              <header>
+                <div>
+                  <b>Notifications</b>
+                  <small>{unreadShown ? `${unreadShown} unread` : "You're all caught up"}</small>
+                </div>
+                {unreadShown > 0 && (
+                  <button type="button" onClick={() => void markRead()}>
+                    Mark all read
+                  </button>
+                )}
+              </header>
+              <div className="notificationList">
+                {shownNotifications.slice(0, 20).map((n: any) => (
+                  <Link
+                    key={n.key}
+                    href={n.href ?? "/dashboard"}
+                    className={n.read ? "" : "unread"}
+                    onClick={() => {
+                      setNoticeOpen(false);
+                      if (!n.read) void markRead([n.key]);
+                    }}
+                  >
+                    <span className="noticeKind">
+                      <CommandIcon
+                        name={n.kind === "battle" ? "battle" : n.kind === "release" ? "activity" : "feedback"}
+                        size={15}
+                      />
+                    </span>
+                    <span>
+                      <b>{n.title}</b>
+                      <small>{n.body}</small>
+                      <em>{n.createdAt ? relativeTime(n.createdAt) : ""}</em>
+                    </span>
+                  </Link>
+                ))}
+                {!shownNotifications.length && <p className="emptyPopover">No notifications yet.</p>}
+              </div>
+            </aside>
+          )}
           {accountOpen && (
             <aside className="topbarPopover accountPopover">
               <div className="accountPopoverIdentity">
@@ -1124,6 +1210,87 @@ export default function DashboardShell({
             )}
           </footer>
         </aside>
+      )}
+      {paletteOpen && (
+        <div
+          className="modalBackdrop commandPaletteBackdrop"
+          onMouseDown={(e) => {
+            if (e.currentTarget === e.target) setPaletteOpen(false);
+          }}
+        >
+          <section
+            className="commandPalette"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Search the dashboard"
+          >
+            <label className="commandPaletteSearch">
+              <CommandIcon name="search" size={18} />
+              <input
+                ref={searchRef}
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search pages, actions, ships, battles, wiki…"
+                aria-label="Search"
+              />
+              <kbd>Esc</kbd>
+            </label>
+            {searchNotice && <p className="paletteSearching">{searchNotice}</p>}
+            {search.trim().length < 2 ? (
+              <div className="paletteHome">
+                <section className="paletteGroup">
+                  <h4>Quick actions</h4>
+                  <div>
+                    {rankedActions.slice(0, 6).map((a) => (
+                      <Link
+                        key={a.key}
+                        href={a.href}
+                        onClick={() => {
+                          void recordActionUse(a.key);
+                          setPaletteOpen(false);
+                        }}
+                      >
+                        <span className="paletteKind">Action</span>
+                        <span>
+                          <b>{a.label}</b>
+                          <small>{a.detail}</small>
+                        </span>
+                        <em>→</em>
+                      </Link>
+                    ))}
+                  </div>
+                </section>
+                {experience.recents.length > 0 && (
+                  <PaletteGroup title="Recent" items={experience.recents.slice(0, 6)} />
+                )}
+              </div>
+            ) : (
+              <div className="paletteResults">
+                {searching && <p className="paletteSearching">Searching…</p>}
+                {paletteResults.map((r: any, i: number) => (
+                  <Link
+                    key={`${r.kind}-${r.key ?? r.href}-${i}`}
+                    href={r.href}
+                    onClick={() => {
+                      if (r.kind === "Action") void recordActionUse(r.key);
+                      setPaletteOpen(false);
+                    }}
+                  >
+                    <span className="paletteKind">{r.kind}</span>
+                    <span>
+                      <b>{r.label ?? r.title}</b>
+                      <small>{r.detail ?? r.subtitle ?? r.href}</small>
+                    </span>
+                    <em>→</em>
+                  </Link>
+                ))}
+                {!searching && !paletteResults.length && (
+                  <p className="paletteSearching">No results for “{search}”.</p>
+                )}
+              </div>
+            )}
+          </section>
+        </div>
       )}
       <div className="toastStack" aria-live="polite">
         {toasts.map((t) => (
