@@ -1,4 +1,3 @@
-import {internalFetch} from '@/lib/api';
 import {redirect} from 'next/navigation';
-import OpenAIAdmin from '@/components/OpenAIAdmin';
-export default async function Page(){const r=await internalFetch('/v1/admin/summary');if(r.status===401)redirect('/');if(r.status===403)redirect('/dashboard');if(!r.ok)throw new Error('Unable to load configuration');return <OpenAIAdmin/>}
+// Merged into the AI page.
+export default function OpenAIAlias(){redirect('/dashboard/admin/ai-providers#openai');}

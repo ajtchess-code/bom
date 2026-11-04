@@ -2,7 +2,7 @@ import type { SVGProps, ReactNode } from "react";
 
 // Dependency-free outline icons using the open-source Lucide visual language (ISC).
 
-type IconName="home"|"music"|"sentinel"|"admin"|"search"|"bell"|"shield"|"palette"|"copy"|"arrow"|"activity"|"settings"|"user"|"users"|"radio"|"database"|"backup"|"health"|"queue"|"history"|"book"|"ship"|"map"|"hammer"|"battle"|"feedback"|"sun"|"moon"|"plus"|"star"|"menu"|"close"|"chevronDown";
+export type IconName="home"|"music"|"sentinel"|"admin"|"search"|"bell"|"shield"|"palette"|"copy"|"arrow"|"activity"|"settings"|"user"|"users"|"radio"|"database"|"backup"|"health"|"queue"|"history"|"book"|"ship"|"map"|"hammer"|"battle"|"feedback"|"sun"|"moon"|"plus"|"star"|"menu"|"close"|"chevronDown";
 
 const paths:Record<IconName,ReactNode>={
   home:<><path d="M3 10.7 12 3l9 7.7"/><path d="M5.5 9.8V21h13V9.8"/><path d="M9.5 21v-6h5v6"/></>,

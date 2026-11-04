@@ -1,0 +1,121 @@
+/*
+ * Shared UI layer. New components use these classes and the --cc-* tokens
+ * (defined for light and dark in globals.css) instead of inline styles.
+ */
+
+/* Section tabs: one bar per sidebar section, shown above the page. */
+.sectionTabs {
+  display: flex;
+  gap: 4px;
+  margin: 0 0 18px;
+  padding: 4px;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius);
+  background: var(--cc-surface);
+  overflow-x: auto;
+  scrollbar-width: none;
+  position: sticky;
+  top: 64px;
+  z-index: 20;
+}
+.sectionTabs::-webkit-scrollbar { display: none; }
+.sectionTabs a {
+  flex: none;
+  padding: 8px 14px;
+  border-radius: calc(var(--cc-radius) - 4px);
+  color: var(--cc-muted);
+  font-size: 0.8rem;
+  font-weight: 650;
+  white-space: nowrap;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.sectionTabs a:hover { color: var(--cc-text); background: var(--cc-surface-2); }
+.sectionTabs a.active { color: var(--cc-text); background: var(--cc-accent-soft); box-shadow: inset 0 -2px 0 var(--cc-accent); }
+.sectionTabs a:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: 1px; }
+
+/* Mobile menu grouped by section. */
+.mobileNavSections { display: grid; gap: 14px; margin: 12px 0; }
+.mobileNavSections h4 { display: flex; align-items: center; gap: 8px; margin: 0 0 6px; color: var(--cc-faint); font-size: 0.66rem; letter-spacing: 0.12em; text-transform: uppercase; }
+.mobileNavSections .mobileNavGrid { margin: 0; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+.mobileNavSections .mobileNavGrid a { min-height: 44px; }
+
+/* Standard page states: loading, empty, error. */
+.uiState {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 32px 20px;
+  border: 1px dashed var(--cc-border);
+  border-radius: var(--cc-radius);
+  background: var(--cc-surface);
+  color: var(--cc-muted);
+  text-align: center;
+}
+.uiState b { color: var(--cc-text); font-size: 0.92rem; }
+.uiState p { margin: 0; max-width: 46ch; font-size: 0.8rem; line-height: 1.5; }
+.uiState .uiStateIcon { display: grid; place-items: center; width: 40px; height: 40px; border-radius: 12px; background: var(--cc-accent-soft); color: var(--cc-accent); }
+.uiState.error { border-style: solid; border-color: color-mix(in srgb, var(--cc-danger) 45%, var(--cc-border)); }
+.uiState.error .uiStateIcon { background: color-mix(in srgb, var(--cc-danger) 14%, transparent); color: var(--cc-danger); }
+.uiState.loading { border-style: solid; }
+.uiState .uiStateActions { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin-top: 4px; }
+.uiSpinner { width: 22px; height: 22px; border: 2px solid var(--cc-border); border-top-color: var(--cc-accent); border-radius: 50%; animation: uiSpin 0.8s linear infinite; }
+@keyframes uiSpin { to { transform: rotate(360deg); } }
+@media (prefers-reduced-motion: reduce) { .uiSpinner { animation-duration: 2.4s; } }
+.uiButton {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 36px; padding: 8px 14px;
+  border: 1px solid var(--cc-border-strong); border-radius: calc(var(--cc-radius) - 4px);
+  background: var(--cc-surface-2); color: var(--cc-text);
+  font: inherit; font-size: 0.78rem; font-weight: 700; cursor: pointer;
+}
+.uiButton:hover { border-color: var(--cc-accent); }
+.uiButton.primary { border-color: transparent; background: var(--cc-accent); color: #1a1406; }
+.uiButton.primary:hover { background: var(--cc-accent-hover); }
+
+/* Home: "needs you now". */
+.homeNow { display: grid; gap: 16px; }
+.homeNowHeader { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 12px; }
+.homeNowHeader h1 { margin: 2px 0 0; font-size: clamp(1.4rem, 3vw, 2rem); }
+.homeNowHeader p { margin: 4px 0 0; color: var(--cc-muted); font-size: 0.85rem; }
+.homeNowGrid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+.homeCard { display: grid; align-content: start; gap: 10px; min-width: 0; padding: 18px; border: 1px solid var(--cc-border); border-radius: var(--cc-radius-lg, 16px); background: var(--cc-surface); }
+.homeCard > header { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.homeCard h2 { margin: 0; font-size: 0.95rem; }
+.homeCard > header a { color: var(--cc-muted); font-size: 0.74rem; white-space: nowrap; }
+.homeCard > header a:hover { color: var(--cc-accent); }
+.homeCard.urgent { border-color: color-mix(in srgb, var(--cc-accent) 50%, var(--cc-border)); background: linear-gradient(160deg, var(--cc-accent-soft), var(--cc-surface) 60%); }
+.homeList { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+.homeList a, .homeList > li > div {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 4px 10px;
+  padding: 10px 12px; border: 1px solid var(--cc-border); border-radius: calc(var(--cc-radius) - 2px);
+  background: var(--cc-surface-2); color: inherit;
+}
+.homeList a:hover { border-color: var(--cc-accent); }
+.homeList b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.84rem; }
+.homeList small { grid-column: 1; color: var(--cc-muted); font-size: 0.72rem; }
+.homeList em { grid-row: 1 / span 2; grid-column: 2; font-style: normal; font-size: 0.7rem; font-weight: 700; color: var(--cc-accent); }
+.homeQuiet { margin: 0; color: var(--cc-muted); font-size: 0.8rem; }
+.homeShortcuts { display: flex; flex-wrap: wrap; gap: 8px; }
+.homeShortcuts a { display: inline-flex; align-items: center; gap: 6px; padding: 8px 12px; border: 1px solid var(--cc-border); border-radius: 999px; background: var(--cc-surface-2); color: var(--cc-text); font-size: 0.76rem; font-weight: 650; }
+.homeShortcuts a:hover { border-color: var(--cc-accent); }
+.homeSecondary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap: 14px; }
+
+/* Utility replacements for one-off inline styles. */
+.uiContain { object-fit: contain; }
+.uiStack { display: grid; gap: 10px; }
+.uiRow { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.uiMuted { color: var(--cc-muted); }
+.uiHidden { display: none !important; }
+
+/* Phone width: no horizontal page scroll, tables and wide cards scroll inside. */
+@media (max-width: 720px) {
+  .sectionTabs { top: 56px; margin: 0 -4px 14px; }
+  .commandContent table { display: block; max-width: 100%; overflow-x: auto; }
+  .commandContent .panel, .commandContent .opsCard, .homeCard { min-width: 0; max-width: 100%; }
+  .commandContent img, .commandContent video, .commandContent canvas { max-width: 100%; height: auto; }
+}
+
+/* Home cards: heading and its link sit on one line regardless of older header rules. */
+.homeCard > header { margin: 0 !important; padding: 0 !important; border: 0 !important; align-items: baseline !important; min-height: 0 !important; }
+.homeCard > header h2 { margin: 0 !important; }
+.homeNowGrid > .homeQuiet { grid-column: 1 / -1; }

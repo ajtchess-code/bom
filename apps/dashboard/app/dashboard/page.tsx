@@ -1,38 +1,81 @@
-import CommandHome from '@/components/CommandHome';
+import CommandHome from "@/components/CommandHome";
 import {internalFetch} from "@/lib/api";
-import {redirect} from "next/navigation";
 import Link from "next/link";
 import CommandIcon from "@/components/CommandIcon";
 import VoicePresenceCard from "@/components/VoicePresenceCard";
 
-export default async function DashboardHome(){
-  const [musicR,experienceR,meR,widgetR]=await Promise.all([
-    internalFetch('/v1/music/summary'),internalFetch('/v1/feedback/experience'),internalFetch('/v1/platform/me'),internalFetch('/v1/platform/discord-widget')
+// Home answers one question first: "what needs me right now?"
+// Everything else (shortcuts, music, voice) sits below it.
+export default async function DashboardHome() {
+  const [musicR, experienceR, meR, widgetR] = await Promise.all([
+    internalFetch("/v1/music/summary"),
+    internalFetch("/v1/feedback/experience"),
+    internalFetch("/v1/platform/me"),
+    internalFetch("/v1/platform/discord-widget"),
   ]);
-  
-  const data:any=musicR.ok?await musicR.json():{history:[],unavailable:true},experience:any=experienceR.ok?await experienceR.json():{favorites:[],recents:[],notifications:[],unread:0},me:any=meR.ok?await meR.json():null,widget:any=widgetR.ok?await widgetR.json():{enabled:false,members:[],voiceChannels:[]};
-  const name=me?.displayName??'Captain',history=data.history??[];
-  const continueItems=(experience.recents??[]).filter((x:any)=>x.href!=='/dashboard').slice(0,6);
-  return <div className="dashboardHomeV41">
-    <header className="homeWelcomeV41"><div><span className="eyebrow">BAND OF MISFITS</span><h1>Welcome Back, <span className="goldPulseText">{name}</span></h1></div><Link className="secondaryAction" href="/dashboard/feedback?new=bug"><CommandIcon name="feedback" size={17}/> Report An Issue</Link></header>
+  const music: any = musicR.ok ? await musicR.json() : {unavailable: true};
+  const experience: any = experienceR.ok ? await experienceR.json() : {favorites: [], recents: [], notifications: [], unread: 0};
+  const me: any = meR.ok ? await meR.json() : null;
+  const widget: any = widgetR.ok ? await widgetR.json() : {enabled: false, members: [], voiceChannels: []};
 
-    <CommandHome/>
-    <section className="homeHeroGrid">
-      <article className="memberIdentityCard">
-        <div className="memberCardWatermark"><img src="/branding/defaults/bom-logo.png" alt=""/></div>
-        <div className="memberCardTop"><span className="memberCardAvatar">{me?.avatar?<img src={me.avatar} alt=""/>:<img src="/branding/defaults/bom-logo.png" alt=""/>}</span><span className="memberCardBadge">{me?.rank??'Guest'}</span></div>
-        <div className="memberCardCopy"><small>BAND OF MISFITS · MEMBER CARD</small><h2>{name}</h2><p>{me?.memberNumber??'BOM-000000'}</p></div>
-        <div className="memberCardMeta"><span><small>Community Rank</small><b>{me?.rank??'Guest'}</b></span><span><small>Joined</small><b>{me?.joinedAt?new Date(me.joinedAt).toLocaleDateString([], {month:'short',year:'numeric'}):'—'}</b></span></div>
+  const name = me?.displayName ?? "Captain";
+  const unread = (experience.notifications ?? []).filter((n: any) => !n.read).slice(0, 4);
+  const favorites = (experience.favorites ?? []).filter((x: any) => x.href && x.href !== "/dashboard");
+  const recents = (experience.recents ?? []).filter((x: any) => x.href && x.href !== "/dashboard" && !favorites.some((f: any) => f.href === x.href));
+  const shortcuts = [...favorites, ...recents].slice(0, 8);
+  const track = music.activeRoom?.state?.track;
+
+  return (
+    <div className="homeNow">
+      <header className="homeNowHeader">
+        <div>
+          <span className="eyebrow">BAND OF MISFITS</span>
+          <h1>Welcome back, <span className="goldPulseText">{name}</span></h1>
+          <p>{me?.rank ? `${me.rank} · ` : ""}Here's what needs you today.</p>
+        </div>
+        <Link className="secondaryAction" href="/dashboard/feedback?new=bug"><CommandIcon name="feedback" size={17} /> Report an issue</Link>
+      </header>
+
+      <CommandHome />
+
+      {unread.length > 0 && (
+        <article className="homeCard">
+          <header><h2>Unread notifications</h2><span className="uiMuted">{experience.unread} unread</span></header>
+          <ul className="homeList">
+            {unread.map((n: any) => (
+              <li key={n.key}><Link href={n.href ?? "/dashboard"}><b>{n.title ?? n.label ?? "Notification"}</b><small>{n.body ?? n.detail ?? ""}</small></Link></li>
+            ))}
+          </ul>
+        </article>
+      )}
+
+      <article className="homeCard">
+        <header><h2>{favorites.length ? "Your shortcuts" : "Jump back in"}</h2></header>
+        {shortcuts.length ? (
+          <nav className="homeShortcuts" aria-label="Shortcuts">
+            {shortcuts.map((x: any) => (
+              <Link key={`${x.kind}-${x.item_key}`} href={x.href}>{x.label}<CommandIcon name="arrow" size={13} /></Link>
+            ))}
+          </nav>
+        ) : (
+          <p className="homeQuiet">Pages you use, and pages you star, will show up here.</p>
+        )}
       </article>
 
-      <VoicePresenceCard initial={widget}/> 
-    </section>
-
-    <section className="homeCompactGrid">
-      <article className="panel continueCard"><header><div><span className="cardKicker">YOUR WORKSPACE</span><h2>Continue</h2></div></header><div className="continueGrid">{continueItems.map((x:any)=><Link key={`${x.kind}-${x.item_key}`} href={x.href}><span><b>{x.label}</b><small>{x.metadata?.subtitle??x.metadata?.detail??x.href}</small></span><CommandIcon name="arrow" size={16}/></Link>)}{!continueItems.length&&<div className="homeEmpty"><b>Your recently used tools will appear here.</b></div>}</div></article>
-      <article className="panel homeMusicStatus"><header><div><span className="cardKicker">MUSIC</span><h2>{data.activeRoom?.state?.track?'Playing Now':'Ready To Listen'}</h2></div><Link href="/dashboard/music">Open Music <CommandIcon name="arrow" size={14}/></Link></header>{data.activeRoom?.state?.track?<div className="homeNowPlaying"><span>{data.activeRoom.state.track.artworkUrl?<img src={data.activeRoom.state.track.artworkUrl} alt=""/>:<CommandIcon name="music" size={28}/>}</span><div><b>{data.activeRoom.state.track.title}</b><small>{data.activeRoom.state.track.author}</small></div></div>:<div className="homeEmpty compact"><CommandIcon name="music" size={22}/><b>No track is playing right now.</b></div>}</article>
-    </section>
-
-    <section className="panel homeRecentMusic"><header><div><span className="cardKicker">RECENT LISTENING</span><h2>Recently Played</h2></div><Link href="/dashboard/music">View Music <CommandIcon name="arrow" size={14}/></Link></header><div className="recentMusicRail">{history.slice(0,8).map((h:any)=><article key={h.id}><span className="recentMusicArt">{h.artwork_url?<img src={h.artwork_url} alt=""/>:<CommandIcon name="music" size={22}/>}</span><span><b>{h.title}</b><small>{h.author}</small></span><time>{new Date(h.started_at).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</time></article>)}{!history.length&&<div className="homeEmpty"><b>Nothing has been played yet.</b></div>}</div></section>
-  </div>;
+      <section className="homeSecondary">
+        <article className="homeCard">
+          <header><h2>{track ? "Playing now" : "Music"}</h2><Link href="/dashboard/music">Open music</Link></header>
+          {track ? (
+            <div className="homeNowPlaying">
+              <span>{track.artworkUrl ? <img src={track.artworkUrl} alt="" /> : <CommandIcon name="music" size={28} />}</span>
+              <div><b>{track.title}</b><small>{track.author}</small></div>
+            </div>
+          ) : (
+            <p className="homeQuiet">{music.unavailable ? "Music is temporarily unavailable." : "Nothing is playing right now."}</p>
+          )}
+        </article>
+        <VoicePresenceCard initial={widget} />
+      </section>
+    </div>
+  );
 }
