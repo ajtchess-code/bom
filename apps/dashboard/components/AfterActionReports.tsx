@@ -1,9 +1,170 @@
-'use client';
-import {useEffect,useState} from 'react';
-async function api(path:string){const r=await fetch('/api/internal/wosb'+path,{cache:'no-store'}),d=await r.json();if(!r.ok)throw new Error(d.error??'Unable To Load Reports');return d;}
-function DataTable({rows,keys}:{rows:any[];keys:string[]}){return <div className="uiScrollX"><table><thead><tr>{keys.map(k=><th key={k}>{k.replaceAll('_',' ').replace(/\b\w/g,c=>c.toUpperCase())}</th>)}</tr></thead><tbody>{rows.map((r,i)=><tr key={r.id??r.user_id??i}>{keys.map(k=><td key={k}>{String(r[k]??'—')}</td>)}</tr>)}</tbody></table></div>;}
-export default function AfterActionReports({manager}:{manager:boolean}){const [rows,setRows]=useState<any[]>([]),[query,setQuery]=useState(''),[detail,setDetail]=useState<any>(null),[stats,setStats]=useState<any>(null),[notice,setNotice]=useState('');
- useEffect(()=>{const c=new AbortController();fetch('/api/internal/wosb/port-battle-archive?q='+encodeURIComponent(query),{signal:c.signal}).then(async r=>{if(!r.ok)throw new Error('Unable To Load History');setRows(await r.json());}).catch(e=>{if(e.name!=='AbortError')setNotice(e.message);});return()=>c.abort();},[query]);useEffect(()=>{if(manager)void api('/port-battle-analytics').then(setStats).catch(e=>setNotice(e.message));},[manager]);
- const wins=rows.filter(r=>r.result==='WIN').length,losses=rows.filter(r=>r.result==='LOSS').length;
- return <div className="aarExperience"><header className="experienceHero compactHero"><div><span className="eyebrow">WoSB Port Battle Management</span><h1>After Action Reports</h1><p>Battle History, Results And Previous Signups</p></div></header><div className="heroPills"><span>{rows.length} Battles</span><span>{wins} Wins</span><span>{losses} Losses</span><span>{wins+losses?Math.round(wins/(wins+losses)*100)+'%':'—'} Win Rate</span><small>Current Search · Latest 100 Battles</small></div><input type="search" aria-label="Search Battle History" placeholder="Search Port, Guild Or Captain…" value={query} onChange={e=>setQuery(e.target.value)}/>{notice&&<p role="alert">{notice}</p>}<div className="aarGrid"><aside className="panel pbBattleList"><h2>Battle History</h2>{rows.map(b=><button className="outlineButton" key={b.id} onClick={()=>{setDetail(null);void api('/port-battles/'+b.id).then(setDetail).catch(e=>setNotice(e.message));}}><b>Battle of {b.port_name}</b><span>{b.attacker} vs {b.defender} · {b.result??b.status}</span><small>{b.starts_at?new Date(b.starts_at).toLocaleString():'Time Not Recorded'} · {b.signup_count} Signups</small></button>)}{!rows.length&&<p className="uiEmpty">No Reports Found</p>}</aside><section className="panel uiPadLg">{!detail?<h2>Select A Battle</h2>:<><h2>Battle of {detail.battle.port_name}</h2><p>{detail.battle.attacker} vs {detail.battle.defender} · {detail.review?.result??detail.battle.status}</p>{detail.review?.notes&&<p className="uiPre">{detail.review.notes}</p>}{detail.review?.issue_tags?.length>0&&<p>Review Tags: {detail.review.issue_tags.join(', ')}</p>}<h3>Previous Signup Roster</h3><DataTable rows={detail.signups.map((s:any)=>({...s,attendance:s.attendance_outcome?.outcome}))} keys={['display_name','signup_status','confirmed_ship','formation','commander_duty','horn_duty',...(manager?['attendance']:[])]}/>{manager&&<p><a href={'/dashboard/port-battles?battle='+detail.battle.id}>Open Battle And Edit Report →</a></p>}</>}</section></div>{manager&&stats&&<section className="panel uiPadLg"><h2>Fleet Statistics</h2><h3>Commanders</h3><DataTable rows={stats.commanders} keys={['display_name','commander_assignments','wins','losses','win_rate']}/><h3>Attendance</h3><DataTable rows={stats.reliability} keys={['display_name','attended','late','no_show','reliability']}/><h3>Recurring Issues</h3>{stats.issues.map((i:any)=><p key={i.tag}>{i.tag}: {i.count}</p>)}</section>}</div>;
+"use client";
+import { useEffect, useState } from "react";
+async function api(path: string) {
+  const r = await fetch("/api/internal/wosb" + path, { cache: "no-store" }),
+    d = await r.json();
+  if (!r.ok) throw new Error(d.error ?? "Unable To Load Reports");
+  return d;
+}
+function DataTable({ rows, keys }: { rows: any[]; keys: string[] }) {
+  return (
+    <div className="uiScrollX">
+      <table>
+        <thead>
+          <tr>
+            {keys.map((k) => (
+              <th key={k}>{k.replaceAll("_", " ").replace(/\b\w/g, (c) => c.toUpperCase())}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r, i) => (
+            <tr key={r.id ?? r.user_id ?? i}>
+              {keys.map((k) => (
+                <td key={k}>{String(r[k] ?? "—")}</td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+export default function AfterActionReports({ manager }: { manager: boolean }) {
+  const [rows, setRows] = useState<any[]>([]),
+    [query, setQuery] = useState(""),
+    [detail, setDetail] = useState<any>(null),
+    [stats, setStats] = useState<any>(null),
+    [notice, setNotice] = useState("");
+  useEffect(() => {
+    const c = new AbortController();
+    fetch("/api/internal/wosb/port-battle-archive?q=" + encodeURIComponent(query), { signal: c.signal })
+      .then(async (r) => {
+        if (!r.ok) throw new Error("Unable To Load History");
+        setRows(await r.json());
+      })
+      .catch((e) => {
+        if (e.name !== "AbortError") setNotice(e.message);
+      });
+    return () => c.abort();
+  }, [query]);
+  useEffect(() => {
+    if (manager)
+      void api("/port-battle-analytics")
+        .then(setStats)
+        .catch((e) => setNotice(e.message));
+  }, [manager]);
+  const wins = rows.filter((r) => r.result === "WIN").length,
+    losses = rows.filter((r) => r.result === "LOSS").length;
+  return (
+    <div className="aarExperience">
+      <header className="experienceHero compactHero">
+        <div>
+          <span className="eyebrow">WoSB Port Battle Management</span>
+          <h1>After Action Reports</h1>
+          <p>Battle History, Results And Previous Signups</p>
+        </div>
+      </header>
+      <div className="heroPills">
+        <span>{rows.length} Battles</span>
+        <span>{wins} Wins</span>
+        <span>{losses} Losses</span>
+        <span>{wins + losses ? Math.round((wins / (wins + losses)) * 100) + "%" : "—"} Win Rate</span>
+        <small>Current Search · Latest 100 Battles</small>
+      </div>
+      <input
+        type="search"
+        aria-label="Search Battle History"
+        placeholder="Search Port, Guild Or Captain…"
+        value={query}
+        onChange={(e) => setQuery(e.target.value)}
+      />
+      {notice && <p role="alert">{notice}</p>}
+      <div className="aarGrid">
+        <aside className="panel pbBattleList">
+          <h2>Battle History</h2>
+          {rows.map((b) => (
+            <button
+              className="outlineButton"
+              key={b.id}
+              onClick={() => {
+                setDetail(null);
+                void api("/port-battles/" + b.id)
+                  .then(setDetail)
+                  .catch((e) => setNotice(e.message));
+              }}
+            >
+              <b>Battle of {b.port_name}</b>
+              <span>
+                {b.attacker} vs {b.defender} · {b.result ?? b.status}
+              </span>
+              <small>
+                {b.starts_at ? new Date(b.starts_at).toLocaleString() : "Time Not Recorded"} ·{" "}
+                {b.signup_count} Signups
+              </small>
+            </button>
+          ))}
+          {!rows.length && <p className="uiEmpty">No Reports Found</p>}
+        </aside>
+        <section className="panel uiPadLg">
+          {!detail ? (
+            <h2>Select A Battle</h2>
+          ) : (
+            <>
+              <h2>Battle of {detail.battle.port_name}</h2>
+              <p>
+                {detail.battle.attacker} vs {detail.battle.defender} ·{" "}
+                {detail.review?.result ?? detail.battle.status}
+              </p>
+              {detail.review?.notes && <p className="uiPre">{detail.review.notes}</p>}
+              {detail.review?.issue_tags?.length > 0 && (
+                <p>Review Tags: {detail.review.issue_tags.join(", ")}</p>
+              )}
+              <h3>Previous Signup Roster</h3>
+              <DataTable
+                rows={detail.signups.map((s: any) => ({ ...s, attendance: s.attendance_outcome?.outcome }))}
+                keys={[
+                  "display_name",
+                  "signup_status",
+                  "confirmed_ship",
+                  "formation",
+                  "commander_duty",
+                  "horn_duty",
+                  ...(manager ? ["attendance"] : []),
+                ]}
+              />
+              {manager && (
+                <p>
+                  <a href={"/dashboard/port-battles?battle=" + detail.battle.id}>
+                    Open Battle And Edit Report →
+                  </a>
+                </p>
+              )}
+            </>
+          )}
+        </section>
+      </div>
+      {manager && stats && (
+        <section className="panel uiPadLg">
+          <h2>Fleet Statistics</h2>
+          <h3>Commanders</h3>
+          <DataTable
+            rows={stats.commanders}
+            keys={["display_name", "commander_assignments", "wins", "losses", "win_rate"]}
+          />
+          <h3>Attendance</h3>
+          <DataTable
+            rows={stats.reliability}
+            keys={["display_name", "attended", "late", "no_show", "reliability"]}
+          />
+          <h3>Recurring Issues</h3>
+          {stats.issues.map((i: any) => (
+            <p key={i.tag}>
+              {i.tag}: {i.count}
+            </p>
+          ))}
+        </section>
+      )}
+    </div>
+  );
 }

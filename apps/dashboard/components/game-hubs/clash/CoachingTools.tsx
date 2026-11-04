@@ -1,23 +1,330 @@
-'use client';
-import {useRef,useState} from 'react';
-import {toolRequest,type ToolContext} from '../ClashTools';
-import {Panel,Table,AccountSelect,DocumentCards,DocumentEditor,date} from './ui';
-import s from '../clash-tools.module.css';
-function localInput(value:string){if(!value)return '';const d=new Date(value);return Number.isFinite(+d)?new Date(+d-d.getTimezoneOffset()*60000).toISOString().slice(0,16):'';}
-function videoEmbed(value:string,seconds:number){try{const u=new URL(value);if(['youtube.com','www.youtube.com','youtu.be'].includes(u.hostname)){const id=u.hostname==='youtu.be'?u.pathname.slice(1):u.searchParams.get('v');if(id&&/^[a-zA-Z0-9_-]{11}$/.test(id))return 'https://www.youtube-nocookie.com/embed/'+id+'?start='+seconds;}if(['vimeo.com','www.vimeo.com'].includes(u.hostname)&&/^\/\d+$/.test(u.pathname))return 'https://player.vimeo.com/video'+u.pathname+'#t='+seconds+'s';}catch{}return null;}
-export default function CoachingTools({tool,ctx}:{tool:string;ctx:ToolContext}){
- const kind=tool==='Attack reviews'?'REVIEW':tool==='Practice board'?'PRACTICE':'READINESS';const [draft,setDraft]=useState(false),[editing,setEditing]=useState<any>(null),[detail,setDetail]=useState<any>(null),[note,setNote]=useState(''),[time,setTime]=useState('0:00'),[seek,setSeek]=useState(0),[account,setAccount]=useState(''),[progress,setProgress]=useState(0),[role,setRole]=useState('PARTICIPANT');const video=useRef<HTMLVideoElement>(null);
- async function open(d:any){try{setDetail(await toolRequest('/documents/'+d.id));setSeek(0);setNote('');}catch(e:any){ctx.message(e.message);}}
- function fields(v:any,set:any){if(kind==='REVIEW')return <><AccountSelect ctx={ctx} value={v.accountId??''} onChange={a=>set('accountId',a)}/><label>Recording URL<input required type="url" value={v.videoUrl??''} onChange={e=>set('videoUrl',e.target.value)} placeholder="HTTPS recording, YouTube or Vimeo"/></label><label>Coaching goal<textarea value={v.coachingGoal??''} onChange={e=>set('coachingGoal',e.target.value)}/></label></>;
- if(kind==='READINESS')return <><AccountSelect ctx={ctx} value={v.accountId??''} onChange={a=>set('accountId',a)}/>{[['available','Available for war'],['heroesReady','Required heroes ready'],['equipmentReady','Equipment and army prepared']].map(([key,label])=><label key={key}><span><input type="checkbox" checked={!!v[key]} onChange={e=>set(key,e.target.checked)}/> {label}</span></label>)}<label>Preferred army<input value={v.preferredArmy??''} onChange={e=>set('preferredArmy',e.target.value)}/></label><label>Declaration valid until (your local time)<input type="datetime-local" value={localInput(v.availableUntil??'')} onChange={e=>set('availableUntil',e.target.value?new Date(e.target.value).toISOString():undefined)}/></label><p className={s.quiet}>Choose Officers or Clan visibility for this declaration to influence officer lineup suggestions. Private entries remain visible only to you.</p></>;
- return <><label>Town Hall<input type="number" min={1} max={30} value={v.townHall??13} onChange={e=>set('townHall',Number(e.target.value))}/></label><label>Strategy / base style<input required value={v.strategy??''} onChange={e=>set('strategy',e.target.value)}/></label><label>Practice starts (your local time)<input required type="datetime-local" value={localInput(v.startsAt??'')} onChange={e=>set('startsAt',e.target.value?new Date(e.target.value).toISOString():'')}/></label><label>Status<select value={v.status??'OPEN'} onChange={e=>set('status',e.target.value)}>{['OPEN','IN_PROGRESS','COMPLETE'].map(x=><option key={x}>{x}</option>)}</select></label></>;
- }
- const seekTo=(seconds:number)=>{setSeek(seconds);if(video.current)video.current.currentTime=seconds;};
- return <><Panel title={tool}><p className={s.quiet}>{kind==='REVIEW'?'Collect timestamped coaching notes and reusable lessons from a recording.':kind==='PRACTICE'?'Find practice partners, coaches and base providers; perform friendly challenges in game.':'Declare readiness per village. These are member reports, not inferred live hero availability.'}</p><DocumentCards ctx={ctx} kind={kind} create={()=>{setEditing(null);setDraft(true);}} open={d=>void open(d)}>{d=><><span className={s.tag}>{d.payload.accountId??'TH '+d.payload.townHall}</span>{kind==='READINESS'?<p>{d.payload.available?'Available':'Unavailable'} · Heroes {d.payload.heroesReady?'ready':'not ready'} · Equipment {d.payload.equipmentReady?'ready':'not ready'}<br/>Valid until {date(d.payload.availableUntil)}</p>:kind==='PRACTICE'?<p>{d.payload.strategy} · {date(d.payload.startsAt)} · {d.payload.status}</p>:<p>{d.payload.coachingGoal} · {d.comments} notes</p>}</>}</DocumentCards></Panel>
- {draft&&<DocumentEditor ctx={ctx} kind={kind} initial={editing} fields={fields} close={()=>{setDraft(false);setEditing(null);}}/>}
- {detail&&<div className={s.modal}><section role="dialog" aria-modal="true" aria-label="Coaching record"><header className={s.toolbar}><h3>{detail.title}</h3><button onClick={()=>setDetail(null)}>Close</button></header><p className={s.body}>{detail.body}</p>{kind==='REVIEW'&&<>{videoEmbed(detail.payload.videoUrl,seek)?<iframe className={s.preview} title="Attack recording" src={videoEmbed(detail.payload.videoUrl,seek)!} allow="fullscreen" referrerPolicy="strict-origin-when-cross-origin"/>:<video className={s.preview} ref={video} controls src={detail.payload.videoUrl}/>}<a href={detail.payload.videoUrl} target="_blank" rel="noreferrer">Open original recording ↗</a></>}
- {(ctx.state.manager||detail.owner_id===ctx.state.viewerId)&&<button onClick={()=>{setEditing(detail);setDraft(true);setDetail(null);}}>Edit record</button>}
- {kind==='PRACTICE'&&<><h4>Practice participants</h4><Table heads={['Account','Role','Progress','Notes']} rows={detail.enrollments.map((e:any)=>[e.account_id,e.role,e.progress,e.note])}/><div className={s.form}><AccountSelect ctx={ctx} value={account} onChange={setAccount}/><label>Your role<select value={role} onChange={e=>setRole(e.target.value)}>{['PARTICIPANT','COACH','BASE_PROVIDER'].map(r=><option key={r}>{r}</option>)}</select></label><label>Practice attempts completed<input type="number" min={0} value={progress} onChange={e=>setProgress(Number(e.target.value))}/></label><button disabled={!account||ctx.busy||detail.payload.status==='COMPLETE'} onClick={async()=>{if(await ctx.act('/documents/'+detail.id+'/enroll',{accountId:account,role,progress,note:''}))await open(detail);}}>Join / Update Practice</button></div></>}
- <h4>{kind==='REVIEW'?'Timestamped feedback':'Discussion'}</h4>{detail.comments.map((c:any)=><article className={s.card} key={c.id}>{c.seconds!=null&&<button onClick={()=>seekTo(c.seconds)}>{Math.floor(c.seconds/60)}:{String(c.seconds%60).padStart(2,'0')}</button>}<p className={s.body}>{c.note}</p><small>{c.user_id} · {date(c.created_at)}</small></article>)}<div className={s.form}>{kind==='REVIEW'&&<label>Timestamp mm:ss<input value={time} onChange={e=>setTime(e.target.value)}/></label>}<label>Feedback / lesson<textarea value={note} maxLength={3000} onChange={e=>setNote(e.target.value)}/></label><button disabled={!note.trim()||ctx.busy} onClick={async()=>{let seconds=null;if(kind==='REVIEW'){if(!/^\d{1,3}:[0-5]\d$/.test(time)){ctx.message('Enter a timestamp such as 1:35.');return;}const [m,s]=time.split(':').map(Number);seconds=m*60+s;}if(await ctx.act('/documents/'+detail.id+'/comments',{seconds,note})){setNote('');await open(detail);}}}>Add Feedback</button></div></section></div>}
- </>;
+"use client";
+import { useRef, useState } from "react";
+import { toolRequest, type ToolContext } from "../ClashTools";
+import { Panel, Table, AccountSelect, DocumentCards, DocumentEditor, date } from "./ui";
+import s from "../clash-tools.module.css";
+function localInput(value: string) {
+  if (!value) return "";
+  const d = new Date(value);
+  return Number.isFinite(+d) ? new Date(+d - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16) : "";
+}
+function videoEmbed(value: string, seconds: number) {
+  try {
+    const u = new URL(value);
+    if (["youtube.com", "www.youtube.com", "youtu.be"].includes(u.hostname)) {
+      const id = u.hostname === "youtu.be" ? u.pathname.slice(1) : u.searchParams.get("v");
+      if (id && /^[a-zA-Z0-9_-]{11}$/.test(id))
+        return "https://www.youtube-nocookie.com/embed/" + id + "?start=" + seconds;
+    }
+    if (["vimeo.com", "www.vimeo.com"].includes(u.hostname) && /^\/\d+$/.test(u.pathname))
+      return "https://player.vimeo.com/video" + u.pathname + "#t=" + seconds + "s";
+  } catch {}
+  return null;
+}
+export default function CoachingTools({ tool, ctx }: { tool: string; ctx: ToolContext }) {
+  const kind = tool === "Attack reviews" ? "REVIEW" : tool === "Practice board" ? "PRACTICE" : "READINESS";
+  const [draft, setDraft] = useState(false),
+    [editing, setEditing] = useState<any>(null),
+    [detail, setDetail] = useState<any>(null),
+    [note, setNote] = useState(""),
+    [time, setTime] = useState("0:00"),
+    [seek, setSeek] = useState(0),
+    [account, setAccount] = useState(""),
+    [progress, setProgress] = useState(0),
+    [role, setRole] = useState("PARTICIPANT");
+  const video = useRef<HTMLVideoElement>(null);
+  async function open(d: any) {
+    try {
+      setDetail(await toolRequest("/documents/" + d.id));
+      setSeek(0);
+      setNote("");
+    } catch (e: any) {
+      ctx.message(e.message);
+    }
+  }
+  function fields(v: any, set: any) {
+    if (kind === "REVIEW")
+      return (
+        <>
+          <AccountSelect ctx={ctx} value={v.accountId ?? ""} onChange={(a) => set("accountId", a)} />
+          <label>
+            Recording URL
+            <input
+              required
+              type="url"
+              value={v.videoUrl ?? ""}
+              onChange={(e) => set("videoUrl", e.target.value)}
+              placeholder="HTTPS recording, YouTube or Vimeo"
+            />
+          </label>
+          <label>
+            Coaching goal
+            <textarea value={v.coachingGoal ?? ""} onChange={(e) => set("coachingGoal", e.target.value)} />
+          </label>
+        </>
+      );
+    if (kind === "READINESS")
+      return (
+        <>
+          <AccountSelect ctx={ctx} value={v.accountId ?? ""} onChange={(a) => set("accountId", a)} />
+          {[
+            ["available", "Available for war"],
+            ["heroesReady", "Required heroes ready"],
+            ["equipmentReady", "Equipment and army prepared"],
+          ].map(([key, label]) => (
+            <label key={key}>
+              <span>
+                <input type="checkbox" checked={!!v[key]} onChange={(e) => set(key, e.target.checked)} />{" "}
+                {label}
+              </span>
+            </label>
+          ))}
+          <label>
+            Preferred army
+            <input value={v.preferredArmy ?? ""} onChange={(e) => set("preferredArmy", e.target.value)} />
+          </label>
+          <label>
+            Declaration valid until (your local time)
+            <input
+              type="datetime-local"
+              value={localInput(v.availableUntil ?? "")}
+              onChange={(e) =>
+                set("availableUntil", e.target.value ? new Date(e.target.value).toISOString() : undefined)
+              }
+            />
+          </label>
+          <p className={s.quiet}>
+            Choose Officers or Clan visibility for this declaration to influence officer lineup suggestions.
+            Private entries remain visible only to you.
+          </p>
+        </>
+      );
+    return (
+      <>
+        <label>
+          Town Hall
+          <input
+            type="number"
+            min={1}
+            max={30}
+            value={v.townHall ?? 13}
+            onChange={(e) => set("townHall", Number(e.target.value))}
+          />
+        </label>
+        <label>
+          Strategy / base style
+          <input required value={v.strategy ?? ""} onChange={(e) => set("strategy", e.target.value)} />
+        </label>
+        <label>
+          Practice starts (your local time)
+          <input
+            required
+            type="datetime-local"
+            value={localInput(v.startsAt ?? "")}
+            onChange={(e) => set("startsAt", e.target.value ? new Date(e.target.value).toISOString() : "")}
+          />
+        </label>
+        <label>
+          Status
+          <select value={v.status ?? "OPEN"} onChange={(e) => set("status", e.target.value)}>
+            {["OPEN", "IN_PROGRESS", "COMPLETE"].map((x) => (
+              <option key={x}>{x}</option>
+            ))}
+          </select>
+        </label>
+      </>
+    );
+  }
+  const seekTo = (seconds: number) => {
+    setSeek(seconds);
+    if (video.current) video.current.currentTime = seconds;
+  };
+  return (
+    <>
+      <Panel title={tool}>
+        <p className={s.quiet}>
+          {kind === "REVIEW"
+            ? "Collect timestamped coaching notes and reusable lessons from a recording."
+            : kind === "PRACTICE"
+              ? "Find practice partners, coaches and base providers; perform friendly challenges in game."
+              : "Declare readiness per village. These are member reports, not inferred live hero availability."}
+        </p>
+        <DocumentCards
+          ctx={ctx}
+          kind={kind}
+          create={() => {
+            setEditing(null);
+            setDraft(true);
+          }}
+          open={(d) => void open(d)}
+        >
+          {(d) => (
+            <>
+              <span className={s.tag}>{d.payload.accountId ?? "TH " + d.payload.townHall}</span>
+              {kind === "READINESS" ? (
+                <p>
+                  {d.payload.available ? "Available" : "Unavailable"} · Heroes{" "}
+                  {d.payload.heroesReady ? "ready" : "not ready"} · Equipment{" "}
+                  {d.payload.equipmentReady ? "ready" : "not ready"}
+                  <br />
+                  Valid until {date(d.payload.availableUntil)}
+                </p>
+              ) : kind === "PRACTICE" ? (
+                <p>
+                  {d.payload.strategy} · {date(d.payload.startsAt)} · {d.payload.status}
+                </p>
+              ) : (
+                <p>
+                  {d.payload.coachingGoal} · {d.comments} notes
+                </p>
+              )}
+            </>
+          )}
+        </DocumentCards>
+      </Panel>
+      {draft && (
+        <DocumentEditor
+          ctx={ctx}
+          kind={kind}
+          initial={editing}
+          fields={fields}
+          close={() => {
+            setDraft(false);
+            setEditing(null);
+          }}
+        />
+      )}
+      {detail && (
+        <div className={s.modal}>
+          <section role="dialog" aria-modal="true" aria-label="Coaching record">
+            <header className={s.toolbar}>
+              <h3>{detail.title}</h3>
+              <button onClick={() => setDetail(null)}>Close</button>
+            </header>
+            <p className={s.body}>{detail.body}</p>
+            {kind === "REVIEW" && (
+              <>
+                {videoEmbed(detail.payload.videoUrl, seek) ? (
+                  <iframe
+                    className={s.preview}
+                    title="Attack recording"
+                    src={videoEmbed(detail.payload.videoUrl, seek)!}
+                    allow="fullscreen"
+                    referrerPolicy="strict-origin-when-cross-origin"
+                  />
+                ) : (
+                  <video className={s.preview} ref={video} controls src={detail.payload.videoUrl} />
+                )}
+                <a href={detail.payload.videoUrl} target="_blank" rel="noreferrer">
+                  Open original recording ↗
+                </a>
+              </>
+            )}
+            {(ctx.state.manager || detail.owner_id === ctx.state.viewerId) && (
+              <button
+                onClick={() => {
+                  setEditing(detail);
+                  setDraft(true);
+                  setDetail(null);
+                }}
+              >
+                Edit record
+              </button>
+            )}
+            {kind === "PRACTICE" && (
+              <>
+                <h4>Practice participants</h4>
+                <Table
+                  heads={["Account", "Role", "Progress", "Notes"]}
+                  rows={detail.enrollments.map((e: any) => [e.account_id, e.role, e.progress, e.note])}
+                />
+                <div className={s.form}>
+                  <AccountSelect ctx={ctx} value={account} onChange={setAccount} />
+                  <label>
+                    Your role
+                    <select value={role} onChange={(e) => setRole(e.target.value)}>
+                      {["PARTICIPANT", "COACH", "BASE_PROVIDER"].map((r) => (
+                        <option key={r}>{r}</option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Practice attempts completed
+                    <input
+                      type="number"
+                      min={0}
+                      value={progress}
+                      onChange={(e) => setProgress(Number(e.target.value))}
+                    />
+                  </label>
+                  <button
+                    disabled={!account || ctx.busy || detail.payload.status === "COMPLETE"}
+                    onClick={async () => {
+                      if (
+                        await ctx.act("/documents/" + detail.id + "/enroll", {
+                          accountId: account,
+                          role,
+                          progress,
+                          note: "",
+                        })
+                      )
+                        await open(detail);
+                    }}
+                  >
+                    Join / Update Practice
+                  </button>
+                </div>
+              </>
+            )}
+            <h4>{kind === "REVIEW" ? "Timestamped feedback" : "Discussion"}</h4>
+            {detail.comments.map((c: any) => (
+              <article className={s.card} key={c.id}>
+                {c.seconds != null && (
+                  <button onClick={() => seekTo(c.seconds)}>
+                    {Math.floor(c.seconds / 60)}:{String(c.seconds % 60).padStart(2, "0")}
+                  </button>
+                )}
+                <p className={s.body}>{c.note}</p>
+                <small>
+                  {c.user_id} · {date(c.created_at)}
+                </small>
+              </article>
+            ))}
+            <div className={s.form}>
+              {kind === "REVIEW" && (
+                <label>
+                  Timestamp mm:ss
+                  <input value={time} onChange={(e) => setTime(e.target.value)} />
+                </label>
+              )}
+              <label>
+                Feedback / lesson
+                <textarea value={note} maxLength={3000} onChange={(e) => setNote(e.target.value)} />
+              </label>
+              <button
+                disabled={!note.trim() || ctx.busy}
+                onClick={async () => {
+                  let seconds = null;
+                  if (kind === "REVIEW") {
+                    if (!/^\d{1,3}:[0-5]\d$/.test(time)) {
+                      ctx.message("Enter a timestamp such as 1:35.");
+                      return;
+                    }
+                    const [m, s] = time.split(":").map(Number);
+                    seconds = m * 60 + s;
+                  }
+                  if (await ctx.act("/documents/" + detail.id + "/comments", { seconds, note })) {
+                    setNote("");
+                    await open(detail);
+                  }
+                }}
+              >
+                Add Feedback
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+    </>
+  );
 }

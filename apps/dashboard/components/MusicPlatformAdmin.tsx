@@ -1,45 +1,802 @@
 "use client";
 import { FormEvent, useEffect, useState } from "react";
 
-async function api(path:string,init:RequestInit={}){const h=new Headers(init.headers);if(init.body&&!h.has("content-type"))h.set("content-type","application/json");return fetch(path,{...init,headers:h});}
-const AUTOPLAY=["SIMILAR","SAME_ARTIST","DISCOVERY","FAMILIAR","PARTY","DEEP_CUTS","BOM_RADIO"],TRANSITIONS=["OFF","GAPLESS","FADE_2S","FADE_5S","SMOOTH_DJ","RADIO"],MOODS=["ENERGETIC","RELAXED","SAD","FOCUSED","PARTY","NOSTALGIC","CHILL","HEAVY","HAPPY","DARK"],QUEUE_MODES=["ALL_LISTENERS","REQUESTER_ONLY","DJ_ONLY","LOCKED"];
-const list=(v:any,fallback:string[])=>{if(Array.isArray(v))return v;if(typeof v==="string")try{const x=JSON.parse(v);if(Array.isArray(x))return x;}catch{}return fallback;};
-export default function MusicPlatformAdmin(){
-  const [bomRadio,setBomRadio]=useState<any>({voiceChannelId:"",streamUrl:"",enabled:false}),[radioDirectory,setRadioDirectory]=useState<any[]>([]),[radioSearch,setRadioSearch]=useState("");const [features,setFeatures]=useState<any>({}),[resolver,setResolver]=useState<any>({search_chain:["ytmsearch:","ytsearch:","scsearch:"],max_candidates:10,reject_variants:true,fallback_on_failure:true,preferred_source:"",voice_ducking_enabled:false,voice_ducking_percent:35,voice_ducking_provider:"NONE"}),[sourceCaps,setSourceCaps]=useState<any>({sources:[]}),[metrics,setMetrics]=useState<any>({rows:[],health:[],buckets:[]}),[radio,setRadio]=useState<any[]>([]),[achievements,setAchievements]=useState<any[]>([]),[stations,setStations]=useState<any[]>([]),[context,setContext]=useState<any>({voiceChannels:[]}),[notice,setNotice]=useState(""),[schedule,setSchedule]=useState({name:"Friday Night BOM Radio",cronExpr:"0 20 * * 5",timezone:"UTC",profile:"BOM_RADIO",mood:"PARTY",voiceChannelId:""}),[station,setStation]=useState({name:"BOM Station ID",audioUrl:"",weight:1}),[newAchievement,setNewAchievement]=useState({code:"CUSTOM_1",name:"Custom Achievement",description:"A custom BOM music milestone.",icon:"🏆",metric:"requests",threshold:100,enabled:true});
-  async function load(){await Promise.all([api("/api/internal/admin/bom-radio").then(async r=>{if(r.ok){const j=await r.json();setBomRadio({voiceChannelId:j.voice_channel_id??"",streamUrl:j.stream_url??"",enabled:Boolean(j.enabled)})}}).catch(()=>{}),api("/api/internal/music/features").then(async r=>r.ok&&setFeatures((await r.json()).features??{})),api("/api/internal/admin/metrics").then(async r=>r.ok&&setMetrics(await r.json())),api("/api/internal/admin/radio").then(async r=>r.ok&&setRadio(await r.json())),api("/api/internal/admin/achievements").then(async r=>r.ok&&setAchievements(await r.json())),api("/api/internal/admin/station-ids").then(async r=>r.ok&&setStations(await r.json())),api("/api/internal/music/context").then(async r=>r.ok&&setContext(await r.json())),api("/api/internal/admin/resolver-settings").then(async r=>{if(r.ok){const j=await r.json();setResolver({...j,search_chain:list(j.search_chain,["ytmsearch:","ytsearch:","scsearch:"])})}}),api("/api/internal/music/source-capabilities").then(async r=>r.ok&&setSourceCaps(await r.json()))]);}
-  useEffect(()=>{void load();},[]);
-  async function saveFeatures(e:FormEvent){e.preventDefault();const body={autoplayProfile:features.autoplay_profile,radioMode:Boolean(features.radio_mode),radioProfile:features.radio_profile,transitionMode:features.transition_mode,defaultMood:features.default_mood||null,collaborativeQueue:Boolean(features.collaborative_queue),queueReorderMode:features.queue_reorder_mode,recommendationsEnabled:Boolean(features.recommendations_enabled),achievementsEnabled:Boolean(features.achievements_enabled),stationIdsEnabled:Boolean(features.station_ids_enabled)};const r=await api("/api/internal/music/features",{method:"PUT",body:JSON.stringify(body)});setNotice(r.ok?"Music platform defaults saved.":`Save failed (${r.status})`);if(r.ok)await load();}
+async function api(path: string, init: RequestInit = {}) {
+  const h = new Headers(init.headers);
+  if (init.body && !h.has("content-type")) h.set("content-type", "application/json");
+  return fetch(path, { ...init, headers: h });
+}
+const AUTOPLAY = ["SIMILAR", "SAME_ARTIST", "DISCOVERY", "FAMILIAR", "PARTY", "DEEP_CUTS", "BOM_RADIO"],
+  TRANSITIONS = ["OFF", "GAPLESS", "FADE_2S", "FADE_5S", "SMOOTH_DJ", "RADIO"],
+  MOODS = ["ENERGETIC", "RELAXED", "SAD", "FOCUSED", "PARTY", "NOSTALGIC", "CHILL", "HEAVY", "HAPPY", "DARK"],
+  QUEUE_MODES = ["ALL_LISTENERS", "REQUESTER_ONLY", "DJ_ONLY", "LOCKED"];
+const list = (v: any, fallback: string[]) => {
+  if (Array.isArray(v)) return v;
+  if (typeof v === "string")
+    try {
+      const x = JSON.parse(v);
+      if (Array.isArray(x)) return x;
+    } catch {}
+  return fallback;
+};
+export default function MusicPlatformAdmin() {
+  const [bomRadio, setBomRadio] = useState<any>({ voiceChannelId: "", streamUrl: "", enabled: false }),
+    [radioDirectory, setRadioDirectory] = useState<any[]>([]),
+    [radioSearch, setRadioSearch] = useState("");
+  const [features, setFeatures] = useState<any>({}),
+    [resolver, setResolver] = useState<any>({
+      search_chain: ["ytmsearch:", "ytsearch:", "scsearch:"],
+      max_candidates: 10,
+      reject_variants: true,
+      fallback_on_failure: true,
+      preferred_source: "",
+      voice_ducking_enabled: false,
+      voice_ducking_percent: 35,
+      voice_ducking_provider: "NONE",
+    }),
+    [sourceCaps, setSourceCaps] = useState<any>({ sources: [] }),
+    [metrics, setMetrics] = useState<any>({ rows: [], health: [], buckets: [] }),
+    [radio, setRadio] = useState<any[]>([]),
+    [achievements, setAchievements] = useState<any[]>([]),
+    [stations, setStations] = useState<any[]>([]),
+    [context, setContext] = useState<any>({ voiceChannels: [] }),
+    [notice, setNotice] = useState(""),
+    [schedule, setSchedule] = useState({
+      name: "Friday Night BOM Radio",
+      cronExpr: "0 20 * * 5",
+      timezone: "UTC",
+      profile: "BOM_RADIO",
+      mood: "PARTY",
+      voiceChannelId: "",
+    }),
+    [station, setStation] = useState({ name: "BOM Station ID", audioUrl: "", weight: 1 }),
+    [newAchievement, setNewAchievement] = useState({
+      code: "CUSTOM_1",
+      name: "Custom Achievement",
+      description: "A custom BOM music milestone.",
+      icon: "🏆",
+      metric: "requests",
+      threshold: 100,
+      enabled: true,
+    });
+  async function load() {
+    await Promise.all([
+      api("/api/internal/admin/bom-radio")
+        .then(async (r) => {
+          if (r.ok) {
+            const j = await r.json();
+            setBomRadio({
+              voiceChannelId: j.voice_channel_id ?? "",
+              streamUrl: j.stream_url ?? "",
+              enabled: Boolean(j.enabled),
+            });
+          }
+        })
+        .catch(() => {}),
+      api("/api/internal/music/features").then(
+        async (r) => r.ok && setFeatures((await r.json()).features ?? {}),
+      ),
+      api("/api/internal/admin/metrics").then(async (r) => r.ok && setMetrics(await r.json())),
+      api("/api/internal/admin/radio").then(async (r) => r.ok && setRadio(await r.json())),
+      api("/api/internal/admin/achievements").then(async (r) => r.ok && setAchievements(await r.json())),
+      api("/api/internal/admin/station-ids").then(async (r) => r.ok && setStations(await r.json())),
+      api("/api/internal/music/context").then(async (r) => r.ok && setContext(await r.json())),
+      api("/api/internal/admin/resolver-settings").then(async (r) => {
+        if (r.ok) {
+          const j = await r.json();
+          setResolver({ ...j, search_chain: list(j.search_chain, ["ytmsearch:", "ytsearch:", "scsearch:"]) });
+        }
+      }),
+      api("/api/internal/music/source-capabilities").then(async (r) => r.ok && setSourceCaps(await r.json())),
+    ]);
+  }
+  useEffect(() => {
+    void load();
+  }, []);
+  async function saveFeatures(e: FormEvent) {
+    e.preventDefault();
+    const body = {
+      autoplayProfile: features.autoplay_profile,
+      radioMode: Boolean(features.radio_mode),
+      radioProfile: features.radio_profile,
+      transitionMode: features.transition_mode,
+      defaultMood: features.default_mood || null,
+      collaborativeQueue: Boolean(features.collaborative_queue),
+      queueReorderMode: features.queue_reorder_mode,
+      recommendationsEnabled: Boolean(features.recommendations_enabled),
+      achievementsEnabled: Boolean(features.achievements_enabled),
+      stationIdsEnabled: Boolean(features.station_ids_enabled),
+    };
+    const r = await api("/api/internal/music/features", { method: "PUT", body: JSON.stringify(body) });
+    setNotice(r.ok ? "Music platform defaults saved." : `Save failed (${r.status})`);
+    if (r.ok) await load();
+  }
 
-  async function saveResolver(e:FormEvent){e.preventDefault();const body={searchChain:list(resolver.search_chain,["ytmsearch:","ytsearch:","scsearch:"]),maxCandidates:Number(resolver.max_candidates??10),rejectVariants:Boolean(resolver.reject_variants),fallbackOnFailure:Boolean(resolver.fallback_on_failure),preferredSource:String(resolver.preferred_source??"").trim()||null,voiceDuckingEnabled:Boolean(resolver.voice_ducking_enabled),voiceDuckingPercent:Number(resolver.voice_ducking_percent??35),voiceDuckingProvider:resolver.voice_ducking_provider??"NONE"};const r=await api("/api/internal/admin/resolver-settings",{method:"PUT",body:JSON.stringify(body)});setNotice(r.ok?"Resolver and ducking settings saved live.":`Resolver save failed (${r.status})`);if(r.ok)await load();}
-  async function addSchedule(e:FormEvent){e.preventDefault();const r=await api("/api/internal/admin/radio",{method:"POST",body:JSON.stringify({...schedule,mood:schedule.mood||null,voiceChannelId:schedule.voiceChannelId||null,enabled:true})});setNotice(r.ok?"Radio schedule added.":`Schedule failed (${r.status})`);if(r.ok)await load();}
-  async function addStation(e:FormEvent){e.preventDefault();const r=await api("/api/internal/admin/station-ids",{method:"POST",body:JSON.stringify({...station,enabled:true})});setNotice(r.ok?"Station ID added.":`Station ID failed (${r.status})`);if(r.ok)await load();}
-  async function saveAchievement(a:any){const r=await api(`/api/internal/admin/achievements/${encodeURIComponent(a.code)}`,{method:"PUT",body:JSON.stringify({name:a.name,description:a.description,icon:a.icon,metric:a.metric,threshold:Number(a.threshold_value),enabled:Boolean(a.enabled)})});setNotice(r.ok?`${a.name} saved.`:`Achievement save failed (${r.status})`);if(r.ok)await load();}
-  async function addAchievement(e:FormEvent){e.preventDefault();const code=String(newAchievement.code).toUpperCase().replace(/[^A-Z0-9_]/g,"_").slice(0,64);const r=await api(`/api/internal/admin/achievements/${encodeURIComponent(code)}`,{method:"PUT",body:JSON.stringify({name:newAchievement.name,description:newAchievement.description,icon:newAchievement.icon,metric:newAchievement.metric,threshold:Number(newAchievement.threshold),enabled:Boolean(newAchievement.enabled)})});setNotice(r.ok?"Custom achievement added.":`Achievement failed (${r.status})`);if(r.ok)await load();}
-  async function diagnostics(){const r=await api("/api/internal/admin/diagnostics",{method:"POST",body:"{}"});if(!r.ok){setNotice(`Diagnostics failed (${r.status})`);return;}const j=await r.json(),blob=new Blob([JSON.stringify(j.payload,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");a.href=url;a.download=`bom-music-diagnostics-${new Date().toISOString().replaceAll(":","-")}.json`;a.click();URL.revokeObjectURL(url);setNotice("Diagnostics package generated.");}
-  return <div className="platformAdmin">
-    {notice&&<div className="notice" onClick={()=>setNotice("")}>{notice}</div>}
-    <section className="panel"><div className="panelHead"><div><h3>Music Platform</h3><span>autoplay, radio, collaboration & transitions</span></div><button className="goldButton" onClick={()=>void diagnostics()}>Export diagnostics</button></div><form className="featureSettingsGrid" onSubmit={saveFeatures}>
-      <label>Smart autoplay<select value={features.autoplay_profile??"SIMILAR"} onChange={e=>setFeatures({...features,autoplay_profile:e.target.value})}>{AUTOPLAY.map(x=><option key={x}>{x.replaceAll("_"," ")}</option>)}</select></label>
-      <label>Transition profile<select value={features.transition_mode??"GAPLESS"} onChange={e=>setFeatures({...features,transition_mode:e.target.value})}>{TRANSITIONS.map(x=><option key={x}>{x.replaceAll("_"," ")}</option>)}</select></label>
-      <label>Default mood<select value={features.default_mood??""} onChange={e=>setFeatures({...features,default_mood:e.target.value})}><option value="">Automatic</option>{MOODS.map(x=><option key={x}>{x}</option>)}</select></label>
-      <label>Queue collaboration<select value={features.queue_reorder_mode??"ALL_LISTENERS"} onChange={e=>setFeatures({...features,queue_reorder_mode:e.target.value})}>{QUEUE_MODES.map(x=><option key={x}>{x.replaceAll("_"," ")}</option>)}</select></label>
-      <label className="toggleLine"><input type="checkbox" checked={Boolean(features.radio_mode)} onChange={e=>setFeatures({...features,radio_mode:e.target.checked})}/> BOM Radio mode</label><label className="toggleLine"><input type="checkbox" checked={Boolean(features.collaborative_queue)} onChange={e=>setFeatures({...features,collaborative_queue:e.target.checked})}/> Collaborative queue</label><label className="toggleLine"><input type="checkbox" checked={Boolean(features.recommendations_enabled)} onChange={e=>setFeatures({...features,recommendations_enabled:e.target.checked})}/> Recommendations</label><label className="toggleLine"><input type="checkbox" checked={Boolean(features.achievements_enabled)} onChange={e=>setFeatures({...features,achievements_enabled:e.target.checked})}/> Achievements</label><label className="toggleLine"><input type="checkbox" checked={Boolean(features.station_ids_enabled)} onChange={e=>setFeatures({...features,station_ids_enabled:e.target.checked})}/> Station IDs / jingles</label><button className="goldButton">Save platform defaults</button>
-    </form></section>
-    <section className="panel"><div className="panelHead"><div><h3>Resolver & Audio Intelligence</h3><span>release matching, source fallback and optional voice ducking</span></div></div><form className="featureSettingsGrid" onSubmit={saveResolver}>
-      <label>Search chain<input value={list(resolver.search_chain,["ytmsearch:","ytsearch:","scsearch:"]).join(", ")} onChange={e=>setResolver({...resolver,search_chain:e.target.value.split(",").map(x=>x.trim()).filter(Boolean)})}/><small>Queried in parallel for scored release matching.</small></label>
-      <label>Candidate depth<input type="number" min="2" max="25" value={resolver.max_candidates??10} onChange={e=>setResolver({...resolver,max_candidates:Number(e.target.value)})}/></label>
-      <label>Preferred source<input value={resolver.preferred_source??""} onChange={e=>setResolver({...resolver,preferred_source:e.target.value})} placeholder="youtube / soundcloud / blank"/></label>
-      <label className="toggleLine"><input type="checkbox" checked={Boolean(resolver.reject_variants)} onChange={e=>setResolver({...resolver,reject_variants:e.target.checked})}/> Penalize unrequested live/remix/cover/sped-up results</label>
-      <label className="toggleLine"><input type="checkbox" checked={Boolean(resolver.fallback_on_failure)} onChange={e=>setResolver({...resolver,fallback_on_failure:e.target.checked})}/> Retry alternate source candidates on playback failure</label>
-      <label className="toggleLine"><input type="checkbox" checked={Boolean(resolver.voice_ducking_enabled)} onChange={e=>setResolver({...resolver,voice_ducking_enabled:e.target.checked})}/> Voice ducking integration</label>
-      <label>Ducking provider<select value={resolver.voice_ducking_provider??"NONE"} onChange={e=>setResolver({...resolver,voice_ducking_provider:e.target.value})}><option>NONE</option><option>REDIS</option><option>LAVALINK_PLUGIN</option><option>VOICE_RECEIVER</option></select></label>
-      <label>Ducked volume %<input type="number" min="5" max="90" value={resolver.voice_ducking_percent??35} onChange={e=>setResolver({...resolver,voice_ducking_percent:Number(e.target.value)})}/></label>
-      <button className="goldButton">Save resolver settings</button>
-    </form><div className="sourceCapabilityGrid">{sourceCaps.sources?.map((x:any)=><article key={x.id}><b>{x.label}</b><span>{[x.search&&"search",x.playlists&&"playlists",x.albums&&"albums",x.radio&&"radio",x.seek&&"seek",x.live&&"live",x.lyrics&&"lyrics",x.artwork&&"artwork"].filter(Boolean).join(" · ")}</span></article>)}</div></section>
-    <section className="panel radio24hAdmin"><div className="panelHead"><div><h3>24/7 BOM Radio</h3><span>Keep a designated station playing in one Discord voice channel using BOM Music account 8.</span></div></div><div className="radio24hFields"><label>Radio voice channel<select value={bomRadio.voiceChannelId} onChange={e=>setBomRadio({...bomRadio,voiceChannelId:e.target.value})}><option value="">Choose radio channel</option>{context.voiceChannels?.map((c:any)=><option key={c.id} value={c.id}>{c.name}</option>)}</select></label><label>Station stream URL<input value={bomRadio.streamUrl} onChange={e=>setBomRadio({...bomRadio,streamUrl:e.target.value})} placeholder="https://.../live.mp3"/></label><label className="toggleLine"><input type="checkbox" checked={bomRadio.enabled} onChange={e=>setBomRadio({...bomRadio,enabled:e.target.checked})}/> Enable permanent BOM Radio</label><button className="goldButton" onClick={async()=>{const r=await api('/api/internal/admin/bom-radio',{method:'PUT',body:JSON.stringify({voiceChannelId:bomRadio.voiceChannelId||null,streamUrl:bomRadio.streamUrl||null,enabled:bomRadio.enabled})});setNotice(r.ok?'BOM Radio saved. Music account 8 will maintain the station when available.':`BOM Radio settings failed (${r.status}).`);}}>Save 24/7 radio</button></div><div className="radio24hDirectory"><h4>Find a Live Station</h4><div className="buttonRow"><input value={radioSearch} onChange={e=>setRadioSearch(e.target.value)} placeholder="Station name / city"/><button className="outlineButton" onClick={async()=>{const r=await api(`/api/internal/music/radio/search?q=${encodeURIComponent(radioSearch)}`);if(r.ok)setRadioDirectory((await r.json()).stations??[]);}}>Search</button></div><div className="radioResultGrid">{radioDirectory.slice(0,20).map((s:any)=><button key={s.id} onClick={()=>setBomRadio({...bomRadio,streamUrl:s.streamUrl??""})}><b>{s.name}</b><small>{s.countryCode} {s.state} · Select</small></button>)}</div></div><p className="muted">This uses an independent radio voice session; other music accounts remain available for regular listening. Streams depend on server playback support.</p></section>
-    <section className="panelGrid"><div className="panel"><div className="panelHead"><h3>Scheduled Radio</h3><span>5-field cron scheduler</span></div><form className="stackForm" onSubmit={addSchedule}><label>Name<input value={schedule.name} onChange={e=>setSchedule({...schedule,name:e.target.value})}/></label><label>Cron<input value={schedule.cronExpr} onChange={e=>setSchedule({...schedule,cronExpr:e.target.value})}/></label><label>Timezone<input value={schedule.timezone} onChange={e=>setSchedule({...schedule,timezone:e.target.value})}/></label><label>Profile<select value={schedule.profile} onChange={e=>setSchedule({...schedule,profile:e.target.value})}>{AUTOPLAY.map(x=><option key={x}>{x}</option>)}</select></label><label>Mood<select value={schedule.mood} onChange={e=>setSchedule({...schedule,mood:e.target.value})}>{MOODS.map(x=><option key={x}>{x}</option>)}</select></label><label>Voice channel<select value={schedule.voiceChannelId} onChange={e=>setSchedule({...schedule,voiceChannelId:e.target.value})}><option value="">Choose channel…</option>{context.voiceChannels?.map((c:any)=><option key={c.id} value={c.id}>🔊 {c.name}</option>)}</select></label><button className="goldButton">Add schedule</button></form><div className="ruleList">{radio.map(x=><div key={x.id}><b>{x.name}</b><span>{x.cron_expr} · {x.timezone}</span><small>{x.profile}</small><button onClick={async()=>{await api(`/api/internal/admin/radio/${x.id}`,{method:"DELETE"});await load();}}>×</button></div>)}</div></div>
-      <div className="panel"><div className="panelHead"><h3>Station IDs</h3><span>optional BOM radio jingles</span></div><form className="stackForm" onSubmit={addStation}><label>Name<input value={station.name} onChange={e=>setStation({...station,name:e.target.value})}/></label><label>Direct audio URL<input value={station.audioUrl} onChange={e=>setStation({...station,audioUrl:e.target.value})}/></label><label>Weight<input type="number" min="1" max="100" value={station.weight} onChange={e=>setStation({...station,weight:Number(e.target.value)})}/></label><button className="goldButton">Add station ID</button></form><div className="ruleList">{stations.map(x=><div key={x.id}><b>{x.name}</b><span>weight {x.weight}</span><small>{x.enabled?"Enabled":"Disabled"}</small><button onClick={async()=>{await api(`/api/internal/admin/station-ids/${x.id}`,{method:"DELETE"});await load();}}>×</button></div>)}</div></div></section>
-    <section className="panel"><div className="panelHead"><h3>Achievement Studio</h3><span>defaults are editable and extensible</span></div><form className="customAchievementForm" onSubmit={addAchievement}><input value={newAchievement.code} onChange={e=>setNewAchievement({...newAchievement,code:e.target.value})} placeholder="CODE"/><input value={newAchievement.icon} onChange={e=>setNewAchievement({...newAchievement,icon:e.target.value})}/><input value={newAchievement.name} onChange={e=>setNewAchievement({...newAchievement,name:e.target.value})}/><input value={newAchievement.description} onChange={e=>setNewAchievement({...newAchievement,description:e.target.value})}/><select value={newAchievement.metric} onChange={e=>setNewAchievement({...newAchievement,metric:e.target.value})}>{["requests","minutes","likes","favorites","sessions"].map(x=><option key={x}>{x}</option>)}</select><input type="number" min="1" value={newAchievement.threshold} onChange={e=>setNewAchievement({...newAchievement,threshold:Number(e.target.value)})}/><button className="goldButton">Add achievement</button></form><div className="achievementAdminGrid">{achievements.map((a:any)=><article key={a.code}><div className="achievementTitle"><input value={a.icon} onChange={e=>setAchievements(xs=>xs.map(x=>x.code===a.code?{...x,icon:e.target.value}:x))}/><b>{a.code}</b></div><input value={a.name} onChange={e=>setAchievements(xs=>xs.map(x=>x.code===a.code?{...x,name:e.target.value}:x))}/><input value={a.description} onChange={e=>setAchievements(xs=>xs.map(x=>x.code===a.code?{...x,description:e.target.value}:x))}/><div><select value={a.metric} onChange={e=>setAchievements(xs=>xs.map(x=>x.code===a.code?{...x,metric:e.target.value}:x))}>{["requests","minutes","likes","favorites","sessions"].map(x=><option key={x}>{x}</option>)}</select><input type="number" min="1" value={a.threshold_value} onChange={e=>setAchievements(xs=>xs.map(x=>x.code===a.code?{...x,threshold_value:Number(e.target.value)}:x))}/></div><label className="toggleLine"><input type="checkbox" checked={Boolean(a.enabled)} onChange={e=>setAchievements(xs=>xs.map(x=>x.code===a.code?{...x,enabled:e.target.checked}:x))}/> Enabled</label><button onClick={()=>void saveAchievement(a)}>Save</button></article>)}</div></section>
-    <section className="panel"><div className="panelHead"><h3>Performance Telemetry</h3><span>persisted latency history · P50/P95/P99</span></div><div className="metricTrend" aria-label="Worker track-start trend">{metrics.buckets?.map((b:any,i:number)=>{const max=Math.max(1,...(metrics.buckets??[]).map((x:any)=>Number(x.avg||0)));return <i key={i} title={`${b.avg} ms · ${b.samples} samples`} style={{height:`${Math.max(5,Number(b.avg||0)/max*100)}%`}}/>})}</div><div className="metricCards">{metrics.rows?.map((m:any)=><article key={m.metric}><small>{m.metric.replaceAll("_"," ")}</small><b>{m.avg_ms} ms</b><span>{m.samples} samples · P50 {m.p50_ms} · P95 {m.p95_ms} · P99 {m.p99_ms}</span></article>)}{!metrics.rows?.length&&<p className="muted">Metrics populate as music is used.</p>}</div></section>
-  </div>;
+  async function saveResolver(e: FormEvent) {
+    e.preventDefault();
+    const body = {
+      searchChain: list(resolver.search_chain, ["ytmsearch:", "ytsearch:", "scsearch:"]),
+      maxCandidates: Number(resolver.max_candidates ?? 10),
+      rejectVariants: Boolean(resolver.reject_variants),
+      fallbackOnFailure: Boolean(resolver.fallback_on_failure),
+      preferredSource: String(resolver.preferred_source ?? "").trim() || null,
+      voiceDuckingEnabled: Boolean(resolver.voice_ducking_enabled),
+      voiceDuckingPercent: Number(resolver.voice_ducking_percent ?? 35),
+      voiceDuckingProvider: resolver.voice_ducking_provider ?? "NONE",
+    };
+    const r = await api("/api/internal/admin/resolver-settings", {
+      method: "PUT",
+      body: JSON.stringify(body),
+    });
+    setNotice(r.ok ? "Resolver and ducking settings saved live." : `Resolver save failed (${r.status})`);
+    if (r.ok) await load();
+  }
+  async function addSchedule(e: FormEvent) {
+    e.preventDefault();
+    const r = await api("/api/internal/admin/radio", {
+      method: "POST",
+      body: JSON.stringify({
+        ...schedule,
+        mood: schedule.mood || null,
+        voiceChannelId: schedule.voiceChannelId || null,
+        enabled: true,
+      }),
+    });
+    setNotice(r.ok ? "Radio schedule added." : `Schedule failed (${r.status})`);
+    if (r.ok) await load();
+  }
+  async function addStation(e: FormEvent) {
+    e.preventDefault();
+    const r = await api("/api/internal/admin/station-ids", {
+      method: "POST",
+      body: JSON.stringify({ ...station, enabled: true }),
+    });
+    setNotice(r.ok ? "Station ID added." : `Station ID failed (${r.status})`);
+    if (r.ok) await load();
+  }
+  async function saveAchievement(a: any) {
+    const r = await api(`/api/internal/admin/achievements/${encodeURIComponent(a.code)}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        name: a.name,
+        description: a.description,
+        icon: a.icon,
+        metric: a.metric,
+        threshold: Number(a.threshold_value),
+        enabled: Boolean(a.enabled),
+      }),
+    });
+    setNotice(r.ok ? `${a.name} saved.` : `Achievement save failed (${r.status})`);
+    if (r.ok) await load();
+  }
+  async function addAchievement(e: FormEvent) {
+    e.preventDefault();
+    const code = String(newAchievement.code)
+      .toUpperCase()
+      .replace(/[^A-Z0-9_]/g, "_")
+      .slice(0, 64);
+    const r = await api(`/api/internal/admin/achievements/${encodeURIComponent(code)}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        name: newAchievement.name,
+        description: newAchievement.description,
+        icon: newAchievement.icon,
+        metric: newAchievement.metric,
+        threshold: Number(newAchievement.threshold),
+        enabled: Boolean(newAchievement.enabled),
+      }),
+    });
+    setNotice(r.ok ? "Custom achievement added." : `Achievement failed (${r.status})`);
+    if (r.ok) await load();
+  }
+  async function diagnostics() {
+    const r = await api("/api/internal/admin/diagnostics", { method: "POST", body: "{}" });
+    if (!r.ok) {
+      setNotice(`Diagnostics failed (${r.status})`);
+      return;
+    }
+    const j = await r.json(),
+      blob = new Blob([JSON.stringify(j.payload, null, 2)], { type: "application/json" }),
+      url = URL.createObjectURL(blob),
+      a = document.createElement("a");
+    a.href = url;
+    a.download = `bom-music-diagnostics-${new Date().toISOString().replaceAll(":", "-")}.json`;
+    a.click();
+    URL.revokeObjectURL(url);
+    setNotice("Diagnostics package generated.");
+  }
+  return (
+    <div className="platformAdmin">
+      {notice && (
+        <div className="notice" onClick={() => setNotice("")}>
+          {notice}
+        </div>
+      )}
+      <section className="panel">
+        <div className="panelHead">
+          <div>
+            <h3>Music Platform</h3>
+            <span>autoplay, radio, collaboration & transitions</span>
+          </div>
+          <button className="goldButton" onClick={() => void diagnostics()}>
+            Export diagnostics
+          </button>
+        </div>
+        <form className="featureSettingsGrid" onSubmit={saveFeatures}>
+          <label>
+            Smart autoplay
+            <select
+              value={features.autoplay_profile ?? "SIMILAR"}
+              onChange={(e) => setFeatures({ ...features, autoplay_profile: e.target.value })}
+            >
+              {AUTOPLAY.map((x) => (
+                <option key={x}>{x.replaceAll("_", " ")}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Transition profile
+            <select
+              value={features.transition_mode ?? "GAPLESS"}
+              onChange={(e) => setFeatures({ ...features, transition_mode: e.target.value })}
+            >
+              {TRANSITIONS.map((x) => (
+                <option key={x}>{x.replaceAll("_", " ")}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Default mood
+            <select
+              value={features.default_mood ?? ""}
+              onChange={(e) => setFeatures({ ...features, default_mood: e.target.value })}
+            >
+              <option value="">Automatic</option>
+              {MOODS.map((x) => (
+                <option key={x}>{x}</option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Queue collaboration
+            <select
+              value={features.queue_reorder_mode ?? "ALL_LISTENERS"}
+              onChange={(e) => setFeatures({ ...features, queue_reorder_mode: e.target.value })}
+            >
+              {QUEUE_MODES.map((x) => (
+                <option key={x}>{x.replaceAll("_", " ")}</option>
+              ))}
+            </select>
+          </label>
+          <label className="toggleLine">
+            <input
+              type="checkbox"
+              checked={Boolean(features.radio_mode)}
+              onChange={(e) => setFeatures({ ...features, radio_mode: e.target.checked })}
+            />{" "}
+            BOM Radio mode
+          </label>
+          <label className="toggleLine">
+            <input
+              type="checkbox"
+              checked={Boolean(features.collaborative_queue)}
+              onChange={(e) => setFeatures({ ...features, collaborative_queue: e.target.checked })}
+            />{" "}
+            Collaborative queue
+          </label>
+          <label className="toggleLine">
+            <input
+              type="checkbox"
+              checked={Boolean(features.recommendations_enabled)}
+              onChange={(e) => setFeatures({ ...features, recommendations_enabled: e.target.checked })}
+            />{" "}
+            Recommendations
+          </label>
+          <label className="toggleLine">
+            <input
+              type="checkbox"
+              checked={Boolean(features.achievements_enabled)}
+              onChange={(e) => setFeatures({ ...features, achievements_enabled: e.target.checked })}
+            />{" "}
+            Achievements
+          </label>
+          <label className="toggleLine">
+            <input
+              type="checkbox"
+              checked={Boolean(features.station_ids_enabled)}
+              onChange={(e) => setFeatures({ ...features, station_ids_enabled: e.target.checked })}
+            />{" "}
+            Station IDs / jingles
+          </label>
+          <button className="goldButton">Save platform defaults</button>
+        </form>
+      </section>
+      <section className="panel">
+        <div className="panelHead">
+          <div>
+            <h3>Resolver & Audio Intelligence</h3>
+            <span>release matching, source fallback and optional voice ducking</span>
+          </div>
+        </div>
+        <form className="featureSettingsGrid" onSubmit={saveResolver}>
+          <label>
+            Search chain
+            <input
+              value={list(resolver.search_chain, ["ytmsearch:", "ytsearch:", "scsearch:"]).join(", ")}
+              onChange={(e) =>
+                setResolver({
+                  ...resolver,
+                  search_chain: e.target.value
+                    .split(",")
+                    .map((x) => x.trim())
+                    .filter(Boolean),
+                })
+              }
+            />
+            <small>Queried in parallel for scored release matching.</small>
+          </label>
+          <label>
+            Candidate depth
+            <input
+              type="number"
+              min="2"
+              max="25"
+              value={resolver.max_candidates ?? 10}
+              onChange={(e) => setResolver({ ...resolver, max_candidates: Number(e.target.value) })}
+            />
+          </label>
+          <label>
+            Preferred source
+            <input
+              value={resolver.preferred_source ?? ""}
+              onChange={(e) => setResolver({ ...resolver, preferred_source: e.target.value })}
+              placeholder="youtube / soundcloud / blank"
+            />
+          </label>
+          <label className="toggleLine">
+            <input
+              type="checkbox"
+              checked={Boolean(resolver.reject_variants)}
+              onChange={(e) => setResolver({ ...resolver, reject_variants: e.target.checked })}
+            />{" "}
+            Penalize unrequested live/remix/cover/sped-up results
+          </label>
+          <label className="toggleLine">
+            <input
+              type="checkbox"
+              checked={Boolean(resolver.fallback_on_failure)}
+              onChange={(e) => setResolver({ ...resolver, fallback_on_failure: e.target.checked })}
+            />{" "}
+            Retry alternate source candidates on playback failure
+          </label>
+          <label className="toggleLine">
+            <input
+              type="checkbox"
+              checked={Boolean(resolver.voice_ducking_enabled)}
+              onChange={(e) => setResolver({ ...resolver, voice_ducking_enabled: e.target.checked })}
+            />{" "}
+            Voice ducking integration
+          </label>
+          <label>
+            Ducking provider
+            <select
+              value={resolver.voice_ducking_provider ?? "NONE"}
+              onChange={(e) => setResolver({ ...resolver, voice_ducking_provider: e.target.value })}
+            >
+              <option>NONE</option>
+              <option>REDIS</option>
+              <option>LAVALINK_PLUGIN</option>
+              <option>VOICE_RECEIVER</option>
+            </select>
+          </label>
+          <label>
+            Ducked volume %
+            <input
+              type="number"
+              min="5"
+              max="90"
+              value={resolver.voice_ducking_percent ?? 35}
+              onChange={(e) => setResolver({ ...resolver, voice_ducking_percent: Number(e.target.value) })}
+            />
+          </label>
+          <button className="goldButton">Save resolver settings</button>
+        </form>
+        <div className="sourceCapabilityGrid">
+          {sourceCaps.sources?.map((x: any) => (
+            <article key={x.id}>
+              <b>{x.label}</b>
+              <span>
+                {[
+                  x.search && "search",
+                  x.playlists && "playlists",
+                  x.albums && "albums",
+                  x.radio && "radio",
+                  x.seek && "seek",
+                  x.live && "live",
+                  x.lyrics && "lyrics",
+                  x.artwork && "artwork",
+                ]
+                  .filter(Boolean)
+                  .join(" · ")}
+              </span>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="panel radio24hAdmin">
+        <div className="panelHead">
+          <div>
+            <h3>24/7 BOM Radio</h3>
+            <span>
+              Keep a designated station playing in one Discord voice channel using BOM Music account 8.
+            </span>
+          </div>
+        </div>
+        <div className="radio24hFields">
+          <label>
+            Radio voice channel
+            <select
+              value={bomRadio.voiceChannelId}
+              onChange={(e) => setBomRadio({ ...bomRadio, voiceChannelId: e.target.value })}
+            >
+              <option value="">Choose radio channel</option>
+              {context.voiceChannels?.map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  {c.name}
+                </option>
+              ))}
+            </select>
+          </label>
+          <label>
+            Station stream URL
+            <input
+              value={bomRadio.streamUrl}
+              onChange={(e) => setBomRadio({ ...bomRadio, streamUrl: e.target.value })}
+              placeholder="https://.../live.mp3"
+            />
+          </label>
+          <label className="toggleLine">
+            <input
+              type="checkbox"
+              checked={bomRadio.enabled}
+              onChange={(e) => setBomRadio({ ...bomRadio, enabled: e.target.checked })}
+            />{" "}
+            Enable permanent BOM Radio
+          </label>
+          <button
+            className="goldButton"
+            onClick={async () => {
+              const r = await api("/api/internal/admin/bom-radio", {
+                method: "PUT",
+                body: JSON.stringify({
+                  voiceChannelId: bomRadio.voiceChannelId || null,
+                  streamUrl: bomRadio.streamUrl || null,
+                  enabled: bomRadio.enabled,
+                }),
+              });
+              setNotice(
+                r.ok
+                  ? "BOM Radio saved. Music account 8 will maintain the station when available."
+                  : `BOM Radio settings failed (${r.status}).`,
+              );
+            }}
+          >
+            Save 24/7 radio
+          </button>
+        </div>
+        <div className="radio24hDirectory">
+          <h4>Find a Live Station</h4>
+          <div className="buttonRow">
+            <input
+              value={radioSearch}
+              onChange={(e) => setRadioSearch(e.target.value)}
+              placeholder="Station name / city"
+            />
+            <button
+              className="outlineButton"
+              onClick={async () => {
+                const r = await api(`/api/internal/music/radio/search?q=${encodeURIComponent(radioSearch)}`);
+                if (r.ok) setRadioDirectory((await r.json()).stations ?? []);
+              }}
+            >
+              Search
+            </button>
+          </div>
+          <div className="radioResultGrid">
+            {radioDirectory.slice(0, 20).map((s: any) => (
+              <button key={s.id} onClick={() => setBomRadio({ ...bomRadio, streamUrl: s.streamUrl ?? "" })}>
+                <b>{s.name}</b>
+                <small>
+                  {s.countryCode} {s.state} · Select
+                </small>
+              </button>
+            ))}
+          </div>
+        </div>
+        <p className="muted">
+          This uses an independent radio voice session; other music accounts remain available for regular
+          listening. Streams depend on server playback support.
+        </p>
+      </section>
+      <section className="panelGrid">
+        <div className="panel">
+          <div className="panelHead">
+            <h3>Scheduled Radio</h3>
+            <span>5-field cron scheduler</span>
+          </div>
+          <form className="stackForm" onSubmit={addSchedule}>
+            <label>
+              Name
+              <input
+                value={schedule.name}
+                onChange={(e) => setSchedule({ ...schedule, name: e.target.value })}
+              />
+            </label>
+            <label>
+              Cron
+              <input
+                value={schedule.cronExpr}
+                onChange={(e) => setSchedule({ ...schedule, cronExpr: e.target.value })}
+              />
+            </label>
+            <label>
+              Timezone
+              <input
+                value={schedule.timezone}
+                onChange={(e) => setSchedule({ ...schedule, timezone: e.target.value })}
+              />
+            </label>
+            <label>
+              Profile
+              <select
+                value={schedule.profile}
+                onChange={(e) => setSchedule({ ...schedule, profile: e.target.value })}
+              >
+                {AUTOPLAY.map((x) => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Mood
+              <select
+                value={schedule.mood}
+                onChange={(e) => setSchedule({ ...schedule, mood: e.target.value })}
+              >
+                {MOODS.map((x) => (
+                  <option key={x}>{x}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Voice channel
+              <select
+                value={schedule.voiceChannelId}
+                onChange={(e) => setSchedule({ ...schedule, voiceChannelId: e.target.value })}
+              >
+                <option value="">Choose channel…</option>
+                {context.voiceChannels?.map((c: any) => (
+                  <option key={c.id} value={c.id}>
+                    🔊 {c.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="goldButton">Add schedule</button>
+          </form>
+          <div className="ruleList">
+            {radio.map((x) => (
+              <div key={x.id}>
+                <b>{x.name}</b>
+                <span>
+                  {x.cron_expr} · {x.timezone}
+                </span>
+                <small>{x.profile}</small>
+                <button
+                  onClick={async () => {
+                    await api(`/api/internal/admin/radio/${x.id}`, { method: "DELETE" });
+                    await load();
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="panel">
+          <div className="panelHead">
+            <h3>Station IDs</h3>
+            <span>optional BOM radio jingles</span>
+          </div>
+          <form className="stackForm" onSubmit={addStation}>
+            <label>
+              Name
+              <input
+                value={station.name}
+                onChange={(e) => setStation({ ...station, name: e.target.value })}
+              />
+            </label>
+            <label>
+              Direct audio URL
+              <input
+                value={station.audioUrl}
+                onChange={(e) => setStation({ ...station, audioUrl: e.target.value })}
+              />
+            </label>
+            <label>
+              Weight
+              <input
+                type="number"
+                min="1"
+                max="100"
+                value={station.weight}
+                onChange={(e) => setStation({ ...station, weight: Number(e.target.value) })}
+              />
+            </label>
+            <button className="goldButton">Add station ID</button>
+          </form>
+          <div className="ruleList">
+            {stations.map((x) => (
+              <div key={x.id}>
+                <b>{x.name}</b>
+                <span>weight {x.weight}</span>
+                <small>{x.enabled ? "Enabled" : "Disabled"}</small>
+                <button
+                  onClick={async () => {
+                    await api(`/api/internal/admin/station-ids/${x.id}`, { method: "DELETE" });
+                    await load();
+                  }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+      <section className="panel">
+        <div className="panelHead">
+          <h3>Achievement Studio</h3>
+          <span>defaults are editable and extensible</span>
+        </div>
+        <form className="customAchievementForm" onSubmit={addAchievement}>
+          <input
+            value={newAchievement.code}
+            onChange={(e) => setNewAchievement({ ...newAchievement, code: e.target.value })}
+            placeholder="CODE"
+          />
+          <input
+            value={newAchievement.icon}
+            onChange={(e) => setNewAchievement({ ...newAchievement, icon: e.target.value })}
+          />
+          <input
+            value={newAchievement.name}
+            onChange={(e) => setNewAchievement({ ...newAchievement, name: e.target.value })}
+          />
+          <input
+            value={newAchievement.description}
+            onChange={(e) => setNewAchievement({ ...newAchievement, description: e.target.value })}
+          />
+          <select
+            value={newAchievement.metric}
+            onChange={(e) => setNewAchievement({ ...newAchievement, metric: e.target.value })}
+          >
+            {["requests", "minutes", "likes", "favorites", "sessions"].map((x) => (
+              <option key={x}>{x}</option>
+            ))}
+          </select>
+          <input
+            type="number"
+            min="1"
+            value={newAchievement.threshold}
+            onChange={(e) => setNewAchievement({ ...newAchievement, threshold: Number(e.target.value) })}
+          />
+          <button className="goldButton">Add achievement</button>
+        </form>
+        <div className="achievementAdminGrid">
+          {achievements.map((a: any) => (
+            <article key={a.code}>
+              <div className="achievementTitle">
+                <input
+                  value={a.icon}
+                  onChange={(e) =>
+                    setAchievements((xs) =>
+                      xs.map((x) => (x.code === a.code ? { ...x, icon: e.target.value } : x)),
+                    )
+                  }
+                />
+                <b>{a.code}</b>
+              </div>
+              <input
+                value={a.name}
+                onChange={(e) =>
+                  setAchievements((xs) =>
+                    xs.map((x) => (x.code === a.code ? { ...x, name: e.target.value } : x)),
+                  )
+                }
+              />
+              <input
+                value={a.description}
+                onChange={(e) =>
+                  setAchievements((xs) =>
+                    xs.map((x) => (x.code === a.code ? { ...x, description: e.target.value } : x)),
+                  )
+                }
+              />
+              <div>
+                <select
+                  value={a.metric}
+                  onChange={(e) =>
+                    setAchievements((xs) =>
+                      xs.map((x) => (x.code === a.code ? { ...x, metric: e.target.value } : x)),
+                    )
+                  }
+                >
+                  {["requests", "minutes", "likes", "favorites", "sessions"].map((x) => (
+                    <option key={x}>{x}</option>
+                  ))}
+                </select>
+                <input
+                  type="number"
+                  min="1"
+                  value={a.threshold_value}
+                  onChange={(e) =>
+                    setAchievements((xs) =>
+                      xs.map((x) =>
+                        x.code === a.code ? { ...x, threshold_value: Number(e.target.value) } : x,
+                      ),
+                    )
+                  }
+                />
+              </div>
+              <label className="toggleLine">
+                <input
+                  type="checkbox"
+                  checked={Boolean(a.enabled)}
+                  onChange={(e) =>
+                    setAchievements((xs) =>
+                      xs.map((x) => (x.code === a.code ? { ...x, enabled: e.target.checked } : x)),
+                    )
+                  }
+                />{" "}
+                Enabled
+              </label>
+              <button onClick={() => void saveAchievement(a)}>Save</button>
+            </article>
+          ))}
+        </div>
+      </section>
+      <section className="panel">
+        <div className="panelHead">
+          <h3>Performance Telemetry</h3>
+          <span>persisted latency history · P50/P95/P99</span>
+        </div>
+        <div className="metricTrend" aria-label="Worker track-start trend">
+          {metrics.buckets?.map((b: any, i: number) => {
+            const max = Math.max(1, ...(metrics.buckets ?? []).map((x: any) => Number(x.avg || 0)));
+            return (
+              <i
+                key={i}
+                title={`${b.avg} ms · ${b.samples} samples`}
+                style={{ height: `${Math.max(5, (Number(b.avg || 0) / max) * 100)}%` }}
+              />
+            );
+          })}
+        </div>
+        <div className="metricCards">
+          {metrics.rows?.map((m: any) => (
+            <article key={m.metric}>
+              <small>{m.metric.replaceAll("_", " ")}</small>
+              <b>{m.avg_ms} ms</b>
+              <span>
+                {m.samples} samples · P50 {m.p50_ms} · P95 {m.p95_ms} · P99 {m.p99_ms}
+              </span>
+            </article>
+          ))}
+          {!metrics.rows?.length && <p className="muted">Metrics populate as music is used.</p>}
+        </div>
+      </section>
+    </div>
+  );
 }

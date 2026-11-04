@@ -1,4 +1,35 @@
 "use client";
-import {useRouter} from "next/navigation";
-import {useState} from "react";
-export default function SentinelRecoveryButton({eventId}:{eventId:string}){const router=useRouter();const [busy,setBusy]=useState(false),[error,setError]=useState("");async function preview(){setBusy(true);setError("");try{const r=await fetch(`/api/internal/sentinel/events/${eventId}/restore-preview`,{method:"POST",headers:{"content-type":"application/json"},body:"{}"});const j=await r.json().catch(()=>({}));if(!r.ok)throw new Error(j.error??`Preview failed (${r.status})`);router.push("/dashboard/sentinel");router.refresh();}catch(e:any){setError(e.message)}finally{setBusy(false)}}return <div className="buttonRow"><button className="goldButton" onClick={preview} disabled={busy}>{busy?"Preparing…":"Preview rollback"}</button>{error&&<small className="errorText">{error}</small>}</div>}
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+export default function SentinelRecoveryButton({ eventId }: { eventId: string }) {
+  const router = useRouter();
+  const [busy, setBusy] = useState(false),
+    [error, setError] = useState("");
+  async function preview() {
+    setBusy(true);
+    setError("");
+    try {
+      const r = await fetch(`/api/internal/sentinel/events/${eventId}/restore-preview`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: "{}",
+      });
+      const j = await r.json().catch(() => ({}));
+      if (!r.ok) throw new Error(j.error ?? `Preview failed (${r.status})`);
+      router.push("/dashboard/sentinel");
+      router.refresh();
+    } catch (e: any) {
+      setError(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <div className="buttonRow">
+      <button className="goldButton" onClick={preview} disabled={busy}>
+        {busy ? "Preparing…" : "Preview rollback"}
+      </button>
+      {error && <small className="errorText">{error}</small>}
+    </div>
+  );
+}

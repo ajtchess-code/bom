@@ -1,3 +1,104 @@
-'use client';
-import EventItemIcon from './EventItemIcon';
-export default function EventPatchNotes(){return <section id="halloween-rules" tabIndex={-1} className="opsCard eventPatchNotes eventAnchor"><span className="eventBadge tagINFO">2026 EVENT RULES</span><h2>Halloween · what matters before you sail</h2><p className="eventRulesAttribution">October 23, 2026 event announcement · Rules summarized below; farming recommendations are BOM guidance.</p><div className="eventRuleHighlights"><article><b>October 24–November 7</b><span>Published event dates · 14 calendar challenges</span></article><article><b>Captain rank 7+</b><span>Below rank 7: calendar locked; no Lollipop or holiday-map-piece drops</span></article><article><b>3 extra spending days</b><span>Spend by the November 10 grace-period date; verify the exact expiry in game</span></article></div><div className="eventRulesGrid"><article><h3>Lollipops: earning and safety</h3><p>Earn them through calendar quests, fishing, whaling, holiday and ordinary treasure maps, holiday ships, or the game store. The altar no longer drops them.</p><p>They cannot be traded, discarded overboard or stored in forts, and sinking does not remove them. Unspent currency disappears after the merchant grace period.</p></article><article><h3>Holiday maps: 7 pieces, up to 3 per day</h3><p>Imperial flagships and resource nodes supply pieces. Seven assemble one map; the 21st piece stops further drops until the next game day. At most three holiday maps can be collected and opened per day.</p><p>Hoard contents can include chests, fireworks, Coins, guns, fragments or Lollipops. The ordinary map-piece counters in the screenshot are separate systems.</p></article><article><h3>Calendar rewards</h3><p>Logging in awards the Jolly Quartet flag. Each of the 14 shuffled challenges grants 40 Lollipops; completing all 14 plus the 12-quest milestone gives 960 Lollipops.</p><p>Extra milestones: 3 quests → 150 Coins; 5 → Ghost Pirate decal; 7 → island decor; 12 → 400 Lollipops. At 9 quests, receive 14 premium days, or 200 Coins instead if you already have at least 30 premium days when claiming.</p></article><article><h3>Merchant highlights and limits</h3><p><EventItemIcon name="Al-Fatih"/>Al-Fatih is a new 3rd-rate warship with oars and a special bow gun. The event provides early access; other acquisition routes are planned later.</p><p><EventItemIcon name="Captain's Seal"/>The 3-, 7- and 30-day Seal offers can each be bought once for the entire event. Elite warrants come in bundles of one or three.</p><p>Other stock includes Ice Lantern, currencies, Imperial Blueprint, Volcanic Ore, Chest Keys, Heavy/Saxon Shot and cosmetic rewards. The in-game merchant is authoritative for availability.</p></article></div><details><summary>Farming notes and ordinary map references</summary><p>Holiday ships do award gold and Lollipops according to contribution, but BOM recommends whaling and Pumpkin collecting for a better use of farming time. Suspicious Pumpkins may also be hazardous.</p><div className="eventMapReferences">{[['merchant-map','Merchant Supply Map','Ordinary treasure map'],['pirate-map','Pirate Treasure Map','Ordinary treasure map'],['fanatic-map','Fanatic Camp Map','Ordinary treasure map']].map(([key,name,note])=><div key={key}><img src={`/event-guide/icons/${key}.png`} alt="" width="40" height="40"/><span><b>{name}</b><small>{note} · separate from the holiday-map daily cap</small></span></div>)}</div></details></section>;}
+"use client";
+import EventItemIcon from "./EventItemIcon";
+export default function EventPatchNotes() {
+  return (
+    <section id="halloween-rules" tabIndex={-1} className="opsCard eventPatchNotes eventAnchor">
+      <span className="eventBadge tagINFO">2026 EVENT RULES</span>
+      <h2>Halloween · what matters before you sail</h2>
+      <p className="eventRulesAttribution">
+        October 23, 2026 event announcement · Rules summarized below; farming recommendations are BOM
+        guidance.
+      </p>
+      <div className="eventRuleHighlights">
+        <article>
+          <b>October 24–November 7</b>
+          <span>Published event dates · 14 calendar challenges</span>
+        </article>
+        <article>
+          <b>Captain rank 7+</b>
+          <span>Below rank 7: calendar locked; no Lollipop or holiday-map-piece drops</span>
+        </article>
+        <article>
+          <b>3 extra spending days</b>
+          <span>Spend by the November 10 grace-period date; verify the exact expiry in game</span>
+        </article>
+      </div>
+      <div className="eventRulesGrid">
+        <article>
+          <h3>Lollipops: earning and safety</h3>
+          <p>
+            Earn them through calendar quests, fishing, whaling, holiday and ordinary treasure maps, holiday
+            ships, or the game store. The altar no longer drops them.
+          </p>
+          <p>
+            They cannot be traded, discarded overboard or stored in forts, and sinking does not remove them.
+            Unspent currency disappears after the merchant grace period.
+          </p>
+        </article>
+        <article>
+          <h3>Holiday maps: 7 pieces, up to 3 per day</h3>
+          <p>
+            Imperial flagships and resource nodes supply pieces. Seven assemble one map; the 21st piece stops
+            further drops until the next game day. At most three holiday maps can be collected and opened per
+            day.
+          </p>
+          <p>
+            Hoard contents can include chests, fireworks, Coins, guns, fragments or Lollipops. The ordinary
+            map-piece counters in the screenshot are separate systems.
+          </p>
+        </article>
+        <article>
+          <h3>Calendar rewards</h3>
+          <p>
+            Logging in awards the Jolly Quartet flag. Each of the 14 shuffled challenges grants 40 Lollipops;
+            completing all 14 plus the 12-quest milestone gives 960 Lollipops.
+          </p>
+          <p>
+            Extra milestones: 3 quests → 150 Coins; 5 → Ghost Pirate decal; 7 → island decor; 12 → 400
+            Lollipops. At 9 quests, receive 14 premium days, or 200 Coins instead if you already have at least
+            30 premium days when claiming.
+          </p>
+        </article>
+        <article>
+          <h3>Merchant highlights and limits</h3>
+          <p>
+            <EventItemIcon name="Al-Fatih" />
+            Al-Fatih is a new 3rd-rate warship with oars and a special bow gun. The event provides early
+            access; other acquisition routes are planned later.
+          </p>
+          <p>
+            <EventItemIcon name="Captain's Seal" />
+            The 3-, 7- and 30-day Seal offers can each be bought once for the entire event. Elite warrants
+            come in bundles of one or three.
+          </p>
+          <p>
+            Other stock includes Ice Lantern, currencies, Imperial Blueprint, Volcanic Ore, Chest Keys,
+            Heavy/Saxon Shot and cosmetic rewards. The in-game merchant is authoritative for availability.
+          </p>
+        </article>
+      </div>
+      <details>
+        <summary>Farming notes and ordinary map references</summary>
+        <p>
+          Holiday ships do award gold and Lollipops according to contribution, but BOM recommends whaling and
+          Pumpkin collecting for a better use of farming time. Suspicious Pumpkins may also be hazardous.
+        </p>
+        <div className="eventMapReferences">
+          {[
+            ["merchant-map", "Merchant Supply Map", "Ordinary treasure map"],
+            ["pirate-map", "Pirate Treasure Map", "Ordinary treasure map"],
+            ["fanatic-map", "Fanatic Camp Map", "Ordinary treasure map"],
+          ].map(([key, name, note]) => (
+            <div key={key}>
+              <img src={`/event-guide/icons/${key}.png`} alt="" width="40" height="40" />
+              <span>
+                <b>{name}</b>
+                <small>{note} · separate from the holiday-map daily cap</small>
+              </span>
+            </div>
+          ))}
+        </div>
+      </details>
+    </section>
+  );
+}

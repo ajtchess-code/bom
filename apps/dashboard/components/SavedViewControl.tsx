@@ -1,10 +1,119 @@
 "use client";
-import {useEffect,useRef,useState} from 'react';
-export default function SavedViewControl({section,state,onApply}:{section:string;state:any;onApply:(s:any)=>void}){
- const [views,setViews]=useState<any[]>([]),[name,setName]=useState(''),[selected,setSelected]=useState(''),[error,setError]=useState(''),[ready,setReady]=useState(false);const apply=useRef(onApply);apply.current=onApply;const serialized=JSON.stringify(state);
- const request=async(method='GET',body?:any)=>{const r=await fetch('/api/internal/saved-views/'+encodeURIComponent(section),{method,headers:{'content-type':'application/json'},body:body?JSON.stringify(body):undefined,cache:'no-store'});if(!r.ok)throw Error('Could not save or load this view.');return r.json()};
- useEffect(()=>{let live=true;request().then(x=>{if(!live)return;setViews(x.views);const last=x.views.find((v:any)=>v.name==='__last');if(last)apply.current(last.state);setReady(true)}).catch(e=>setError(e.message));return()=>{live=false}},[section]);
- useEffect(()=>{if(!ready)return;const timer=setTimeout(()=>{request('PUT',{name:'__last',state:JSON.parse(serialized)}).catch(e=>setError(e.message))},650);return()=>clearTimeout(timer)},[serialized,ready,section]);
- const save=async()=>{if(!name.trim()||name.trim()==='__last')return;try{await request('PUT',{name:name.trim(),state});const x=await request();setViews(x.views);setSelected(name.trim());setName('');setError('')}catch(e:any){setError(e.message)}};
- return <details className="savedViewControl"><summary>Views</summary><div><label>Saved view<select value={selected} onChange={e=>{setSelected(e.target.value);const v=views.find(x=>x.name===e.target.value);if(v)apply.current(v.state)}}><option value="">Choose view</option>{views.filter(v=>v.name!=='__last').map(v=><option key={v.name}>{v.name}</option>)}</select></label><label>Save current filters<input maxLength={40} value={name} onChange={e=>setName(e.target.value)} placeholder="View name"/></label><button className="goldButton" onClick={save} disabled={!name.trim()}>Save view</button><button className="outlineButton" disabled={!selected} onClick={async()=>{try{await request('DELETE',{name:selected});setViews((await request()).views);setSelected('')}catch(e:any){setError(e.message)}}}>Delete view</button><small>Filters are remembered automatically for your account.</small>{error&&<p role="alert">{error}</p>}</div></details>;
+import { useEffect, useRef, useState } from "react";
+export default function SavedViewControl({
+  section,
+  state,
+  onApply,
+}: {
+  section: string;
+  state: any;
+  onApply: (s: any) => void;
+}) {
+  const [views, setViews] = useState<any[]>([]),
+    [name, setName] = useState(""),
+    [selected, setSelected] = useState(""),
+    [error, setError] = useState(""),
+    [ready, setReady] = useState(false);
+  const apply = useRef(onApply);
+  apply.current = onApply;
+  const serialized = JSON.stringify(state);
+  const request = async (method = "GET", body?: any) => {
+    const r = await fetch("/api/internal/saved-views/" + encodeURIComponent(section), {
+      method,
+      headers: { "content-type": "application/json" },
+      body: body ? JSON.stringify(body) : undefined,
+      cache: "no-store",
+    });
+    if (!r.ok) throw Error("Could not save or load this view.");
+    return r.json();
+  };
+  useEffect(() => {
+    let live = true;
+    request()
+      .then((x) => {
+        if (!live) return;
+        setViews(x.views);
+        const last = x.views.find((v: any) => v.name === "__last");
+        if (last) apply.current(last.state);
+        setReady(true);
+      })
+      .catch((e) => setError(e.message));
+    return () => {
+      live = false;
+    };
+  }, [section]);
+  useEffect(() => {
+    if (!ready) return;
+    const timer = setTimeout(() => {
+      request("PUT", { name: "__last", state: JSON.parse(serialized) }).catch((e) => setError(e.message));
+    }, 650);
+    return () => clearTimeout(timer);
+  }, [serialized, ready, section]);
+  const save = async () => {
+    if (!name.trim() || name.trim() === "__last") return;
+    try {
+      await request("PUT", { name: name.trim(), state });
+      const x = await request();
+      setViews(x.views);
+      setSelected(name.trim());
+      setName("");
+      setError("");
+    } catch (e: any) {
+      setError(e.message);
+    }
+  };
+  return (
+    <details className="savedViewControl">
+      <summary>Views</summary>
+      <div>
+        <label>
+          Saved view
+          <select
+            value={selected}
+            onChange={(e) => {
+              setSelected(e.target.value);
+              const v = views.find((x) => x.name === e.target.value);
+              if (v) apply.current(v.state);
+            }}
+          >
+            <option value="">Choose view</option>
+            {views
+              .filter((v) => v.name !== "__last")
+              .map((v) => (
+                <option key={v.name}>{v.name}</option>
+              ))}
+          </select>
+        </label>
+        <label>
+          Save current filters
+          <input
+            maxLength={40}
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="View name"
+          />
+        </label>
+        <button className="goldButton" onClick={save} disabled={!name.trim()}>
+          Save view
+        </button>
+        <button
+          className="outlineButton"
+          disabled={!selected}
+          onClick={async () => {
+            try {
+              await request("DELETE", { name: selected });
+              setViews((await request()).views);
+              setSelected("");
+            } catch (e: any) {
+              setError(e.message);
+            }
+          }}
+        >
+          Delete view
+        </button>
+        <small>Filters are remembered automatically for your account.</small>
+        {error && <p role="alert">{error}</p>}
+      </div>
+    </details>
+  );
 }

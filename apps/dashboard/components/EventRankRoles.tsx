@@ -1,4 +1,144 @@
-'use client';
-import {useEffect,useState} from 'react';import {operationsApi} from './operationsApi';import {HalloweenSwitch} from './EventWorkspace';
-export default function EventRankRoles({canManage}:{canManage:boolean}){const [data,setData]=useState<any>(null),[enabled,setEnabled]=useState(true),[source,setSource]=useState('BOTH'),[busy,setBusy]=useState(false),[notice,setNotice]=useState('');async function load(){const d=await operationsApi('event-tool/rank-roles');setData(d);setEnabled(d.settings.enabled);setSource(d.settings.source);}useEffect(()=>{void load().catch(e=>setNotice(e.message));},[]);return <section className="opsCard eventRankRoles"><details><summary>Halloween Medals, Ribbons & Rank Roles</summary><p>Nine ranks for progress and nine for Heavy Shot donations. Your roles follow your current standings; a player can hold one from each leaderboard.</p>{notice&&<p role="status">{notice}</p>}<div className="eventRankBadgeGrid">{data?.styles.map((s:any)=><article key={s.rank} style={{borderColor:s.primary}}><img src={`/event-guide/ranks/rank-${s.rank}.png`} width="80" height="80" alt={`Rank ${s.rank} medal with ribbon`}/><div><b>#{s.rank} · {s.name}</b><span className="eventGradientSwatch" style={{background:`linear-gradient(110deg,${s.primary},${s.secondary})`}}/><small>{s.primary} → {s.secondary}</small></div></article>)}</div>{canManage&&data&&<div className="eventRankControls"><label>Assign rank roles automatically<HalloweenSwitch checked={enabled} onChange={()=>setEnabled(v=>!v)} label="Assign Halloween rank roles" disabled={busy}/></label><label>Leaderboard roles<select value={source} onChange={e=>setSource(e.target.value)}><option value="BOTH">Both · 18 roles</option><option value="PROGRESS">Progress · 9 roles</option><option value="DONATIONS">Heavy Shot · 9 roles</option></select></label><button disabled={busy} onClick={()=>{setBusy(true);void operationsApi('event-tool/rank-roles',{method:'PUT',body:JSON.stringify({enabled,source})}).then(()=>{setNotice('Rank-role settings saved. Assignments refresh within one minute.');return load();}).catch(e=>setNotice(e.message)).finally(()=>setBusy(false));}}>Save Rank Roles</button><small>{data.sync?.last_sync_at?'Last synchronized '+new Date(data.sync.last_sync_at).toLocaleString():'Waiting for the bot’s first rank synchronization.'}{data.sync?.error?' · '+data.sync.error:''}</small>{data.sync&&<small>Discord features: {data.sync.features.gradients?'Gradients available':'Solid primary colors used; enhanced role colors unavailable'} · {data.sync.features.icons?'Role icons available':'Custom role icons unavailable on this server'}. Displayed name colors depend on your Discord role hierarchy.</small>}</div>}</details></section>;}
-export function EventBrandingAssets(){const files=[['evil-misfit-avatar','Bot avatar'],['evil-misfit-banner','Bot banner'],['evil-misfit-role-icon','Bot role icon'],['halloween-server-background','Server background'],['halloween-server-banner','Server banner'],['halloween-guild-logo','Guild logo']];return <section className="opsCard"><details><summary>Halloween Branding · Download Assets</summary><p>The controller applies the Evil Misfit name, avatar, banner and bot role on restart. Server artwork is ready to upload in Discord’s Server Settings.</p><div className="eventBrandingGrid">{files.map(([file,label])=><a key={file} href={`/event-guide/branding/${file}.png`} download={file+'.png'}><img src={`/event-guide/branding/${file}.png`} alt={label} width="160" height="100"/><b>{label}</b><small>Download PNG</small></a>)}</div></details></section>;}
+"use client";
+import { useEffect, useState } from "react";
+import { operationsApi } from "./operationsApi";
+import { HalloweenSwitch } from "./EventWorkspace";
+export default function EventRankRoles({ canManage }: { canManage: boolean }) {
+  const [data, setData] = useState<any>(null),
+    [enabled, setEnabled] = useState(true),
+    [source, setSource] = useState("BOTH"),
+    [busy, setBusy] = useState(false),
+    [notice, setNotice] = useState("");
+  async function load() {
+    const d = await operationsApi("event-tool/rank-roles");
+    setData(d);
+    setEnabled(d.settings.enabled);
+    setSource(d.settings.source);
+  }
+  useEffect(() => {
+    void load().catch((e) => setNotice(e.message));
+  }, []);
+  return (
+    <section className="opsCard eventRankRoles">
+      <details>
+        <summary>Halloween Medals, Ribbons & Rank Roles</summary>
+        <p>
+          Nine ranks for progress and nine for Heavy Shot donations. Your roles follow your current standings;
+          a player can hold one from each leaderboard.
+        </p>
+        {notice && <p role="status">{notice}</p>}
+        <div className="eventRankBadgeGrid">
+          {data?.styles.map((s: any) => (
+            <article key={s.rank} style={{ borderColor: s.primary }}>
+              <img
+                src={`/event-guide/ranks/rank-${s.rank}.png`}
+                width="80"
+                height="80"
+                alt={`Rank ${s.rank} medal with ribbon`}
+              />
+              <div>
+                <b>
+                  #{s.rank} · {s.name}
+                </b>
+                <span
+                  className="eventGradientSwatch"
+                  style={{ background: `linear-gradient(110deg,${s.primary},${s.secondary})` }}
+                />
+                <small>
+                  {s.primary} → {s.secondary}
+                </small>
+              </div>
+            </article>
+          ))}
+        </div>
+        {canManage && data && (
+          <div className="eventRankControls">
+            <label>
+              Assign rank roles automatically
+              <HalloweenSwitch
+                checked={enabled}
+                onChange={() => setEnabled((v) => !v)}
+                label="Assign Halloween rank roles"
+                disabled={busy}
+              />
+            </label>
+            <label>
+              Leaderboard roles
+              <select value={source} onChange={(e) => setSource(e.target.value)}>
+                <option value="BOTH">Both · 18 roles</option>
+                <option value="PROGRESS">Progress · 9 roles</option>
+                <option value="DONATIONS">Heavy Shot · 9 roles</option>
+              </select>
+            </label>
+            <button
+              disabled={busy}
+              onClick={() => {
+                setBusy(true);
+                void operationsApi("event-tool/rank-roles", {
+                  method: "PUT",
+                  body: JSON.stringify({ enabled, source }),
+                })
+                  .then(() => {
+                    setNotice("Rank-role settings saved. Assignments refresh within one minute.");
+                    return load();
+                  })
+                  .catch((e) => setNotice(e.message))
+                  .finally(() => setBusy(false));
+              }}
+            >
+              Save Rank Roles
+            </button>
+            <small>
+              {data.sync?.last_sync_at
+                ? "Last synchronized " + new Date(data.sync.last_sync_at).toLocaleString()
+                : "Waiting for the bot’s first rank synchronization."}
+              {data.sync?.error ? " · " + data.sync.error : ""}
+            </small>
+            {data.sync && (
+              <small>
+                Discord features:{" "}
+                {data.sync.features.gradients
+                  ? "Gradients available"
+                  : "Solid primary colors used; enhanced role colors unavailable"}{" "}
+                ·{" "}
+                {data.sync.features.icons
+                  ? "Role icons available"
+                  : "Custom role icons unavailable on this server"}
+                . Displayed name colors depend on your Discord role hierarchy.
+              </small>
+            )}
+          </div>
+        )}
+      </details>
+    </section>
+  );
+}
+export function EventBrandingAssets() {
+  const files = [
+    ["evil-misfit-avatar", "Bot avatar"],
+    ["evil-misfit-banner", "Bot banner"],
+    ["evil-misfit-role-icon", "Bot role icon"],
+    ["halloween-server-background", "Server background"],
+    ["halloween-server-banner", "Server banner"],
+    ["halloween-guild-logo", "Guild logo"],
+  ];
+  return (
+    <section className="opsCard">
+      <details>
+        <summary>Halloween Branding · Download Assets</summary>
+        <p>
+          The controller applies the Evil Misfit name, avatar, banner and bot role on restart. Server artwork
+          is ready to upload in Discord’s Server Settings.
+        </p>
+        <div className="eventBrandingGrid">
+          {files.map(([file, label]) => (
+            <a key={file} href={`/event-guide/branding/${file}.png`} download={file + ".png"}>
+              <img src={`/event-guide/branding/${file}.png`} alt={label} width="160" height="100" />
+              <b>{label}</b>
+              <small>Download PNG</small>
+            </a>
+          ))}
+        </div>
+      </details>
+    </section>
+  );
+}

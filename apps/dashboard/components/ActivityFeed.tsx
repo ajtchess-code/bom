@@ -1,5 +1,57 @@
 "use client";
-import {useEffect,useState} from "react";
+import { useEffect, useState } from "react";
 
-function ago(v:any){const ms=Date.now()-+new Date(v),m=Math.floor(ms/60000);if(m<1)return"just now";if(m<60)return`${m}m`;const h=Math.floor(m/60);if(h<24)return`${h}h`;return`${Math.floor(h/24)}d`;}
-export default function ActivityFeed({limit=12}:{limit?:number}){const [rows,setRows]=useState<any[]>([]),[loading,setLoading]=useState(true);useEffect(()=>{fetch('/api/internal/platform/activity',{cache:'no-store'}).then(async r=>r.ok?setRows(await r.json()):null).finally(()=>setLoading(false));},[]);return <section className="panel activityFeed"><div className="panelHead"><div><span className="cardKicker">ACTIVITY</span><h3>Guild Activity</h3></div><span>Shared operational feed</span></div>{loading?<div className="uiSkeleton"><i/><i/><i/></div>:<div className="activityRows">{rows.slice(0,limit).map(r=><article key={r.id}><span className={`activityDot ${r.severity??'info'}`}/><div><b>{r.title}</b>{r.summary&&<small>{r.summary}</small>}</div><em>{ago(r.created_at)}</em></article>)}{!rows.length&&<p className="muted">Important guild changes will appear here as systems begin emitting events.</p>}</div>}</section>}
+function ago(v: any) {
+  const ms = Date.now() - +new Date(v),
+    m = Math.floor(ms / 60000);
+  if (m < 1) return "just now";
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  if (h < 24) return `${h}h`;
+  return `${Math.floor(h / 24)}d`;
+}
+export default function ActivityFeed({ limit = 12 }: { limit?: number }) {
+  const [rows, setRows] = useState<any[]>([]),
+    [loading, setLoading] = useState(true);
+  useEffect(() => {
+    fetch("/api/internal/platform/activity", { cache: "no-store" })
+      .then(async (r) => (r.ok ? setRows(await r.json()) : null))
+      .finally(() => setLoading(false));
+  }, []);
+  return (
+    <section className="panel activityFeed">
+      <div className="panelHead">
+        <div>
+          <span className="cardKicker">ACTIVITY</span>
+          <h3>Guild Activity</h3>
+        </div>
+        <span>Shared operational feed</span>
+      </div>
+      {loading ? (
+        <div className="uiSkeleton">
+          <i />
+          <i />
+          <i />
+        </div>
+      ) : (
+        <div className="activityRows">
+          {rows.slice(0, limit).map((r) => (
+            <article key={r.id}>
+              <span className={`activityDot ${r.severity ?? "info"}`} />
+              <div>
+                <b>{r.title}</b>
+                {r.summary && <small>{r.summary}</small>}
+              </div>
+              <em>{ago(r.created_at)}</em>
+            </article>
+          ))}
+          {!rows.length && (
+            <p className="muted">
+              Important guild changes will appear here as systems begin emitting events.
+            </p>
+          )}
+        </div>
+      )}
+    </section>
+  );
+}

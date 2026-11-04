@@ -2,21 +2,16 @@
 import ScheduleMessagePreview from "../DiscordPayloadPreview";
 import SavedViewControl from "../SavedViewControl";
 import BattleCoordination from "../BattleCoordination";
-import BattleHourButtons from '../BattleHourButtons';
+import BattleHourButtons from "../BattleHourButtons";
 import CancelPortBattle from "../CancelPortBattle";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {createPortal} from "react-dom";
+import { createPortal } from "react-dom";
 import PortBattleInvitations from "../PortBattleInvitations";
 import TerritoryMap from "../TerritoryMap";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  emitInspector,
-  emitRecent,
-  emitToast,
-  usePersistedState,
-} from "@/lib/dashboardQoL";
-import {rateLabel,shiftedLocalDate,gameSelectionToIso,gameSelectionFromIso} from "./helpers";
+import { emitInspector, emitRecent, emitToast, usePersistedState } from "@/lib/dashboardQoL";
+import { rateLabel, shiftedLocalDate, gameSelectionToIso, gameSelectionFromIso } from "./helpers";
 
 export function CreateBattle({
   activeBattles,
@@ -42,8 +37,7 @@ export function CreateBattle({
     [date, setDate] = useState(shiftedLocalDate()),
     [hour, setHour] = useState(19);
   useEffect(() => {
-    if (ownerTags?.length && !ownerTags.includes(signupGuild))
-      setSignupGuild(ownerTags[0]);
+    if (ownerTags?.length && !ownerTags.includes(signupGuild)) setSignupGuild(ownerTags[0]);
   }, [ownerTags, signupGuild]);
   const port = ports.find((p: any) => p.name === portName);
   return (
@@ -79,12 +73,7 @@ export function CreateBattle({
             onChange={(e) => setSignupGuild(e.target.value)}
           >
             {(
-              ownerTags ?? [
-                "BOM",
-                ...guilds
-                  .filter((g) => g.allied && g.tag !== "BOM")
-                  .map((g) => g.tag),
-              ]
+              ownerTags ?? ["BOM", ...guilds.filter((g) => g.allied && g.tag !== "BOM").map((g) => g.tag)]
             ).map((tag) => (
               <option key={tag} value={tag}>
                 {tag}
@@ -94,11 +83,7 @@ export function CreateBattle({
         </label>
         <label>
           Port
-          <select
-            required
-            value={portName}
-            onChange={(e) => setPortName(e.target.value)}
-          >
+          <select required value={portName} onChange={(e) => setPortName(e.target.value)}>
             <option value="">Choose Port…</option>
             {ports.map((p: any) => (
               <option key={p.entityKey ?? p.name} value={p.name}>
@@ -121,18 +106,8 @@ export function CreateBattle({
             </span>
           </div>
         )}
-        <GuildSelector
-          label="Attacker"
-          value={attacker}
-          onChange={setAttacker}
-          guilds={guilds}
-        />
-        <GuildSelector
-          label="Defender"
-          value={defender}
-          onChange={setDefender}
-          guilds={guilds}
-        />
+        <GuildSelector label="Attacker" value={attacker} onChange={setAttacker} guilds={guilds} />
+        <GuildSelector label="Defender" value={defender} onChange={setDefender} guilds={guilds} />
         <label>
           Battle Date
           <div className="pbDateQuick">
@@ -151,30 +126,38 @@ export function CreateBattle({
               Tomorrow
             </button>
           </div>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </label>
         <label>
           Battle Time · In-Game
-          <BattleHourButtons value={hour} onChange={setHour}/>
+          <BattleHourButtons value={hour} onChange={setHour} />
           <small>
-            Choose the hour exactly as it appears in-game. BOM applies the
-            configured clock offset, then Discord displays the resulting instant
-            correctly for every viewer.
+            Choose the hour exactly as it appears in-game. BOM applies the configured clock offset, then
+            Discord displays the resulting instant correctly for every viewer.
           </small>
         </label>
-        {port&&<ScheduleMessagePreview active={activeBattles} guilds={guilds} battle={{id:'preview',port_name:port.name,rate:port.rate,team_size:port.size??port.team_size,attacker,defender,signup_guild:signupGuild,status:'OPEN',starts_at:gameSelectionToIso(date,hour,gameTimeOffsetMinutes)}}/>}
+        {port && (
+          <ScheduleMessagePreview
+            active={activeBattles}
+            guilds={guilds}
+            battle={{
+              id: "preview",
+              port_name: port.name,
+              rate: port.rate,
+              team_size: port.size ?? port.team_size,
+              attacker,
+              defender,
+              signup_guild: signupGuild,
+              status: "OPEN",
+              starts_at: gameSelectionToIso(date, hour, gameTimeOffsetMinutes),
+            }}
+          />
+        )}
         <div className="controlRow">
           <button type="button" className="outlineButton" onClick={onClose}>
             Cancel
           </button>
-          <button
-            className="goldButton"
-            disabled={!portName || !attacker || !defender}
-          >
+          <button className="goldButton" disabled={!portName || !attacker || !defender}>
             Schedule Port Battle
           </button>
         </div>
@@ -211,7 +194,7 @@ export function GuildSelector({
       <select value={value} onChange={(e) => onChange(e.target.value)} required>
         <option value="">Choose Guild…</option>
         {guilds.map((g: any) => (
-          <option key={g.reference||g.tag} value={g.reference||g.tag}>
+          <option key={g.reference || g.tag} value={g.reference || g.tag}>
             {g.tag}
             {g.name && g.name !== g.tag ? ` · ${g.name}` : ""}
             {g.faction ? ` · ${g.faction}` : ""}
@@ -260,9 +243,7 @@ export function ManageBattleModal({
               .map((x) => x.trim())
               .filter(Boolean);
           void onSave({
-            signupGuild: String(
-              fd.get("signupGuild") ?? battle.signup_guild ?? "BOM",
-            ),
+            signupGuild: String(fd.get("signupGuild") ?? battle.signup_guild ?? "BOM"),
             portName,
             attacker,
             defender,
@@ -286,11 +267,7 @@ export function ManageBattleModal({
         {allowOwnerChange && (
           <label>
             Signup guild
-            <select
-              aria-label="Signup guild"
-              name="signupGuild"
-              defaultValue={battle.signup_guild ?? "BOM"}
-            >
+            <select aria-label="Signup guild" name="signupGuild" defaultValue={battle.signup_guild ?? "BOM"}>
               {[
                 ...new Set([
                   "BOM",
@@ -307,10 +284,7 @@ export function ManageBattleModal({
         )}
         <label>
           Port
-          <select
-            value={portName}
-            onChange={(e) => setPortName(e.target.value)}
-          >
+          <select value={portName} onChange={(e) => setPortName(e.target.value)}>
             {ports.map((p: any) => (
               <option key={p.entityKey ?? p.name} value={p.name}>
                 {p.name} · {rateLabel(p.rate)} · {p.size}v{p.size}
@@ -332,18 +306,8 @@ export function ManageBattleModal({
             </span>
           </div>
         )}
-        <GuildSelector
-          label="Attacker"
-          value={attacker}
-          onChange={setAttacker}
-          guilds={guilds}
-        />
-        <GuildSelector
-          label="Defender"
-          value={defender}
-          onChange={setDefender}
-          guilds={guilds}
-        />
+        <GuildSelector label="Attacker" value={attacker} onChange={setAttacker} guilds={guilds} />
+        <GuildSelector label="Defender" value={defender} onChange={setDefender} guilds={guilds} />
         <label>
           Battle Date
           <div className="pbDateQuick">
@@ -354,15 +318,11 @@ export function ManageBattleModal({
               Tomorrow
             </button>
           </div>
-          <input
-            type="date"
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
-          />
+          <input type="date" value={date} onChange={(e) => setDate(e.target.value)} />
         </label>
         <label>
           Battle Time · In-Game
-          <BattleHourButtons value={hour} onChange={setHour}/>
+          <BattleHourButtons value={hour} onChange={setHour} />
         </label>
         <label>
           Status
@@ -408,4 +368,3 @@ export function ManageBattleModal({
     </div>
   );
 }
-

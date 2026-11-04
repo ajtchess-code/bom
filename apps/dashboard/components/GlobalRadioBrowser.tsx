@@ -1,21 +1,189 @@
 "use client";
-import {useState,type FormEvent} from "react";
+import { useState, type FormEvent } from "react";
 
-type Props={kind:'radio'|'podcasts';queue:(stream:string)=>Promise<any>;canQueue:boolean};
-const qs=(obj:Record<string,string>)=>new URLSearchParams(Object.entries(obj).filter(([,v])=>v.trim())).toString();
-export default function GlobalRadioBrowser({kind,queue,canQueue}:Props){
-  const [term,setTerm]=useState(""),[country,setCountry]=useState(""),[state,setState]=useState(""),[city,setCity]=useState(""),[genre,setGenre]=useState(""),[language,setLanguage]=useState(""),[rows,setRows]=useState<any[]>([]),[episodes,setEpisodes]=useState<any[]>([]),[selected,setSelected]=useState<any>(null),[busy,setBusy]=useState(false),[error,setError]=useState("");
-  async function search(e?:FormEvent){e?.preventDefault();setBusy(true);setError("");setSelected(null);setEpisodes([]);try{
-    const query=kind==='radio'?qs({q:term,country,state,city,genre,language}):qs({q:term,country});
-    if(kind==='podcasts'&&term.trim().length<2){setError('Enter a podcast title, topic or host.');return;}
-    const r=await fetch(`/api/internal/music/${kind==='radio'?'radio':'podcasts'}/search?${query}`,{cache:'no-store'});const x=await r.json();if(!r.ok)throw new Error(x.error??'Search unavailable');setRows(x.stations??x.podcasts??[]);
-  }catch(err:any){setError(err.message);}finally{setBusy(false);}}
-  async function openPodcast(p:any){setSelected(p);setEpisodes([]);setBusy(true);setError("");try{const r=await fetch(`/api/internal/music/podcasts/episodes?id=${p.id}`);const x=await r.json();if(!r.ok)throw new Error(x.error??'Episodes unavailable');setEpisodes(x.episodes??[]);}catch(err:any){setError(err.message);}finally{setBusy(false);}}
-  const play=async(url:string|null)=>{if(!url||!canQueue)return;try{await queue(url);}catch(err:any){setError(err.message??'Could not add to queue.');}};
-  return <section className="panel globalAudioBrowser"><div className="panelHead"><div><span className="cardKicker">WORLDWIDE AUDIO</span><h3>{kind==='radio'?'Radio Directory':'Podcasts'}</h3><span>{kind==='radio'?'Browse global broadcasts by place and genre.':'Find podcasts and select individual episodes to stream.'}</span></div></div><form className="radioSearch" onSubmit={search}><label>Search<input value={term} onChange={e=>setTerm(e.target.value)} placeholder={kind==='radio'?'Station name or city':'Podcast or host name'}/></label><label>Country code<input value={country} onChange={e=>setCountry(e.target.value.slice(0,3).toUpperCase())} placeholder="US, KR, CN, ES" maxLength={3}/></label>{kind==='radio'&&<><label>State / region<input value={state} onChange={e=>setState(e.target.value)} placeholder="Texas / Bavaria"/></label><label>City / town<input value={city} onChange={e=>setCity(e.target.value)} placeholder="Austin"/></label><label>Genre<input value={genre} onChange={e=>setGenre(e.target.value)} placeholder="Jazz, rock, news"/></label><label>Language<input value={language} onChange={e=>setLanguage(e.target.value)} placeholder="Korean, Spanish…"/></label></>}<button className="goldButton" disabled={busy}>{busy?'Searching…':'Search'}</button></form>
-    {error&&<p className="notice" role="alert">{error}</p>}
-    {kind==='radio'&&<p className="muted">Station location data varies by provider. City searches match station names when city metadata is unavailable. Streaming depends on each station and the available audio decoders.</p>}
-    <div className="radioResultGrid">{rows.map(row=><article key={row.id} className="radioResult"><div className="radioResultIcon">{(row.favicon||row.artwork)?<img src={row.favicon||row.artwork} alt=""/>:'♫'}</div><div><b>{row.name??row.title}</b><small>{row.country||row.countryCode||row.author}{row.state?` · ${row.state}`:''}</small><small>{row.tags||row.genres?.slice(0,3).join(' · ')||''}</small></div>{kind==='radio'?<button disabled={!canQueue||!row.streamUrl} onClick={()=>void play(row.streamUrl)}>▶ Play</button>:<button onClick={()=>void openPodcast(row)}>Episodes</button>}</article>)}</div>
-    {kind==='podcasts'&&selected&&<div className="podcastEpisodes"><h3>{selected.title} · Episodes</h3>{episodes.map(e=><article key={e.id}><div><b>{e.title}</b><small>{e.date?new Date(e.date).toLocaleDateString():''} · {Math.round(e.durationMs/60000)} min</small></div><button disabled={!canQueue||!e.audioUrl} onClick={()=>void play(e.audioUrl)}>▶ Queue episode</button></article>)}{!busy&&!episodes.length&&<p className="uiEmpty">No publicly streamable episodes returned.</p>}</div>}
-  </section>;
+type Props = { kind: "radio" | "podcasts"; queue: (stream: string) => Promise<any>; canQueue: boolean };
+const qs = (obj: Record<string, string>) =>
+  new URLSearchParams(Object.entries(obj).filter(([, v]) => v.trim())).toString();
+export default function GlobalRadioBrowser({ kind, queue, canQueue }: Props) {
+  const [term, setTerm] = useState(""),
+    [country, setCountry] = useState(""),
+    [state, setState] = useState(""),
+    [city, setCity] = useState(""),
+    [genre, setGenre] = useState(""),
+    [language, setLanguage] = useState(""),
+    [rows, setRows] = useState<any[]>([]),
+    [episodes, setEpisodes] = useState<any[]>([]),
+    [selected, setSelected] = useState<any>(null),
+    [busy, setBusy] = useState(false),
+    [error, setError] = useState("");
+  async function search(e?: FormEvent) {
+    e?.preventDefault();
+    setBusy(true);
+    setError("");
+    setSelected(null);
+    setEpisodes([]);
+    try {
+      const query =
+        kind === "radio" ? qs({ q: term, country, state, city, genre, language }) : qs({ q: term, country });
+      if (kind === "podcasts" && term.trim().length < 2) {
+        setError("Enter a podcast title, topic or host.");
+        return;
+      }
+      const r = await fetch(
+        `/api/internal/music/${kind === "radio" ? "radio" : "podcasts"}/search?${query}`,
+        { cache: "no-store" },
+      );
+      const x = await r.json();
+      if (!r.ok) throw new Error(x.error ?? "Search unavailable");
+      setRows(x.stations ?? x.podcasts ?? []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function openPodcast(p: any) {
+    setSelected(p);
+    setEpisodes([]);
+    setBusy(true);
+    setError("");
+    try {
+      const r = await fetch(`/api/internal/music/podcasts/episodes?id=${p.id}`);
+      const x = await r.json();
+      if (!r.ok) throw new Error(x.error ?? "Episodes unavailable");
+      setEpisodes(x.episodes ?? []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const play = async (url: string | null) => {
+    if (!url || !canQueue) return;
+    try {
+      await queue(url);
+    } catch (err: any) {
+      setError(err.message ?? "Could not add to queue.");
+    }
+  };
+  return (
+    <section className="panel globalAudioBrowser">
+      <div className="panelHead">
+        <div>
+          <span className="cardKicker">WORLDWIDE AUDIO</span>
+          <h3>{kind === "radio" ? "Radio Directory" : "Podcasts"}</h3>
+          <span>
+            {kind === "radio"
+              ? "Browse global broadcasts by place and genre."
+              : "Find podcasts and select individual episodes to stream."}
+          </span>
+        </div>
+      </div>
+      <form className="radioSearch" onSubmit={search}>
+        <label>
+          Search
+          <input
+            value={term}
+            onChange={(e) => setTerm(e.target.value)}
+            placeholder={kind === "radio" ? "Station name or city" : "Podcast or host name"}
+          />
+        </label>
+        <label>
+          Country code
+          <input
+            value={country}
+            onChange={(e) => setCountry(e.target.value.slice(0, 3).toUpperCase())}
+            placeholder="US, KR, CN, ES"
+            maxLength={3}
+          />
+        </label>
+        {kind === "radio" && (
+          <>
+            <label>
+              State / region
+              <input value={state} onChange={(e) => setState(e.target.value)} placeholder="Texas / Bavaria" />
+            </label>
+            <label>
+              City / town
+              <input value={city} onChange={(e) => setCity(e.target.value)} placeholder="Austin" />
+            </label>
+            <label>
+              Genre
+              <input
+                value={genre}
+                onChange={(e) => setGenre(e.target.value)}
+                placeholder="Jazz, rock, news"
+              />
+            </label>
+            <label>
+              Language
+              <input
+                value={language}
+                onChange={(e) => setLanguage(e.target.value)}
+                placeholder="Korean, Spanish…"
+              />
+            </label>
+          </>
+        )}
+        <button className="goldButton" disabled={busy}>
+          {busy ? "Searching…" : "Search"}
+        </button>
+      </form>
+      {error && (
+        <p className="notice" role="alert">
+          {error}
+        </p>
+      )}
+      {kind === "radio" && (
+        <p className="muted">
+          Station location data varies by provider. City searches match station names when city metadata is
+          unavailable. Streaming depends on each station and the available audio decoders.
+        </p>
+      )}
+      <div className="radioResultGrid">
+        {rows.map((row) => (
+          <article key={row.id} className="radioResult">
+            <div className="radioResultIcon">
+              {row.favicon || row.artwork ? <img src={row.favicon || row.artwork} alt="" /> : "♫"}
+            </div>
+            <div>
+              <b>{row.name ?? row.title}</b>
+              <small>
+                {row.country || row.countryCode || row.author}
+                {row.state ? ` · ${row.state}` : ""}
+              </small>
+              <small>{row.tags || row.genres?.slice(0, 3).join(" · ") || ""}</small>
+            </div>
+            {kind === "radio" ? (
+              <button disabled={!canQueue || !row.streamUrl} onClick={() => void play(row.streamUrl)}>
+                ▶ Play
+              </button>
+            ) : (
+              <button onClick={() => void openPodcast(row)}>Episodes</button>
+            )}
+          </article>
+        ))}
+      </div>
+      {kind === "podcasts" && selected && (
+        <div className="podcastEpisodes">
+          <h3>{selected.title} · Episodes</h3>
+          {episodes.map((e) => (
+            <article key={e.id}>
+              <div>
+                <b>{e.title}</b>
+                <small>
+                  {e.date ? new Date(e.date).toLocaleDateString() : ""} · {Math.round(e.durationMs / 60000)}{" "}
+                  min
+                </small>
+              </div>
+              <button disabled={!canQueue || !e.audioUrl} onClick={() => void play(e.audioUrl)}>
+                ▶ Queue episode
+              </button>
+            </article>
+          ))}
+          {!busy && !episodes.length && <p className="uiEmpty">No publicly streamable episodes returned.</p>}
+        </div>
+      )}
+    </section>
+  );
 }

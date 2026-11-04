@@ -1,4 +1,41 @@
-import {getSession} from '@/lib/session';
-import Link from 'next/link';
-import styles from './login.module.css';
-export default async function Home(){const session=await getSession();return <main className={styles.deck}><div className={styles.backdrop}/><header className={styles.header}><a href="/" aria-label="Band of Misfits"><img src="/branding/defaults/bom-logo.png" alt=""/><span>Band of Misfits</span></a></header><section className={styles.content}><div className={styles.card}><span className={styles.eyebrow}>BAND OF MISFITS</span><h1>Welcome Aboard.</h1><p>Your Crew. Your Dashboard.</p>{session?<Link className={styles.signIn} href="/dashboard">Open Dashboard <span aria-hidden="true">→</span></Link>:<a className={styles.signIn} href="/api/auth/discord/start"><svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true"><path fill="currentColor" d="M20 2a19 19 0 0 0-5-2l-.6 1.3a18 18 0 0 0-4.8 0L9 0a19 19 0 0 0-5 2C1 7 0 12 1 17a20 20 0 0 0 6 3l1-2-2-1 1-.5a16 16 0 0 0 10 0l1 .5-2 1 1 2a20 20 0 0 0 6-3c1-5 0-10-3-15ZM8 13c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2Zm8 0c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2Z"/></svg>Continue With Discord <span aria-hidden="true">→</span></a>}<small>Secure Discord Sign-In</small></div></section><footer className={styles.footer}>© Band of Misfits</footer></main>}
+import { getSession } from "@/lib/session";
+import Link from "next/link";
+import styles from "./login.module.css";
+export default async function Home() {
+  const session = await getSession();
+  return (
+    <main className={styles.deck}>
+      <div className={styles.backdrop} />
+      <header className={styles.header}>
+        <a href="/" aria-label="Band of Misfits">
+          <img src="/branding/defaults/bom-logo.png" alt="" />
+          <span>Band of Misfits</span>
+        </a>
+      </header>
+      <section className={styles.content}>
+        <div className={styles.card}>
+          <span className={styles.eyebrow}>BAND OF MISFITS</span>
+          <h1>Welcome Aboard.</h1>
+          <p>Your Crew. Your Dashboard.</p>
+          {session ? (
+            <Link className={styles.signIn} href="/dashboard">
+              Open Dashboard <span aria-hidden="true">→</span>
+            </Link>
+          ) : (
+            <a className={styles.signIn} href="/api/auth/discord/start">
+              <svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true">
+                <path
+                  fill="currentColor"
+                  d="M20 2a19 19 0 0 0-5-2l-.6 1.3a18 18 0 0 0-4.8 0L9 0a19 19 0 0 0-5 2C1 7 0 12 1 17a20 20 0 0 0 6 3l1-2-2-1 1-.5a16 16 0 0 0 10 0l1 .5-2 1 1 2a20 20 0 0 0 6-3c1-5 0-10-3-15ZM8 13c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2Zm8 0c-1 0-2-1-2-2s1-2 2-2 2 1 2 2-1 2-2 2Z"
+                />
+              </svg>
+              Continue With Discord <span aria-hidden="true">→</span>
+            </a>
+          )}
+          <small>Secure Discord Sign-In</small>
+        </div>
+      </section>
+      <footer className={styles.footer}>© Band of Misfits</footer>
+    </main>
+  );
+}

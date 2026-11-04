@@ -1,56 +1,897 @@
-'use client';
-import Link from 'next/link';
-import {useEffect,useRef,useState} from 'react';
-import {supportsPortTension,portWindowEnd,portTaxes,effectiveProtectionUntil,portStatus,portWindows} from '@bom/shared';
-import TerritoryWindowTime from './TerritoryWindowTime';
-import DurationQuickButtons from './DurationQuickButtons';
-import TerritoryTaxes from './TerritoryTaxes';
-import TerritoryGuildSelect from './TerritoryGuildSelect';
-const W=1863/1551*100;
+"use client";
+import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
+import {
+  supportsPortTension,
+  portWindowEnd,
+  portTaxes,
+  effectiveProtectionUntil,
+  portStatus,
+  portWindows,
+} from "@bom/shared";
+import TerritoryWindowTime from "./TerritoryWindowTime";
+import DurationQuickButtons from "./DurationQuickButtons";
+import TerritoryTaxes from "./TerritoryTaxes";
+import TerritoryGuildSelect from "./TerritoryGuildSelect";
+const W = (1863 / 1551) * 100;
 
-const remaining=(ms:number)=>`${Math.floor(ms/86400000)}d ${Math.floor(ms/3600000)%24}h ${Math.floor(ms/60000)%60}m`;
-export default function TerritoryMap({mapData,battles,config,manager,reviewId,editToken}:{mapData?:any;battles:any[];config:any;manager:boolean;reviewId?:string;editToken?:string}){
- async function api(path:string,init:RequestInit={}){const target=editToken?'/api/map-edit'+path:'/api/internal/wosb/territory'+path;const r=await fetch(target,{...init,headers:{'content-type':'application/json',...(editToken?{'x-map-edit-token':editToken}:{})},cache:'no-store'});const data=await r.json();if(!r.ok)throw new Error(data.error??'Map Request Failed');return data;}
- const [data,setData]=useState<any>({ports:[],guilds:[]}),[now,setNow]=useState(Date.now()),[selected,setSelected]=useState<any>(null),[draft,setDraft]=useState<any>({}),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[review,setReview]=useState<any>(null),[newTradeTag,setNewTradeTag]=useState(''),[history,setHistory]=useState<any[]>([]),[search,setSearch]=useState(''),[settings,setSettings]=useState<any>(null),[view,setView]=useState({x:0,y:0,w:W,h:100});const drag=useRef<any>(null);
- const [theme,setTheme]=useState('dark');
- const pending=useRef<any>(null),saving=useRef(false),saveTimer=useRef<ReturnType<typeof setTimeout>|null>(null),version=useRef(0);
- useEffect(()=>{setTheme(localStorage.getItem('bom-map-theme')==='light'?'light':'dark');},[]);
- function changeDraft(next:any){setDraft(next);pending.current={key:selected.port_key,draft:next};setNotice('Unsaved changes…');if(saveTimer.current)clearTimeout(saveTimer.current);saveTimer.current=setTimeout(()=>void flush(),700);}
- async function flush(){if(saving.current||!pending.current)return;const job=pending.current;
- if((job.draft.taxes??[]).some((t:any)=>!t.tag)||job.draft.action==='LIBERATE'&&!job.draft.actorTag){setNotice('Choose a guild to finish this change.');return;}
- pending.current=null;saving.current=true;setBusy(true);
- try{const payload={...job.draft,version:version.current,taxes:(job.draft.taxes??[]).map((t:any)=>({...t,...(!t.adjustProtection?{protectionDays:0,protectionHours:0,protectionMinutes:0,clearProtection:false}:{})})),...(!job.draft.adjustProtection?{protectionDays:0,protectionHours:0,protectionMinutes:0,clearProtection:false}:{})};
- const row=await api('/ports/'+job.key,{method:'PUT',body:JSON.stringify(payload)});version.current=row.version;
- setSelected((p:any)=>p?.port_key===job.key?{...p,...row}:p);
- if(pending.current){const next=pending.current.draft,old=job.draft;
- const sameTimer=(a:any,b:any)=>['adjustProtection','clearProtection','protectionDays','protectionHours','protectionMinutes','renew'].every(k=>a[k]===b[k]);
- if(sameTimer(next,old))Object.assign(next,{adjustProtection:false,clearProtection:false,protectionDays:0,protectionHours:0,protectionMinutes:0});
- next.taxes=(next.taxes??[]).map((t:any)=>{const sent=(old.taxes??[]).find((x:any)=>x.id===t.id),saved=portTaxes(row).find((x:any)=>x.id===t.id);return sent&&saved&&t.tag===sent.tag&&sameTimer(t,sent)?{...saved}:t;});
- if(next.action===old.action)next.action='UPDATE';setDraft({...next});
- }else{setDraft((d:any)=>({...d,version:row.version,action:'UPDATE',adjustProtection:false,clearProtection:false,protectionDays:0,protectionHours:0,protectionMinutes:0,taxes:portTaxes(row)}));setNotice('All changes saved');}
- if(manager&&!editToken)setHistory(await api('/ports/'+job.key+'/history').then(rows=>Array.isArray(rows)?rows:[]).catch(()=>[]));
- await load();
- }catch(e:any){if(!pending.current)pending.current=job;setNotice('Not saved: '+e.message+'. Retry or reload before continuing.');}
- finally{saving.current=false;setBusy(false);}if(pending.current&&pending.current!==job)void flush(); }
- function closeEditor(){if(saving.current||pending.current){setNotice('Wait for changes to save, or use Retry saving if an error occurred.');return;}setSelected(null);}
- useEffect(()=>{window.dispatchEvent(new CustomEvent('bom:dirty',{detail:{dirty:Boolean(pending.current||saving.current)}}));},[busy,notice]);
- useEffect(()=>()=>{if(saveTimer.current)clearTimeout(saveTimer.current);window.dispatchEvent(new CustomEvent('bom:dirty',{detail:{dirty:false}}));},[]);
- useEffect(()=>{const warn=(e:BeforeUnloadEvent)=>{if(pending.current||saving.current){e.preventDefault();e.returnValue='';}};window.addEventListener('beforeunload',warn);return()=>window.removeEventListener('beforeunload',warn);},[]);
- async function load(){try{setData(await api(''));if(reviewId)setReview(await api('/reviews/'+reviewId));}catch(e:any){setNotice(e.message);}}
- useEffect(()=>{void load();const timer=setInterval(()=>{setNow(Date.now());void load();},60000);return()=>clearInterval(timer);},[reviewId]);
- const guilds=data.guilds?.length?data.guilds:config?.guilds??[];
- const ports=data.ports??[],visible=ports.filter((p:any)=>!search||`${p.name} ${p.owner_tag??''}`.toLowerCase().includes(search.toLowerCase()));
- function open(p:any){if(saving.current||pending.current){setNotice('Finish saving the current port first.');return;}version.current=p.version??0;setSelected(p);if(manager&&!editToken)void api('/ports/'+p.port_key+'/history').then(rows=>setHistory(Array.isArray(rows)?rows:[])).catch(()=>setHistory([]));else setHistory([]);setDraft({version:p.version??0,ownerTag:p.owner_tag??'',taxes:portTaxes(p),windowStart:p.window_start??'',windowEnd:portWindowEnd(p.window_start??''),timeZone:p.time_zone??'Etc/GMT-4',protectionDays:0,protectionHours:0,protectionMinutes:0,adjustProtection:false,action:'UPDATE',actorTag:'',tensionBattleAt:p.tension_battle_at??null,reviewId});}
- const selectable=guilds.filter((g:any)=>!selected?.trader||/trad/i.test(String(g.faction??g.type??'')));
- const input=(key:string,label:string,type='text')=><label>{label}<input type={type} value={draft[key]??''} min={0} max={key==='protectionHours'?23:key==='protectionMinutes'?59:365} onChange={e=>changeDraft({...draft,[key]:e.target.value,adjustProtection:true,clearProtection:false})}/></label>;
- return <section className={`panel territoryMap mapTheme-${theme}`}>{data.sync&&<div className="territorySyncStatus" role="status">Last Discord map update: {data.sync.lastSuccessfulUpdate?new Date(data.sync.lastSuccessfulUpdate).toLocaleString():'Waiting for first update'}{data.sync.error&&<strong> · Update failed: {data.sync.error}</strong>}</div>}<header className="panelHead"><div><span className="cardKicker">ARCHIPELAGO</span><h2>Battle Map</h2></div><div className="controlRow"><button type="button" className="outlineButton" onClick={()=>{const next=theme==='dark'?'light':'dark';setTheme(next);localStorage.setItem('bom-map-theme',next);}}>{theme==='dark'?'Light mode':'Dark mode'}</button><button className="outlineButton" onClick={()=>setView({x:0,y:0,w:W,h:100})}>Reset Map</button>{manager&&!editToken&&<button className="outlineButton" onClick={async()=>{try{setSettings(await api('/settings'));}catch(e:any){setNotice(e.message);}}}>Map Delivery</button>}{!editToken&&<a className="outlineButton" href="/api/internal/wosb/territory/image" target="_blank" rel="noreferrer">Map Image</a>}</div></header>
- <div className="territoryLegend">{[['#4cce87','BOM / BoM'],['#62a8ff','FAT / DPS'],['#f26363','Attackable'],['#f6d365','Under 2 Hours'],['white','Unowned']].map(([c,t])=><span key={t}><i style={{background:c}}/>{t}</span>)}<span>🔒 Protected · Fixed Ports Cannot Be Attacked</span></div>
- {ports.some((p:any)=>p.owner_tag===undefined)&&<p className="muted">{ports.filter((p:any)=>p.owner_tag===undefined).length} Ports Need Ownership Verification</p>}<input type="search" placeholder="Find Port Or Owner…" aria-label="Find Port Or Owner" value={search} onChange={e=>setSearch(e.target.value)}/>{notice&&<p role="status">{notice}</p>}
- {reviewId&&review&&<div className="territoryReview"><h3>Nightly Map Review</h3><p>{review.ports.length-review.completed.length} Ports Remaining · Expires {new Date(review.expires_at).toLocaleString()}</p>{ports.filter((p:any)=>review.ports.includes(p.port_key)).map((p:any)=><button className="outlineButton" key={p.port_key} onClick={()=>open(p)}>{review.completed.includes(p.port_key)?'✓ ':''}{p.name}</button>)}{!review.ports.length&&<p className="uiEmpty">No Ports Could Change Today</p>}</div>}
- <div className="territoryCanvas"><svg viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`} aria-label="Interactive Territory Map" onWheel={e=>{e.preventDefault();const factor=e.deltaY>0?1.15:.87;setView(v=>{const w=Math.min(W,Math.max(15,v.w*factor)),h=w/W*100;return {x:v.x+(v.w-w)/2,y:v.y+(v.h-h)/2,w,h};});}} onPointerDown={e=>{e.currentTarget.setPointerCapture(e.pointerId);drag.current={x:e.clientX,y:e.clientY,view};}} onPointerMove={e=>{if(!drag.current)return;const r=e.currentTarget.getBoundingClientRect(),d=drag.current;setView({...d.view,x:d.view.x-(e.clientX-d.x)/r.width*d.view.w,y:d.view.y-(e.clientY-d.y)/r.height*d.view.h});}} onPointerUp={()=>drag.current=null} onPointerCancel={()=>drag.current=null}>
- <image href="/wosb/map/world-map.png" width={W} height="100"/>{visible.map((p:any)=>{const s=portStatus(p,now),x=Number(p.lng),y=100-Number(p.lat),activeBattles=battles.filter(b=>b.port_name===p.name&&['OPEN','CLOSED'].includes(b.status)),windows=portWindows(p,now,now+2*86400000),w=windows.find(w=>w.end>now),bans=(p.capture_bans??[]).filter((b:any)=>Date.parse(b.until)>now);const info=[p.name,`Owner: ${p.owner_tag===undefined?'Unverified':p.owner_tag??'Unowned'}`,portTaxes(p).length?`Taxed By: ${portTaxes(p).map(t=>t.tag).join(', ')}`:'',Date.parse(p.tension_battle_at??'')>now?`Under tension · Battle pending: ${new Date(p.tension_battle_at).toLocaleString()} (${remaining(Date.parse(p.tension_battle_at)-now)})`:s.protected?`Protected: ${remaining(s.protectionMs)}`:s.active?'Attackable Now':s.soon?'Attack Window In Under 2 Hours':p.fixed?'Not Capturable':'Not Attackable',w?`Local Window: ${new Date(w.start).toLocaleString()} – ${new Date(w.end).toLocaleTimeString()}`:'Attack Window Not Set',...bans.map((b:any)=>`${b.tag} Cannot Capture For ${remaining(Date.parse(b.until)-now)}`),...activeBattles.map(b=>`Battle: ${new Date(b.starts_at).toLocaleString()}`)].filter(Boolean).join('\n');return <g key={p.port_key} tabIndex={0} role="button" aria-label={info} onPointerDown={e=>e.stopPropagation()} onClick={()=>open(p)} onKeyDown={e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();open(p);}}}><title>{info}{p.strategic_priority?' · Strategic priority: '+p.strategic_priority:''}</title>{['HIGH','CRITICAL'].includes(p.strategic_priority)&&<circle cx={x} cy={y} r="2" stroke={p.strategic_priority==='CRITICAL'?'#e087cf':'#e2b460'} strokeWidth=".28" strokeDasharray=".45 .2" fill="none"/>}{(s.active||s.soon||s.protected)&&<circle cx={x} cy={y} r="1.45" fill="none" stroke={s.active?'#f26363':s.soon?'#f6d365':'#718096'} strokeWidth=".23" strokeDasharray={s.protected?'.3 .2':undefined}/>}<circle cx={x} cy={y} r="1.05" fill={s.color==='transparent'?'#18212b':s.color} stroke={s.color==='transparent'?'#637080':s.color} strokeWidth=".18"/>{activeBattles.length>0&&<circle cx={x} cy={y} r="1.65" stroke="#dcb85c" fill="none" strokeWidth=".2"/>}<text x={x} y={y-1.65} textAnchor="middle">{p.owner_tag?`[${p.owner_tag}]`:p.owner_tag===undefined?'Unverified':'Unowned'}</text><text x={x} y={y+2.25} textAnchor="middle">{p.name}{p.strategic_priority==='CRITICAL'?' [P1]':p.strategic_priority==='HIGH'?' [P2]':''}{s.protected?' 🔒':''}{Date.parse(p.tension_battle_at??'')>now?' ⚔ Tension':''}</text>{Date.parse(p.tension_battle_at??'')>now&&<text x={x} y={y+4.9} textAnchor="middle">Battle in {remaining(Date.parse(p.tension_battle_at)-now)}</text>}{portTaxes(p).length>0&&<text x={x} y={y+3.6} textAnchor="middle">Tax: {portTaxes(p).map(t=>`[${t.tag}]`).join(' ')}</text>}</g>;})}</svg></div>
- <small>Drag To Pan · Scroll To Zoom · Select A Port For Details · Times Shown In Your Local Time · Last recorded edit: {ports.reduce((latest:number,p:any)=>Math.max(latest,Date.parse(p.updated_at??'')||0),0)?new Date(ports.reduce((latest:number,p:any)=>Math.max(latest,Date.parse(p.updated_at??'')||0),0)).toLocaleString():'No recorded edits yet'}</small>
- {selected&&<div className="modalBackdrop" onClick={closeEditor}><section className="panel territoryEditor" role="dialog" aria-modal="true" aria-label={selected.name} onClick={e=>e.stopPropagation()} onKeyDown={e=>{if(e.key==='Escape')closeEditor();}}><header className="panelHead"><h2>{selected.name}</h2>{manager&&!editToken&&<Link href={"/dashboard/port-dossier?port="+encodeURIComponent(selected.port_key)}>Port dossier →</Link>}<button className="iconCloseButton dangerGhost" aria-label="Close Port" onClick={closeEditor}>×</button></header><p>{selected.fixed?(selected.trader?'Trader Port':'Not Capturable'):'Capturable Port'}</p>{Date.parse(selected.tension_battle_at??'')>now&&<p>⚔ Under tension · Battle pending in {remaining(Date.parse(selected.tension_battle_at)-now)} · {new Date(selected.tension_battle_at).toLocaleString()}</p>}<p>Owner: {selected.owner_tag??'Unowned'} · Taxes: {portTaxes(selected).map(t=>t.tag).join(', ')||'None'}</p>{(selected.capture_bans??[]).filter((b:any)=>Date.parse(b.until)>now).map((b:any)=><p key={b.tag}>{b.tag} Cannot Capture For {remaining(Date.parse(b.until)-now)}</p>)}{manager&&<>{selected.trader&&!editToken&&<div className="controlRow"><input aria-label="New Trade Guild Tag" placeholder="New Trade Guild Tag" maxLength={20} value={newTradeTag} onChange={e=>setNewTradeTag(e.target.value)}/><button className="outlineButton" onClick={async()=>{try{await api('/guilds',{method:'POST',body:JSON.stringify({tag:newTradeTag})});setNewTradeTag('');await load();}catch(e:any){setNotice(e.message);}}}>Add Trade Guild</button></div>}<div className="territoryForm"><label>Action<select value={draft.action} onChange={e=>changeDraft({...draft,action:e.target.value,...(e.target.value==='TAX'?{taxes:[...(draft.taxes??[]),{id:crypto.randomUUID(),tag:'',_new:true}]}:{})})}><option value="UPDATE">Update</option>{!selected.fixed&&<><option value="CAPTURE">Captured</option><option value="TAX">Taxed</option><option value="LIBERATE">Liberated</option></>}</select></label><TerritoryGuildSelect label="Owner" disabled={selected.fixed&&!selected.trader||draft.action==='LIBERATE'} value={draft.ownerTag} onChange={ownerTag=>changeDraft({...draft,ownerTag})} guilds={selectable}/>{!selected.fixed&&<TerritoryTaxes value={draft.taxes??[]} guilds={guilds} now={now} onChange={taxes=>changeDraft({...draft,taxes})}/>}{draft.action==='LIBERATE'&&<TerritoryGuildSelect label="Liberated By" value={draft.actorTag} onChange={actorTag=>changeDraft({...draft,actorTag})} guilds={guilds}/>}{!selected.fixed&&<><TerritoryWindowTime label="Attack window start" value={draft.windowStart??''} onChange={windowStart=>changeDraft({...draft,windowStart,windowEnd:portWindowEnd(windowStart)})}/><p className="muted territoryWindowEnd">{draft.windowStart?`Attack window: ${draft.windowStart}–${portWindowEnd(draft.windowStart)} in-game · 1 hour`:'Select the start hour. The window always ends one hour later.'}</p>{supportsPortTension(selected.name)&&<label>Pending battle (UTC; tension can begin 24 hours before battle)<input type="datetime-local" value={draft.tensionBattleAt?new Date(draft.tensionBattleAt).toISOString().slice(0,16):''} onChange={e=>changeDraft({...draft,tensionBattleAt:e.target.value?new Date(e.target.value+'Z').toISOString():null})}/><button type="button" className="outlineButton" onClick={()=>changeDraft({...draft,tensionBattleAt:null})}>Clear tension</button></label>}<div className="territoryTimer"><p>{effectiveProtectionUntil(selected)>now?`Port protected for ${remaining(effectiveProtectionUntil(selected)-now)}`:'No active protection timer'}</p><button type="button" className="outlineButton territoryTimerAdjust" aria-expanded={Boolean(draft.showProtection)} onClick={()=>{const ms=Math.max(0,Date.parse(selected.protected_until??'')-Date.now())||3.2*86400000;setDraft({...draft,showProtection:!draft.showProtection,protectionDays:Math.floor(ms/86400000),protectionHours:Math.floor(ms/3600000)%24,protectionMinutes:Math.floor(ms/60000)%60,clearProtection:false});}}>Adjust port protection</button><button type="button" className="dangerGhost" onClick={()=>changeDraft({...draft,adjustProtection:true,clearProtection:true,protectionDays:0,protectionHours:0,protectionMinutes:0})}>Clear protection</button>{draft.showProtection&&<div className="territoryTimerFields"><DurationQuickButtons label="Port protection duration" days={draft.protectionDays??0} hours={draft.protectionHours??0} minutes={draft.protectionMinutes??0} onChange={v=>changeDraft({...draft,...v,adjustProtection:true,clearProtection:false})}/>{input('protectionDays','Days','number')}{input('protectionHours','Hours','number')}<small>Changes save automatically.</small></div>}</div></>}</div><p className="muted">Enter The In-Game Window. Timezone: {draft.timeZone}. Changes save automatically; existing timers keep counting down.</p><p role="status">{busy?'Saving…':notice}</p>{notice.startsWith('Not saved:')&&<button className="outlineButton" disabled={busy} onClick={()=>void flush()}>Retry saving</button>}{!editToken&&<div className="territoryHistory"><h3>Recent changes</h3>{history.slice(0,10).map((event:any,i:number)=><div key={event.id} className="controlRow"><small>{new Date(event.created_at).toLocaleString()} · {event.kind} · {event.actor_id}</small>{i===0&&<button className="outlineButton" disabled={busy||Boolean(pending.current)} onClick={async()=>{if(!confirm('Undo the latest change to this port? Current ownership and timers will be restored to their previous saved values.'))return;setBusy(true);try{await api('/ports/'+selected.port_key+'/undo',{method:'POST',body:JSON.stringify({expectedVersion:selected.version??0,eventId:event.id})});setSelected(null);await load();setNotice('Last map change undone.');}catch(e:any){setNotice(e.message);}finally{setBusy(false);}}}>Undo latest</button>}</div>)}{!history.length&&<small>No recorded changes.</small>}</div>}</>}{!manager&&<p>Officer Access Required To Update This Port.</p>}</section></div>}
- {settings&&<div className="modalBackdrop"><section className="panel territoryEditor" role="dialog" aria-modal="true" aria-label="Map Delivery"><header className="panelHead"><h2>Map Delivery</h2><button className="iconCloseButton dangerGhost" onClick={()=>setSettings(null)} aria-label="Close Map Delivery">×</button></header><p>The battle map appears first in the Control Desk message, above member and music controls. This channel is used for standalone delivery only when no Control Desk is configured.</p><label>Discord Channel ID<input value={settings.channel_id??''} onChange={e=>setSettings({...settings,channel_id:e.target.value})}/></label><label>Reviewer User IDs (Comma Separated)<input value={(settings.reviewer_ids??[]).join(',')} onChange={e=>setSettings({...settings,reviewer_ids:e.target.value.split(',').map(x=>x.trim()).filter(Boolean)})}/></label><p>Updates Every Minute. Nightly Review At 11 PM America/Chicago. Review Links Expire After 48 Hours And Require Officer Sign-In.</p><button className="goldButton" onClick={async()=>{try{await api('/settings',{method:'PUT',body:JSON.stringify({channelId:settings.channel_id,reviewerIds:settings.reviewer_ids})});setSettings(null);setNotice('Map Delivery Saved');}catch(e:any){setNotice(e.message);}}}>Save Delivery</button>{notice&&<p role="alert">{notice}</p>}</section></div>}
- </section>;
+const remaining = (ms: number) =>
+  `${Math.floor(ms / 86400000)}d ${Math.floor(ms / 3600000) % 24}h ${Math.floor(ms / 60000) % 60}m`;
+export default function TerritoryMap({
+  mapData,
+  battles,
+  config,
+  manager,
+  reviewId,
+  editToken,
+}: {
+  mapData?: any;
+  battles: any[];
+  config: any;
+  manager: boolean;
+  reviewId?: string;
+  editToken?: string;
+}) {
+  async function api(path: string, init: RequestInit = {}) {
+    const target = editToken ? "/api/map-edit" + path : "/api/internal/wosb/territory" + path;
+    const r = await fetch(target, {
+      ...init,
+      headers: {
+        "content-type": "application/json",
+        ...(editToken ? { "x-map-edit-token": editToken } : {}),
+      },
+      cache: "no-store",
+    });
+    const data = await r.json();
+    if (!r.ok) throw new Error(data.error ?? "Map Request Failed");
+    return data;
+  }
+  const [data, setData] = useState<any>({ ports: [], guilds: [] }),
+    [now, setNow] = useState(Date.now()),
+    [selected, setSelected] = useState<any>(null),
+    [draft, setDraft] = useState<any>({}),
+    [notice, setNotice] = useState(""),
+    [busy, setBusy] = useState(false),
+    [review, setReview] = useState<any>(null),
+    [newTradeTag, setNewTradeTag] = useState(""),
+    [history, setHistory] = useState<any[]>([]),
+    [search, setSearch] = useState(""),
+    [settings, setSettings] = useState<any>(null),
+    [view, setView] = useState({ x: 0, y: 0, w: W, h: 100 });
+  const drag = useRef<any>(null);
+  const [theme, setTheme] = useState("dark");
+  const pending = useRef<any>(null),
+    saving = useRef(false),
+    saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null),
+    version = useRef(0);
+  useEffect(() => {
+    setTheme(localStorage.getItem("bom-map-theme") === "light" ? "light" : "dark");
+  }, []);
+  function changeDraft(next: any) {
+    setDraft(next);
+    pending.current = { key: selected.port_key, draft: next };
+    setNotice("Unsaved changes…");
+    if (saveTimer.current) clearTimeout(saveTimer.current);
+    saveTimer.current = setTimeout(() => void flush(), 700);
+  }
+  async function flush() {
+    if (saving.current || !pending.current) return;
+    const job = pending.current;
+    if (
+      (job.draft.taxes ?? []).some((t: any) => !t.tag) ||
+      (job.draft.action === "LIBERATE" && !job.draft.actorTag)
+    ) {
+      setNotice("Choose a guild to finish this change.");
+      return;
+    }
+    pending.current = null;
+    saving.current = true;
+    setBusy(true);
+    try {
+      const payload = {
+        ...job.draft,
+        version: version.current,
+        taxes: (job.draft.taxes ?? []).map((t: any) => ({
+          ...t,
+          ...(!t.adjustProtection
+            ? { protectionDays: 0, protectionHours: 0, protectionMinutes: 0, clearProtection: false }
+            : {}),
+        })),
+        ...(!job.draft.adjustProtection
+          ? { protectionDays: 0, protectionHours: 0, protectionMinutes: 0, clearProtection: false }
+          : {}),
+      };
+      const row = await api("/ports/" + job.key, { method: "PUT", body: JSON.stringify(payload) });
+      version.current = row.version;
+      setSelected((p: any) => (p?.port_key === job.key ? { ...p, ...row } : p));
+      if (pending.current) {
+        const next = pending.current.draft,
+          old = job.draft;
+        const sameTimer = (a: any, b: any) =>
+          [
+            "adjustProtection",
+            "clearProtection",
+            "protectionDays",
+            "protectionHours",
+            "protectionMinutes",
+            "renew",
+          ].every((k) => a[k] === b[k]);
+        if (sameTimer(next, old))
+          Object.assign(next, {
+            adjustProtection: false,
+            clearProtection: false,
+            protectionDays: 0,
+            protectionHours: 0,
+            protectionMinutes: 0,
+          });
+        next.taxes = (next.taxes ?? []).map((t: any) => {
+          const sent = (old.taxes ?? []).find((x: any) => x.id === t.id),
+            saved = portTaxes(row).find((x: any) => x.id === t.id);
+          return sent && saved && t.tag === sent.tag && sameTimer(t, sent) ? { ...saved } : t;
+        });
+        if (next.action === old.action) next.action = "UPDATE";
+        setDraft({ ...next });
+      } else {
+        setDraft((d: any) => ({
+          ...d,
+          version: row.version,
+          action: "UPDATE",
+          adjustProtection: false,
+          clearProtection: false,
+          protectionDays: 0,
+          protectionHours: 0,
+          protectionMinutes: 0,
+          taxes: portTaxes(row),
+        }));
+        setNotice("All changes saved");
+      }
+      if (manager && !editToken)
+        setHistory(
+          await api("/ports/" + job.key + "/history")
+            .then((rows) => (Array.isArray(rows) ? rows : []))
+            .catch(() => []),
+        );
+      await load();
+    } catch (e: any) {
+      if (!pending.current) pending.current = job;
+      setNotice("Not saved: " + e.message + ". Retry or reload before continuing.");
+    } finally {
+      saving.current = false;
+      setBusy(false);
+    }
+    if (pending.current && pending.current !== job) void flush();
+  }
+  function closeEditor() {
+    if (saving.current || pending.current) {
+      setNotice("Wait for changes to save, or use Retry saving if an error occurred.");
+      return;
+    }
+    setSelected(null);
+  }
+  useEffect(() => {
+    window.dispatchEvent(
+      new CustomEvent("bom:dirty", { detail: { dirty: Boolean(pending.current || saving.current) } }),
+    );
+  }, [busy, notice]);
+  useEffect(
+    () => () => {
+      if (saveTimer.current) clearTimeout(saveTimer.current);
+      window.dispatchEvent(new CustomEvent("bom:dirty", { detail: { dirty: false } }));
+    },
+    [],
+  );
+  useEffect(() => {
+    const warn = (e: BeforeUnloadEvent) => {
+      if (pending.current || saving.current) {
+        e.preventDefault();
+        e.returnValue = "";
+      }
+    };
+    window.addEventListener("beforeunload", warn);
+    return () => window.removeEventListener("beforeunload", warn);
+  }, []);
+  async function load() {
+    try {
+      setData(await api(""));
+      if (reviewId) setReview(await api("/reviews/" + reviewId));
+    } catch (e: any) {
+      setNotice(e.message);
+    }
+  }
+  useEffect(() => {
+    void load();
+    const timer = setInterval(() => {
+      setNow(Date.now());
+      void load();
+    }, 60000);
+    return () => clearInterval(timer);
+  }, [reviewId]);
+  const guilds = data.guilds?.length ? data.guilds : (config?.guilds ?? []);
+  const ports = data.ports ?? [],
+    visible = ports.filter(
+      (p: any) => !search || `${p.name} ${p.owner_tag ?? ""}`.toLowerCase().includes(search.toLowerCase()),
+    );
+  function open(p: any) {
+    if (saving.current || pending.current) {
+      setNotice("Finish saving the current port first.");
+      return;
+    }
+    version.current = p.version ?? 0;
+    setSelected(p);
+    if (manager && !editToken)
+      void api("/ports/" + p.port_key + "/history")
+        .then((rows) => setHistory(Array.isArray(rows) ? rows : []))
+        .catch(() => setHistory([]));
+    else setHistory([]);
+    setDraft({
+      version: p.version ?? 0,
+      ownerTag: p.owner_tag ?? "",
+      taxes: portTaxes(p),
+      windowStart: p.window_start ?? "",
+      windowEnd: portWindowEnd(p.window_start ?? ""),
+      timeZone: p.time_zone ?? "Etc/GMT-4",
+      protectionDays: 0,
+      protectionHours: 0,
+      protectionMinutes: 0,
+      adjustProtection: false,
+      action: "UPDATE",
+      actorTag: "",
+      tensionBattleAt: p.tension_battle_at ?? null,
+      reviewId,
+    });
+  }
+  const selectable = guilds.filter(
+    (g: any) => !selected?.trader || /trad/i.test(String(g.faction ?? g.type ?? "")),
+  );
+  const input = (key: string, label: string, type = "text") => (
+    <label>
+      {label}
+      <input
+        type={type}
+        value={draft[key] ?? ""}
+        min={0}
+        max={key === "protectionHours" ? 23 : key === "protectionMinutes" ? 59 : 365}
+        onChange={(e) =>
+          changeDraft({ ...draft, [key]: e.target.value, adjustProtection: true, clearProtection: false })
+        }
+      />
+    </label>
+  );
+  return (
+    <section className={`panel territoryMap mapTheme-${theme}`}>
+      {data.sync && (
+        <div className="territorySyncStatus" role="status">
+          Last Discord map update:{" "}
+          {data.sync.lastSuccessfulUpdate
+            ? new Date(data.sync.lastSuccessfulUpdate).toLocaleString()
+            : "Waiting for first update"}
+          {data.sync.error && <strong> · Update failed: {data.sync.error}</strong>}
+        </div>
+      )}
+      <header className="panelHead">
+        <div>
+          <span className="cardKicker">ARCHIPELAGO</span>
+          <h2>Battle Map</h2>
+        </div>
+        <div className="controlRow">
+          <button
+            type="button"
+            className="outlineButton"
+            onClick={() => {
+              const next = theme === "dark" ? "light" : "dark";
+              setTheme(next);
+              localStorage.setItem("bom-map-theme", next);
+            }}
+          >
+            {theme === "dark" ? "Light mode" : "Dark mode"}
+          </button>
+          <button className="outlineButton" onClick={() => setView({ x: 0, y: 0, w: W, h: 100 })}>
+            Reset Map
+          </button>
+          {manager && !editToken && (
+            <button
+              className="outlineButton"
+              onClick={async () => {
+                try {
+                  setSettings(await api("/settings"));
+                } catch (e: any) {
+                  setNotice(e.message);
+                }
+              }}
+            >
+              Map Delivery
+            </button>
+          )}
+          {!editToken && (
+            <a
+              className="outlineButton"
+              href="/api/internal/wosb/territory/image"
+              target="_blank"
+              rel="noreferrer"
+            >
+              Map Image
+            </a>
+          )}
+        </div>
+      </header>
+      <div className="territoryLegend">
+        {[
+          ["#4cce87", "BOM / BoM"],
+          ["#62a8ff", "FAT / DPS"],
+          ["#f26363", "Attackable"],
+          ["#f6d365", "Under 2 Hours"],
+          ["white", "Unowned"],
+        ].map(([c, t]) => (
+          <span key={t}>
+            <i style={{ background: c }} />
+            {t}
+          </span>
+        ))}
+        <span>🔒 Protected · Fixed Ports Cannot Be Attacked</span>
+      </div>
+      {ports.some((p: any) => p.owner_tag === undefined) && (
+        <p className="muted">
+          {ports.filter((p: any) => p.owner_tag === undefined).length} Ports Need Ownership Verification
+        </p>
+      )}
+      <input
+        type="search"
+        placeholder="Find Port Or Owner…"
+        aria-label="Find Port Or Owner"
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+      />
+      {notice && <p role="status">{notice}</p>}
+      {reviewId && review && (
+        <div className="territoryReview">
+          <h3>Nightly Map Review</h3>
+          <p>
+            {review.ports.length - review.completed.length} Ports Remaining · Expires{" "}
+            {new Date(review.expires_at).toLocaleString()}
+          </p>
+          {ports
+            .filter((p: any) => review.ports.includes(p.port_key))
+            .map((p: any) => (
+              <button className="outlineButton" key={p.port_key} onClick={() => open(p)}>
+                {review.completed.includes(p.port_key) ? "✓ " : ""}
+                {p.name}
+              </button>
+            ))}
+          {!review.ports.length && <p className="uiEmpty">No Ports Could Change Today</p>}
+        </div>
+      )}
+      <div className="territoryCanvas">
+        <svg
+          viewBox={`${view.x} ${view.y} ${view.w} ${view.h}`}
+          aria-label="Interactive Territory Map"
+          onWheel={(e) => {
+            e.preventDefault();
+            const factor = e.deltaY > 0 ? 1.15 : 0.87;
+            setView((v) => {
+              const w = Math.min(W, Math.max(15, v.w * factor)),
+                h = (w / W) * 100;
+              return { x: v.x + (v.w - w) / 2, y: v.y + (v.h - h) / 2, w, h };
+            });
+          }}
+          onPointerDown={(e) => {
+            e.currentTarget.setPointerCapture(e.pointerId);
+            drag.current = { x: e.clientX, y: e.clientY, view };
+          }}
+          onPointerMove={(e) => {
+            if (!drag.current) return;
+            const r = e.currentTarget.getBoundingClientRect(),
+              d = drag.current;
+            setView({
+              ...d.view,
+              x: d.view.x - ((e.clientX - d.x) / r.width) * d.view.w,
+              y: d.view.y - ((e.clientY - d.y) / r.height) * d.view.h,
+            });
+          }}
+          onPointerUp={() => (drag.current = null)}
+          onPointerCancel={() => (drag.current = null)}
+        >
+          <image href="/wosb/map/world-map.png" width={W} height="100" />
+          {visible.map((p: any) => {
+            const s = portStatus(p, now),
+              x = Number(p.lng),
+              y = 100 - Number(p.lat),
+              activeBattles = battles.filter(
+                (b) => b.port_name === p.name && ["OPEN", "CLOSED"].includes(b.status),
+              ),
+              windows = portWindows(p, now, now + 2 * 86400000),
+              w = windows.find((w) => w.end > now),
+              bans = (p.capture_bans ?? []).filter((b: any) => Date.parse(b.until) > now);
+            const info = [
+              p.name,
+              `Owner: ${p.owner_tag === undefined ? "Unverified" : (p.owner_tag ?? "Unowned")}`,
+              portTaxes(p).length
+                ? `Taxed By: ${portTaxes(p)
+                    .map((t) => t.tag)
+                    .join(", ")}`
+                : "",
+              Date.parse(p.tension_battle_at ?? "") > now
+                ? `Under tension · Battle pending: ${new Date(p.tension_battle_at).toLocaleString()} (${remaining(Date.parse(p.tension_battle_at) - now)})`
+                : s.protected
+                  ? `Protected: ${remaining(s.protectionMs)}`
+                  : s.active
+                    ? "Attackable Now"
+                    : s.soon
+                      ? "Attack Window In Under 2 Hours"
+                      : p.fixed
+                        ? "Not Capturable"
+                        : "Not Attackable",
+              w
+                ? `Local Window: ${new Date(w.start).toLocaleString()} – ${new Date(w.end).toLocaleTimeString()}`
+                : "Attack Window Not Set",
+              ...bans.map((b: any) => `${b.tag} Cannot Capture For ${remaining(Date.parse(b.until) - now)}`),
+              ...activeBattles.map((b) => `Battle: ${new Date(b.starts_at).toLocaleString()}`),
+            ]
+              .filter(Boolean)
+              .join("\n");
+            return (
+              <g
+                key={p.port_key}
+                tabIndex={0}
+                role="button"
+                aria-label={info}
+                onPointerDown={(e) => e.stopPropagation()}
+                onClick={() => open(p)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    open(p);
+                  }
+                }}
+              >
+                <title>
+                  {info}
+                  {p.strategic_priority ? " · Strategic priority: " + p.strategic_priority : ""}
+                </title>
+                {["HIGH", "CRITICAL"].includes(p.strategic_priority) && (
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r="2"
+                    stroke={p.strategic_priority === "CRITICAL" ? "#e087cf" : "#e2b460"}
+                    strokeWidth=".28"
+                    strokeDasharray=".45 .2"
+                    fill="none"
+                  />
+                )}
+                {(s.active || s.soon || s.protected) && (
+                  <circle
+                    cx={x}
+                    cy={y}
+                    r="1.45"
+                    fill="none"
+                    stroke={s.active ? "#f26363" : s.soon ? "#f6d365" : "#718096"}
+                    strokeWidth=".23"
+                    strokeDasharray={s.protected ? ".3 .2" : undefined}
+                  />
+                )}
+                <circle
+                  cx={x}
+                  cy={y}
+                  r="1.05"
+                  fill={s.color === "transparent" ? "#18212b" : s.color}
+                  stroke={s.color === "transparent" ? "#637080" : s.color}
+                  strokeWidth=".18"
+                />
+                {activeBattles.length > 0 && (
+                  <circle cx={x} cy={y} r="1.65" stroke="#dcb85c" fill="none" strokeWidth=".2" />
+                )}
+                <text x={x} y={y - 1.65} textAnchor="middle">
+                  {p.owner_tag ? `[${p.owner_tag}]` : p.owner_tag === undefined ? "Unverified" : "Unowned"}
+                </text>
+                <text x={x} y={y + 2.25} textAnchor="middle">
+                  {p.name}
+                  {p.strategic_priority === "CRITICAL"
+                    ? " [P1]"
+                    : p.strategic_priority === "HIGH"
+                      ? " [P2]"
+                      : ""}
+                  {s.protected ? " 🔒" : ""}
+                  {Date.parse(p.tension_battle_at ?? "") > now ? " ⚔ Tension" : ""}
+                </text>
+                {Date.parse(p.tension_battle_at ?? "") > now && (
+                  <text x={x} y={y + 4.9} textAnchor="middle">
+                    Battle in {remaining(Date.parse(p.tension_battle_at) - now)}
+                  </text>
+                )}
+                {portTaxes(p).length > 0 && (
+                  <text x={x} y={y + 3.6} textAnchor="middle">
+                    Tax:{" "}
+                    {portTaxes(p)
+                      .map((t) => `[${t.tag}]`)
+                      .join(" ")}
+                  </text>
+                )}
+              </g>
+            );
+          })}
+        </svg>
+      </div>
+      <small>
+        Drag To Pan · Scroll To Zoom · Select A Port For Details · Times Shown In Your Local Time · Last
+        recorded edit:{" "}
+        {ports.reduce((latest: number, p: any) => Math.max(latest, Date.parse(p.updated_at ?? "") || 0), 0)
+          ? new Date(
+              ports.reduce(
+                (latest: number, p: any) => Math.max(latest, Date.parse(p.updated_at ?? "") || 0),
+                0,
+              ),
+            ).toLocaleString()
+          : "No recorded edits yet"}
+      </small>
+      {selected && (
+        <div className="modalBackdrop" onClick={closeEditor}>
+          <section
+            className="panel territoryEditor"
+            role="dialog"
+            aria-modal="true"
+            aria-label={selected.name}
+            onClick={(e) => e.stopPropagation()}
+            onKeyDown={(e) => {
+              if (e.key === "Escape") closeEditor();
+            }}
+          >
+            <header className="panelHead">
+              <h2>{selected.name}</h2>
+              {manager && !editToken && (
+                <Link href={"/dashboard/port-dossier?port=" + encodeURIComponent(selected.port_key)}>
+                  Port dossier →
+                </Link>
+              )}
+              <button className="iconCloseButton dangerGhost" aria-label="Close Port" onClick={closeEditor}>
+                ×
+              </button>
+            </header>
+            <p>{selected.fixed ? (selected.trader ? "Trader Port" : "Not Capturable") : "Capturable Port"}</p>
+            {Date.parse(selected.tension_battle_at ?? "") > now && (
+              <p>
+                ⚔ Under tension · Battle pending in {remaining(Date.parse(selected.tension_battle_at) - now)}{" "}
+                · {new Date(selected.tension_battle_at).toLocaleString()}
+              </p>
+            )}
+            <p>
+              Owner: {selected.owner_tag ?? "Unowned"} · Taxes:{" "}
+              {portTaxes(selected)
+                .map((t) => t.tag)
+                .join(", ") || "None"}
+            </p>
+            {(selected.capture_bans ?? [])
+              .filter((b: any) => Date.parse(b.until) > now)
+              .map((b: any) => (
+                <p key={b.tag}>
+                  {b.tag} Cannot Capture For {remaining(Date.parse(b.until) - now)}
+                </p>
+              ))}
+            {manager && (
+              <>
+                {selected.trader && !editToken && (
+                  <div className="controlRow">
+                    <input
+                      aria-label="New Trade Guild Tag"
+                      placeholder="New Trade Guild Tag"
+                      maxLength={20}
+                      value={newTradeTag}
+                      onChange={(e) => setNewTradeTag(e.target.value)}
+                    />
+                    <button
+                      className="outlineButton"
+                      onClick={async () => {
+                        try {
+                          await api("/guilds", {
+                            method: "POST",
+                            body: JSON.stringify({ tag: newTradeTag }),
+                          });
+                          setNewTradeTag("");
+                          await load();
+                        } catch (e: any) {
+                          setNotice(e.message);
+                        }
+                      }}
+                    >
+                      Add Trade Guild
+                    </button>
+                  </div>
+                )}
+                <div className="territoryForm">
+                  <label>
+                    Action
+                    <select
+                      value={draft.action}
+                      onChange={(e) =>
+                        changeDraft({
+                          ...draft,
+                          action: e.target.value,
+                          ...(e.target.value === "TAX"
+                            ? {
+                                taxes: [
+                                  ...(draft.taxes ?? []),
+                                  { id: crypto.randomUUID(), tag: "", _new: true },
+                                ],
+                              }
+                            : {}),
+                        })
+                      }
+                    >
+                      <option value="UPDATE">Update</option>
+                      {!selected.fixed && (
+                        <>
+                          <option value="CAPTURE">Captured</option>
+                          <option value="TAX">Taxed</option>
+                          <option value="LIBERATE">Liberated</option>
+                        </>
+                      )}
+                    </select>
+                  </label>
+                  <TerritoryGuildSelect
+                    label="Owner"
+                    disabled={(selected.fixed && !selected.trader) || draft.action === "LIBERATE"}
+                    value={draft.ownerTag}
+                    onChange={(ownerTag) => changeDraft({ ...draft, ownerTag })}
+                    guilds={selectable}
+                  />
+                  {!selected.fixed && (
+                    <TerritoryTaxes
+                      value={draft.taxes ?? []}
+                      guilds={guilds}
+                      now={now}
+                      onChange={(taxes) => changeDraft({ ...draft, taxes })}
+                    />
+                  )}
+                  {draft.action === "LIBERATE" && (
+                    <TerritoryGuildSelect
+                      label="Liberated By"
+                      value={draft.actorTag}
+                      onChange={(actorTag) => changeDraft({ ...draft, actorTag })}
+                      guilds={guilds}
+                    />
+                  )}
+                  {!selected.fixed && (
+                    <>
+                      <TerritoryWindowTime
+                        label="Attack window start"
+                        value={draft.windowStart ?? ""}
+                        onChange={(windowStart) =>
+                          changeDraft({ ...draft, windowStart, windowEnd: portWindowEnd(windowStart) })
+                        }
+                      />
+                      <p className="muted territoryWindowEnd">
+                        {draft.windowStart
+                          ? `Attack window: ${draft.windowStart}–${portWindowEnd(draft.windowStart)} in-game · 1 hour`
+                          : "Select the start hour. The window always ends one hour later."}
+                      </p>
+                      {supportsPortTension(selected.name) && (
+                        <label>
+                          Pending battle (UTC; tension can begin 24 hours before battle)
+                          <input
+                            type="datetime-local"
+                            value={
+                              draft.tensionBattleAt
+                                ? new Date(draft.tensionBattleAt).toISOString().slice(0, 16)
+                                : ""
+                            }
+                            onChange={(e) =>
+                              changeDraft({
+                                ...draft,
+                                tensionBattleAt: e.target.value
+                                  ? new Date(e.target.value + "Z").toISOString()
+                                  : null,
+                              })
+                            }
+                          />
+                          <button
+                            type="button"
+                            className="outlineButton"
+                            onClick={() => changeDraft({ ...draft, tensionBattleAt: null })}
+                          >
+                            Clear tension
+                          </button>
+                        </label>
+                      )}
+                      <div className="territoryTimer">
+                        <p>
+                          {effectiveProtectionUntil(selected) > now
+                            ? `Port protected for ${remaining(effectiveProtectionUntil(selected) - now)}`
+                            : "No active protection timer"}
+                        </p>
+                        <button
+                          type="button"
+                          className="outlineButton territoryTimerAdjust"
+                          aria-expanded={Boolean(draft.showProtection)}
+                          onClick={() => {
+                            const ms =
+                              Math.max(0, Date.parse(selected.protected_until ?? "") - Date.now()) ||
+                              3.2 * 86400000;
+                            setDraft({
+                              ...draft,
+                              showProtection: !draft.showProtection,
+                              protectionDays: Math.floor(ms / 86400000),
+                              protectionHours: Math.floor(ms / 3600000) % 24,
+                              protectionMinutes: Math.floor(ms / 60000) % 60,
+                              clearProtection: false,
+                            });
+                          }}
+                        >
+                          Adjust port protection
+                        </button>
+                        <button
+                          type="button"
+                          className="dangerGhost"
+                          onClick={() =>
+                            changeDraft({
+                              ...draft,
+                              adjustProtection: true,
+                              clearProtection: true,
+                              protectionDays: 0,
+                              protectionHours: 0,
+                              protectionMinutes: 0,
+                            })
+                          }
+                        >
+                          Clear protection
+                        </button>
+                        {draft.showProtection && (
+                          <div className="territoryTimerFields">
+                            <DurationQuickButtons
+                              label="Port protection duration"
+                              days={draft.protectionDays ?? 0}
+                              hours={draft.protectionHours ?? 0}
+                              minutes={draft.protectionMinutes ?? 0}
+                              onChange={(v) =>
+                                changeDraft({
+                                  ...draft,
+                                  ...v,
+                                  adjustProtection: true,
+                                  clearProtection: false,
+                                })
+                              }
+                            />
+                            {input("protectionDays", "Days", "number")}
+                            {input("protectionHours", "Hours", "number")}
+                            <small>Changes save automatically.</small>
+                          </div>
+                        )}
+                      </div>
+                    </>
+                  )}
+                </div>
+                <p className="muted">
+                  Enter The In-Game Window. Timezone: {draft.timeZone}. Changes save automatically; existing
+                  timers keep counting down.
+                </p>
+                <p role="status">{busy ? "Saving…" : notice}</p>
+                {notice.startsWith("Not saved:") && (
+                  <button className="outlineButton" disabled={busy} onClick={() => void flush()}>
+                    Retry saving
+                  </button>
+                )}
+                {!editToken && (
+                  <div className="territoryHistory">
+                    <h3>Recent changes</h3>
+                    {history.slice(0, 10).map((event: any, i: number) => (
+                      <div key={event.id} className="controlRow">
+                        <small>
+                          {new Date(event.created_at).toLocaleString()} · {event.kind} · {event.actor_id}
+                        </small>
+                        {i === 0 && (
+                          <button
+                            className="outlineButton"
+                            disabled={busy || Boolean(pending.current)}
+                            onClick={async () => {
+                              if (
+                                !confirm(
+                                  "Undo the latest change to this port? Current ownership and timers will be restored to their previous saved values.",
+                                )
+                              )
+                                return;
+                              setBusy(true);
+                              try {
+                                await api("/ports/" + selected.port_key + "/undo", {
+                                  method: "POST",
+                                  body: JSON.stringify({
+                                    expectedVersion: selected.version ?? 0,
+                                    eventId: event.id,
+                                  }),
+                                });
+                                setSelected(null);
+                                await load();
+                                setNotice("Last map change undone.");
+                              } catch (e: any) {
+                                setNotice(e.message);
+                              } finally {
+                                setBusy(false);
+                              }
+                            }}
+                          >
+                            Undo latest
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                    {!history.length && <small>No recorded changes.</small>}
+                  </div>
+                )}
+              </>
+            )}
+            {!manager && <p>Officer Access Required To Update This Port.</p>}
+          </section>
+        </div>
+      )}
+      {settings && (
+        <div className="modalBackdrop">
+          <section
+            className="panel territoryEditor"
+            role="dialog"
+            aria-modal="true"
+            aria-label="Map Delivery"
+          >
+            <header className="panelHead">
+              <h2>Map Delivery</h2>
+              <button
+                className="iconCloseButton dangerGhost"
+                onClick={() => setSettings(null)}
+                aria-label="Close Map Delivery"
+              >
+                ×
+              </button>
+            </header>
+            <p>
+              The battle map appears first in the Control Desk message, above member and music controls. This
+              channel is used for standalone delivery only when no Control Desk is configured.
+            </p>
+            <label>
+              Discord Channel ID
+              <input
+                value={settings.channel_id ?? ""}
+                onChange={(e) => setSettings({ ...settings, channel_id: e.target.value })}
+              />
+            </label>
+            <label>
+              Reviewer User IDs (Comma Separated)
+              <input
+                value={(settings.reviewer_ids ?? []).join(",")}
+                onChange={(e) =>
+                  setSettings({
+                    ...settings,
+                    reviewer_ids: e.target.value
+                      .split(",")
+                      .map((x) => x.trim())
+                      .filter(Boolean),
+                  })
+                }
+              />
+            </label>
+            <p>
+              Updates Every Minute. Nightly Review At 11 PM America/Chicago. Review Links Expire After 48
+              Hours And Require Officer Sign-In.
+            </p>
+            <button
+              className="goldButton"
+              onClick={async () => {
+                try {
+                  await api("/settings", {
+                    method: "PUT",
+                    body: JSON.stringify({
+                      channelId: settings.channel_id,
+                      reviewerIds: settings.reviewer_ids,
+                    }),
+                  });
+                  setSettings(null);
+                  setNotice("Map Delivery Saved");
+                } catch (e: any) {
+                  setNotice(e.message);
+                }
+              }}
+            >
+              Save Delivery
+            </button>
+            {notice && <p role="alert">{notice}</p>}
+          </section>
+        </div>
+      )}
+    </section>
+  );
 }

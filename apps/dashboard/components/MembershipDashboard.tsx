@@ -1,130 +1,1699 @@
 "use client";
 import SavedViewControl from "./SavedViewControl";
 
-import {useSearchParams} from 'next/navigation';
-import {useEffect,useMemo,useState} from "react";
+import { useSearchParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 import CommandIcon from "./CommandIcon";
 import DiscordPreview from "./DiscordPreview";
-import {SaveBar} from "./DesignSystem";
+import { SaveBar } from "./DesignSystem";
 import DiscordOptionsSelect from "./DiscordOptionsSelect";
 import RoleTagPicker from "./RoleTagPicker";
 import SettingToggle from "./SettingToggle";
 import MediaRequestPanel from "./MediaRequestPanel";
 import AwayAdminPanel from "./AwayAdminPanel";
 
-type View="roster"|"profile"|"role"|"media"|"admin";
+type View = "roster" | "profile" | "role" | "media" | "admin";
 
-type ApiError={message?:string;error?:string};
-async function api(path:string,init:RequestInit={}){
-  const headers=new Headers(init.headers);
-  if(init.body&&!headers.has("content-type"))headers.set("content-type","application/json");
-  const response=await fetch(`/api/internal/membership${path}`,{...init,headers,cache:"no-store"});
-  const text=await response.text();let body:any={};
-  try{body=text?JSON.parse(text):{};}catch{body={error:text};}
-  if(!response.ok)throw new Error((body as ApiError).message??(body as ApiError).error??`Request failed (${response.status})`);
+type ApiError = { message?: string; error?: string };
+async function api(path: string, init: RequestInit = {}) {
+  const headers = new Headers(init.headers);
+  if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
+  const response = await fetch(`/api/internal/membership${path}`, { ...init, headers, cache: "no-store" });
+  const text = await response.text();
+  let body: any = {};
+  try {
+    body = text ? JSON.parse(text) : {};
+  } catch {
+    body = { error: text };
+  }
+  if (!response.ok)
+    throw new Error(
+      (body as ApiError).message ?? (body as ApiError).error ?? `Request failed (${response.status})`,
+    );
   return body;
 }
-const hex=(n:any)=>`#${Number(n??0).toString(16).padStart(6,"0").slice(-6).toUpperCase()}`;
-const roleColor=(n:any)=>n?`#${Number(n).toString(16).padStart(6,"0")}`:"#7d8597";
-const ordinal=(rate:string)=>`${rate}${rate==="1"?"st":rate==="2"?"nd":rate==="3"?"rd":"th"} Rate`;
-function roleName(id:string,roles:any[]){return roles.find(r=>String(r.id)===String(id))?.name??id;}
-
-function CaptainShipGallery({captain,ships}:{captain:any;ships:any[]}){
-  const index=new Map<string,any>(ships.map((s:any)=>[String(s.name??'').toLowerCase(),s]));
-  const rates=[...new Set<string>([...Object.keys(captain.rates??{}),...Object.keys(captain.ownedRates??{})])].sort((a,b)=>Number(a)-Number(b));
-  return <div className="captainShipGallery">{rates.map(rate=>{
-    const owned:Array<string>=captain.ownedRates?.[rate]??[];
-    const playable:Array<string>=captain.rates?.[rate]?.ships??[];
-    const names=[...new Set<string>([...owned,...playable])];
-    if(!names.length)return null;
-    return <section key={rate}><h4>{rate} Rate · {names.length} hulls</h4><div className="captainShipTiles">{names.map(name=>{
-      const ship=index.get(name.toLowerCase());
-      return <div className="captainShipTile" key={name} title={name}><div>{ship?.image?<img src={ship.image} alt="" loading="lazy"/>:<span>⛵</span>}</div><b>{name}</b><small>{owned.includes(name)?'Owned': 'Playable'}{owned.includes(name)&&playable.includes(name)?' · Playable':''}</small></div>;
-    })}</div></section>;
-  })}{!rates.length&&<p className="uiEmpty">No ships recorded.</p>}</div>;
+const hex = (n: any) =>
+  `#${Number(n ?? 0)
+    .toString(16)
+    .padStart(6, "0")
+    .slice(-6)
+    .toUpperCase()}`;
+const roleColor = (n: any) => (n ? `#${Number(n).toString(16).padStart(6, "0")}` : "#7d8597");
+const ordinal = (rate: string) =>
+  `${rate}${rate === "1" ? "st" : rate === "2" ? "nd" : rate === "3" ? "rd" : "th"} Rate`;
+function roleName(id: string, roles: any[]) {
+  return roles.find((r) => String(r.id) === String(id))?.name ?? id;
 }
 
-export default function MembershipDashboard({initialSummary,initialRoster,catalogue,adminData,initialRequests,initialView,adminOnly=false}:{initialSummary:any;initialRoster:any;catalogue:any;adminData:any;initialRequests:any[];initialView?:View;adminOnly?:boolean}){
-  const routeParams=useSearchParams();
-  const admin=Boolean(adminData);
-  const queryView=typeof window!=="undefined"?new URLSearchParams(location.search).get("view"):null;
-  const [view,setView]=useState<View>(adminOnly?"admin":initialView??(queryView==="profile"||queryView==="role"||queryView==="media"||queryView==="admin"?queryView:"roster"));
-  useEffect(()=>{const member=routeParams.get('member');if(member){setSearch(member);setView('roster')}},[routeParams]);
-  const [summary,setSummary]=useState(initialSummary),[roster,setRoster]=useState(initialRoster),[requests,setRequests]=useState(initialRequests);
-  const [adminMeta,setAdminMeta]=useState<any>(adminData),[adminState,setAdminState]=useState<any>(adminData?.settings??{});
-  const [refreshingOptions,setRefreshingOptions]=useState(false),[selectedShip,setSelectedShip]=useState(""),[audit,setAudit]=useState<any>(null),[auditing,setAuditing]=useState(false);
-  const [fleetShip,setFleetShip]=useState(""),[fleetMode,setFleetMode]=useState<"owned"|"playable">("owned");
-  const [memberLayout,setMemberLayout]=useState<"cards"|"table">("cards"),[roleSample,setRoleSample]=useState("Ahoy crew! Ready for tonight’s voyage?"),[roleIconPreview,setRoleIconPreview]=useState(""),[notice,setNotice]=useState(""),[search,setSearch]=useState(""),[incompleteOnly,setIncompleteOnly]=useState(false),[rosterScope,setRosterScope]=useState<"all"|"officers">("all");
-  const [captain,setCaptain]=useState(initialSummary.profile?.captain_name??""),[rank,setRank]=useState<number|string>(initialSummary.profile?.game_rank??"");
-  const [rates,setRates]=useState<any>(initialSummary.pbProfile?.rates??{}),[owned,setOwned]=useState<any>(initialSummary.pbProfile?.owned_rates??{}),[horn,setHorn]=useState(Boolean(initialSummary.pbProfile?.horn_preferred));
-  const [roleDraft,setRoleDraft]=useState({name:"",primary:"#D9AA3C",secondary:"",direction:"LEFT_TO_RIGHT",emoji:"",iconData:""});
-  const [prefixRole,setPrefixRole]=useState(""),[prefix,setPrefix]=useState("[BOM]"),[sourceRole,setSourceRole]=useState(""),[destRoles,setDestRoles]=useState<string[]>([]);
-  const discord=adminMeta?.discord??{roles:[],textChannels:[],categories:[]};
-  const ships=Array.isArray(catalogue?.ships)?catalogue.ships:[];
-  const byRate=useMemo(()=>{const out:Record<string,any[]>={};for(const ship of ships){const rate=String(ship.rate??ship.rank??"");if(!rate)continue;(out[rate]??=[]).push(ship);}for(const list of Object.values(out))list.sort((a,b)=>String(a.name).localeCompare(String(b.name)));return out;},[ships]);
-  const shipNames=useMemo<string[]>(()=>[...new Set<string>((roster.members??[]).flatMap((m:any)=>Object.values(m.rates??{}).flatMap((v:any)=>v.ships??[]).concat(Object.values(m.ownedRates??{}).flatMap((v:any)=>v??[]))).map(String))].sort((a:string,b:string)=>a.localeCompare(b)),[roster]);
-  const members=(roster.members??[]).filter((m:any)=>{const q=search.trim().toLowerCase();if(rosterScope==="officers"&&!m.isOfficer)return false;if(incompleteOnly&&m.profileComplete)return false;if(selectedShip&&!Object.values(m.rates??{}).some((v:any)=>(v.ships??[]).includes(selectedShip))&&!Object.values(m.ownedRates??{}).some((v:any)=>(v??[]).includes(selectedShip)))return false;return !q||[m.userId,m.displayName,m.username,m.captainName,...(m.roles??[]).map((r:any)=>r.name)].some((x:any)=>String(x??"").toLowerCase().includes(q));});
-  const guildShipNames=useMemo<string[]>(()=>[...new Set<string>((roster.members??[]).flatMap((m:any)=>fleetMode==='owned'?Object.values(m.ownedRates??{}).flatMap((list:any)=>Array.isArray(list)?list:[]):Object.values(m.rates??{}).flatMap((entry:any)=>Array.isArray(entry?.ships)?entry.ships:[])).map((ship:unknown):string=>String(ship)))].sort((a:string,b:string)=>a.localeCompare(b)),[roster,fleetMode]);
-  const fleetMembers=members.filter((m:any)=>!fleetShip||(fleetMode==='owned'?Object.values(m.ownedRates??{}).some((list:any)=>Array.isArray(list)&&list.includes(fleetShip)):Object.values(m.rates??{}).some((entry:any)=>Array.isArray(entry?.ships)&&entry.ships.includes(fleetShip))));
-  const withoutGuildTag=(name:string)=>String(name??'').replace(/^(?:\s*\[[^\]\r\n]+\]\s*)+/u,'').trim();
-  function exportShipOwners(){if(!fleetShip)return;const lines=[['Member','Captain','Ship','Category'],...fleetMembers.map((m:any)=>[withoutGuildTag(m.displayName),withoutGuildTag(m.captainName||''),fleetShip,fleetMode])].map((row:string[])=>row.map((v:string)=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([lines],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=`BOM-${fleetShip.replace(/[^a-z0-9-]+/gi,'-')}-${fleetMode}.csv`;a.click();URL.revokeObjectURL(url);}
-  const myUserId=String(initialSummary.userId??summary.userId??"");
-  const myRequests=requests.filter((x:any)=>String(x.user_id)===myUserId);
-  const tabs:[View,string,string][]=adminOnly?[]:[["roster","Guild Roster","user"],["profile","My Profile & Ships","ship"],["role","Custom Role","palette"],["media","Guild Media","image"],...(admin?[["admin","Membership Admin","settings"] as [View,string,string]]:[])];
+function CaptainShipGallery({ captain, ships }: { captain: any; ships: any[] }) {
+  const index = new Map<string, any>(ships.map((s: any) => [String(s.name ?? "").toLowerCase(), s]));
+  const rates = [
+    ...new Set<string>([...Object.keys(captain.rates ?? {}), ...Object.keys(captain.ownedRates ?? {})]),
+  ].sort((a, b) => Number(a) - Number(b));
+  return (
+    <div className="captainShipGallery">
+      {rates.map((rate) => {
+        const owned: Array<string> = captain.ownedRates?.[rate] ?? [];
+        const playable: Array<string> = captain.rates?.[rate]?.ships ?? [];
+        const names = [...new Set<string>([...owned, ...playable])];
+        if (!names.length) return null;
+        return (
+          <section key={rate}>
+            <h4>
+              {rate} Rate · {names.length} hulls
+            </h4>
+            <div className="captainShipTiles">
+              {names.map((name) => {
+                const ship = index.get(name.toLowerCase());
+                return (
+                  <div className="captainShipTile" key={name} title={name}>
+                    <div>
+                      {ship?.image ? <img src={ship.image} alt="" loading="lazy" /> : <span>⛵</span>}
+                    </div>
+                    <b>{name}</b>
+                    <small>
+                      {owned.includes(name) ? "Owned" : "Playable"}
+                      {owned.includes(name) && playable.includes(name) ? " · Playable" : ""}
+                    </small>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
+      {!rates.length && <p className="uiEmpty">No ships recorded.</p>}
+    </div>
+  );
+}
 
-  async function refreshDiscordOptions(){setRefreshingOptions(true);try{const fresh=await api('/discord-context');setAdminMeta((current:any)=>({...current,discord:fresh.discord}));toast('Discord options refreshed. Unsaved changes preserved.');}catch(e:any){toast(e.message);}finally{setRefreshingOptions(false);}}
-  async function refresh(includeAdmin=false){
-    const jobs:[Promise<any>,Promise<any>,Promise<any>]=[api("/summary"),api("/roster"),api("/custom-roles")];
-    const [s,r,q]=await Promise.all(jobs);setSummary(s);setRoster(r);setRequests(q);
-    if(includeAdmin&&admin){const meta=await api("/settings");setAdminMeta(meta);setAdminState(meta.settings??{});}
+export default function MembershipDashboard({
+  initialSummary,
+  initialRoster,
+  catalogue,
+  adminData,
+  initialRequests,
+  initialView,
+  adminOnly = false,
+}: {
+  initialSummary: any;
+  initialRoster: any;
+  catalogue: any;
+  adminData: any;
+  initialRequests: any[];
+  initialView?: View;
+  adminOnly?: boolean;
+}) {
+  const routeParams = useSearchParams();
+  const admin = Boolean(adminData);
+  const queryView = typeof window !== "undefined" ? new URLSearchParams(location.search).get("view") : null;
+  const [view, setView] = useState<View>(
+    adminOnly
+      ? "admin"
+      : (initialView ??
+          (queryView === "profile" || queryView === "role" || queryView === "media" || queryView === "admin"
+            ? queryView
+            : "roster")),
+  );
+  useEffect(() => {
+    const member = routeParams.get("member");
+    if (member) {
+      setSearch(member);
+      setView("roster");
+    }
+  }, [routeParams]);
+  const [summary, setSummary] = useState(initialSummary),
+    [roster, setRoster] = useState(initialRoster),
+    [requests, setRequests] = useState(initialRequests);
+  const [adminMeta, setAdminMeta] = useState<any>(adminData),
+    [adminState, setAdminState] = useState<any>(adminData?.settings ?? {});
+  const [refreshingOptions, setRefreshingOptions] = useState(false),
+    [selectedShip, setSelectedShip] = useState(""),
+    [audit, setAudit] = useState<any>(null),
+    [auditing, setAuditing] = useState(false);
+  const [fleetShip, setFleetShip] = useState(""),
+    [fleetMode, setFleetMode] = useState<"owned" | "playable">("owned");
+  const [memberLayout, setMemberLayout] = useState<"cards" | "table">("cards"),
+    [roleSample, setRoleSample] = useState("Ahoy crew! Ready for tonight’s voyage?"),
+    [roleIconPreview, setRoleIconPreview] = useState(""),
+    [notice, setNotice] = useState(""),
+    [search, setSearch] = useState(""),
+    [incompleteOnly, setIncompleteOnly] = useState(false),
+    [rosterScope, setRosterScope] = useState<"all" | "officers">("all");
+  const [captain, setCaptain] = useState(initialSummary.profile?.captain_name ?? ""),
+    [rank, setRank] = useState<number | string>(initialSummary.profile?.game_rank ?? "");
+  const [rates, setRates] = useState<any>(initialSummary.pbProfile?.rates ?? {}),
+    [owned, setOwned] = useState<any>(initialSummary.pbProfile?.owned_rates ?? {}),
+    [horn, setHorn] = useState(Boolean(initialSummary.pbProfile?.horn_preferred));
+  const [roleDraft, setRoleDraft] = useState({
+    name: "",
+    primary: "#D9AA3C",
+    secondary: "",
+    direction: "LEFT_TO_RIGHT",
+    emoji: "",
+    iconData: "",
+  });
+  const [prefixRole, setPrefixRole] = useState(""),
+    [prefix, setPrefix] = useState("[BOM]"),
+    [sourceRole, setSourceRole] = useState(""),
+    [destRoles, setDestRoles] = useState<string[]>([]);
+  const discord = adminMeta?.discord ?? { roles: [], textChannels: [], categories: [] };
+  const ships = Array.isArray(catalogue?.ships) ? catalogue.ships : [];
+  const byRate = useMemo(() => {
+    const out: Record<string, any[]> = {};
+    for (const ship of ships) {
+      const rate = String(ship.rate ?? ship.rank ?? "");
+      if (!rate) continue;
+      (out[rate] ??= []).push(ship);
+    }
+    for (const list of Object.values(out)) list.sort((a, b) => String(a.name).localeCompare(String(b.name)));
+    return out;
+  }, [ships]);
+  const shipNames = useMemo<string[]>(
+    () =>
+      [
+        ...new Set<string>(
+          (roster.members ?? [])
+            .flatMap((m: any) =>
+              Object.values(m.rates ?? {})
+                .flatMap((v: any) => v.ships ?? [])
+                .concat(Object.values(m.ownedRates ?? {}).flatMap((v: any) => v ?? [])),
+            )
+            .map(String),
+        ),
+      ].sort((a: string, b: string) => a.localeCompare(b)),
+    [roster],
+  );
+  const members = (roster.members ?? []).filter((m: any) => {
+    const q = search.trim().toLowerCase();
+    if (rosterScope === "officers" && !m.isOfficer) return false;
+    if (incompleteOnly && m.profileComplete) return false;
+    if (
+      selectedShip &&
+      !Object.values(m.rates ?? {}).some((v: any) => (v.ships ?? []).includes(selectedShip)) &&
+      !Object.values(m.ownedRates ?? {}).some((v: any) => (v ?? []).includes(selectedShip))
+    )
+      return false;
+    return (
+      !q ||
+      [m.userId, m.displayName, m.username, m.captainName, ...(m.roles ?? []).map((r: any) => r.name)].some(
+        (x: any) =>
+          String(x ?? "")
+            .toLowerCase()
+            .includes(q),
+      )
+    );
+  });
+  const guildShipNames = useMemo<string[]>(
+    () =>
+      [
+        ...new Set<string>(
+          (roster.members ?? [])
+            .flatMap((m: any) =>
+              fleetMode === "owned"
+                ? Object.values(m.ownedRates ?? {}).flatMap((list: any) => (Array.isArray(list) ? list : []))
+                : Object.values(m.rates ?? {}).flatMap((entry: any) =>
+                    Array.isArray(entry?.ships) ? entry.ships : [],
+                  ),
+            )
+            .map((ship: unknown): string => String(ship)),
+        ),
+      ].sort((a: string, b: string) => a.localeCompare(b)),
+    [roster, fleetMode],
+  );
+  const fleetMembers = members.filter(
+    (m: any) =>
+      !fleetShip ||
+      (fleetMode === "owned"
+        ? Object.values(m.ownedRates ?? {}).some(
+            (list: any) => Array.isArray(list) && list.includes(fleetShip),
+          )
+        : Object.values(m.rates ?? {}).some(
+            (entry: any) => Array.isArray(entry?.ships) && entry.ships.includes(fleetShip),
+          )),
+  );
+  const withoutGuildTag = (name: string) =>
+    String(name ?? "")
+      .replace(/^(?:\s*\[[^\]\r\n]+\]\s*)+/u, "")
+      .trim();
+  function exportShipOwners() {
+    if (!fleetShip) return;
+    const lines = [
+      ["Member", "Captain", "Ship", "Category"],
+      ...fleetMembers.map((m: any) => [
+        withoutGuildTag(m.displayName),
+        withoutGuildTag(m.captainName || ""),
+        fleetShip,
+        fleetMode,
+      ]),
+    ]
+      .map((row: string[]) => row.map((v: string) => `"${String(v ?? "").replaceAll('"', '""')}"`).join(","))
+      .join("\r\n");
+    const url = URL.createObjectURL(new Blob([lines], { type: "text/csv;charset=utf-8" }));
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `BOM-${fleetShip.replace(/[^a-z0-9-]+/gi, "-")}-${fleetMode}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
   }
-  function exportMemberShips(){const clean=(v:any)=>String(v??'').replace(/^(?:\s*\[[^\]]{2,12}\]\s*)+/g,'').trim();const rows=[['Captain','Discord ID','Playable rates','Owned rates'],...members.map((m:any)=>[clean(m.captainName||m.displayName),m.userId,Object.entries(m.rates??{}).flatMap(([rate,data]:any)=>((data.ships??[]) as string[]).map(ship=>`${ship} (${rate})`)).join('; '),Object.entries(m.ownedRates??{}).flatMap(([rate,list]:any)=>(list as string[]).map(ship=>`${ship} (${rate})`)).join('; ')])];const csv=rows.map(row=>row.map((v:any)=>`"${String(v??'').replaceAll('"','""')}"`).join(',')).join('\r\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));a.download=selectedShip?`BOM-${selectedShip.replace(/[^a-z0-9-]/gi,'-')}-captains.csv`:'BOM-guild-ship-roster.csv';a.click();URL.revokeObjectURL(a.href);}
-  async function runAudit(){setAuditing(true);try{setAudit(await api('/audit'));toast('Prefix and Role Connections audit complete. Review each issue before applying changes.');}catch(e:any){toast(e.message);}finally{setAuditing(false);}}
-  async function applyAudit(uid:string,applyPrefix:boolean,applyConnections:boolean){try{await api(`/audit/${encodeURIComponent(uid)}/apply`,{method:'POST',body:JSON.stringify({applyPrefix,applyConnections})});toast('Selected correction applied to Discord.');await runAudit();}catch(e:any){toast(e.message);}}
-  function toast(message:string){setNotice(message);window.setTimeout(()=>setNotice(current=>current===message?"":current),5500);}
-  async function saveProfile(){try{await api("/profile",{method:"PUT",body:JSON.stringify({captainName:captain.trim()||null,gameRank:rank===""?null:Number(rank),ownedRates:owned,rates,hornPreferred:horn})});toast("Profile and ship information saved.");await refresh();}catch(e:any){toast(e.message);}}
-  function toggleOwned(rate:string,name:string){setOwned((current:any)=>{const list=[...(current?.[rate]??[])],has=list.includes(name);return {...current,[rate]:has?list.filter((x:string)=>x!==name):[...list,name]};});}
-  function togglePlayable(rate:string,name:string){setRates((current:any)=>{const entry=current?.[rate]??{ships:[],preferred:[]},has=(entry.ships??[]).includes(name),shipList=has?entry.ships.filter((x:string)=>x!==name):[...(entry.ships??[]),name],preferred=has?(entry.preferred??[]).filter((x:string)=>x!==name):(entry.preferred??[]);return {...current,[rate]:{...entry,ships:shipList,preferred}};});}
-  function togglePreferred(rate:string,name:string){setRates((current:any)=>{const entry=current?.[rate]??{ships:[],preferred:[]};if(!(entry.ships??[]).includes(name))return current;const has=(entry.preferred??[]).includes(name),preferred=has?entry.preferred.filter((x:string)=>x!==name):[...(entry.preferred??[]),name].slice(-2);return {...current,[rate]:{...entry,preferred}};});}
-  async function submitRole(){try{await api("/custom-roles",{method:"POST",body:JSON.stringify({name:roleDraft.name.trim(),primaryColor:roleDraft.primary,secondaryColor:roleDraft.secondary||null,gradientDirection:roleDraft.secondary?roleDraft.direction:null,unicodeEmoji:roleDraft.emoji.trim()||null,iconData:roleDraft.iconData||null})});toast("Custom role request sent for review.");setRoleDraft({...roleDraft,name:""});await refresh();}catch(e:any){toast(e.message);}}
-  async function decide(id:string,approved:boolean){try{await api(`/custom-roles/${id}/decision`,{method:"POST",body:JSON.stringify({approved})});toast(`Role request ${approved?"approved":"declined"}.`);await refresh(admin);}catch(e:any){toast(e.message);}}
-  async function saveSettings(){try{await api("/settings",{method:"PUT",body:JSON.stringify({welcomeEnabled:Boolean(adminState.welcome_enabled),welcomeChannelId:adminState.welcome_channel_id||null,applicationUrl:adminState.application_url||null,tradeUrl:adminState.trade_url||null,tradeRoleId:adminState.trade_role_id||null,diplomacyEnabled:Boolean(adminState.diplomacy_enabled),diplomacyCategoryId:adminState.diplomacy_category_id||null,diplomacyRoleId:adminState.diplomacy_role_id||null,diplomacyArchiveChannelId:adminState.diplomacy_archive_channel_id||null,diplomacyVoiceEnabled:Boolean(adminState.diplomacy_voice_enabled),customRolesEnabled:Boolean(adminState.custom_roles_enabled),customRoleApprovalChannelId:adminState.custom_role_approval_channel_id||null,customRoleApprovalRoleId:adminState.custom_role_approval_role_id||null,customRoleAnchorRoleId:adminState.custom_role_anchor_role_id||null,memberRoleId:adminState.member_role_id||null,allianceRoleId:adminState.alliance_role_id||null,memberConsoleChannelId:adminState.member_console_channel_id||null,rosterEnabled:Boolean(adminState.roster_enabled),profileReminderRoleId:adminState.profile_reminder_role_id||null,officerRoleIds:adminState.officer_role_ids??[],leaveEnabled:Boolean(adminState.leave_enabled),leaveOfficerRoleId:adminState.leave_officer_role_id||null,leaveReminderChannelId:adminState.leave_reminder_channel_id||null,afkRoleId:adminState.afk_role_id||null,bom2MemberRoleId:adminState.bom2_member_role_id||null,bom2AfkRoleId:adminState.bom2_afk_role_id||null,leaveMemberRoleIds:adminState.leave_member_role_ids??[]})});toast("Membership settings saved. Discord panels will repair themselves automatically.");await refresh(true);}catch(e:any){toast(e.message);}}
-  async function savePrefix(){if(!prefixRole)return;try{await api(`/prefixes/${prefixRole}`,{method:"PUT",body:JSON.stringify({prefix})});toast("Guild Prefix rule saved and applied.");await refresh(true);}catch(e:any){toast(e.message);}}
-  async function deletePrefix(roleId:string){try{await api(`/prefixes/${roleId}`,{method:"DELETE"});toast("Guild Prefix rule removed.");await refresh(true);}catch(e:any){toast(e.message);}}
-  async function saveConnection(){if(!sourceRole)return;try{await api(`/connections/${sourceRole}`,{method:"PUT",body:JSON.stringify({destinationRoleIds:destRoles})});toast("Role Connection saved and applied to current role holders.");await refresh(true);}catch(e:any){toast(e.message);}}
-  async function deleteConnection(roleId:string){try{await api(`/connections/${roleId}`,{method:"DELETE"});toast("Role Connection removed. Roles already granted to members were left in place.");await refresh(true);}catch(e:any){toast(e.message);}}
-  async function remindIncomplete(){const ids=(roster.members??[]).filter((m:any)=>!m.profileComplete).map((m:any)=>m.userId).slice(0,100);if(!ids.length){toast("Every roster profile is complete.");return;}try{const result=await api("/remind",{method:"POST",body:JSON.stringify({userIds:ids})});toast(`Profile reminder sent to ${result.sent??ids.length} member${(result.sent??ids.length)===1?"":"s"}.`);}catch(e:any){toast(e.message);}}
-  const memberLabel=(id:string)=>roster.members?.find((m:any)=>String(m.userId)===String(id))?.displayName??id;
-  const adminDirty=Boolean(admin&&JSON.stringify(adminState)!==JSON.stringify(adminMeta?.settings??{}));
-  useEffect(()=>{window.dispatchEvent(new CustomEvent("bom:dirty",{detail:{dirty:adminDirty}}));return()=>{window.dispatchEvent(new CustomEvent("bom:dirty",{detail:{dirty:false}}));};},[adminDirty]);
+  const myUserId = String(initialSummary.userId ?? summary.userId ?? "");
+  const myRequests = requests.filter((x: any) => String(x.user_id) === myUserId);
+  const tabs: [View, string, string][] = adminOnly
+    ? []
+    : [
+        ["roster", "Guild Roster", "user"],
+        ["profile", "My Profile & Ships", "ship"],
+        ["role", "Custom Role", "palette"],
+        ["media", "Guild Media", "image"],
+        ...(admin ? [["admin", "Membership Admin", "settings"] as [View, string, string]] : []),
+      ];
 
-  return <div className="membershipExperience">
-    <header className="membershipHeader"><div><span className="eyebrow">BAND OF MISFITS</span><h1>{adminOnly?"Membership & Welcome":"Guild Members"}</h1><p>{adminOnly?"Configure onboarding, roster membership, personal roles, nickname prefixes and connected Discord roles.":"Roster profiles, ships, custom roles and member automation in one place."}</p></div><div className="membershipStats"><span><b>{roster.total??0}</b><small>Members</small></span><span><b>{roster.incomplete??0}</b><small>Profiles to update</small></span></div></header>
-    {notice&&<button className="notice membershipNotice" onClick={()=>setNotice("")}>{notice}</button>}
-    {!adminOnly&&<nav className="membershipTabs">{tabs.map(([key,label,icon])=><button key={key} className={view===key?"active":""} onClick={()=>setView(key)}><CommandIcon name={icon as any} size={17}/>{label}</button>)}</nav>}
+  async function refreshDiscordOptions() {
+    setRefreshingOptions(true);
+    try {
+      const fresh = await api("/discord-context");
+      setAdminMeta((current: any) => ({ ...current, discord: fresh.discord }));
+      toast("Discord options refreshed. Unsaved changes preserved.");
+    } catch (e: any) {
+      toast(e.message);
+    } finally {
+      setRefreshingOptions(false);
+    }
+  }
+  async function refresh(includeAdmin = false) {
+    const jobs: [Promise<any>, Promise<any>, Promise<any>] = [
+      api("/summary"),
+      api("/roster"),
+      api("/custom-roles"),
+    ];
+    const [s, r, q] = await Promise.all(jobs);
+    setSummary(s);
+    setRoster(r);
+    setRequests(q);
+    if (includeAdmin && admin) {
+      const meta = await api("/settings");
+      setAdminMeta(meta);
+      setAdminState(meta.settings ?? {});
+    }
+  }
+  function exportMemberShips() {
+    const clean = (v: any) =>
+      String(v ?? "")
+        .replace(/^(?:\s*\[[^\]]{2,12}\]\s*)+/g, "")
+        .trim();
+    const rows = [
+      ["Captain", "Discord ID", "Playable rates", "Owned rates"],
+      ...members.map((m: any) => [
+        clean(m.captainName || m.displayName),
+        m.userId,
+        Object.entries(m.rates ?? {})
+          .flatMap(([rate, data]: any) => ((data.ships ?? []) as string[]).map((ship) => `${ship} (${rate})`))
+          .join("; "),
+        Object.entries(m.ownedRates ?? {})
+          .flatMap(([rate, list]: any) => (list as string[]).map((ship) => `${ship} (${rate})`))
+          .join("; "),
+      ]),
+    ];
+    const csv = rows
+      .map((row) => row.map((v: any) => `"${String(v ?? "").replaceAll('"', '""')}"`).join(","))
+      .join("\r\n");
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+    a.download = selectedShip
+      ? `BOM-${selectedShip.replace(/[^a-z0-9-]/gi, "-")}-captains.csv`
+      : "BOM-guild-ship-roster.csv";
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+  async function runAudit() {
+    setAuditing(true);
+    try {
+      setAudit(await api("/audit"));
+      toast("Prefix and Role Connections audit complete. Review each issue before applying changes.");
+    } catch (e: any) {
+      toast(e.message);
+    } finally {
+      setAuditing(false);
+    }
+  }
+  async function applyAudit(uid: string, applyPrefix: boolean, applyConnections: boolean) {
+    try {
+      await api(`/audit/${encodeURIComponent(uid)}/apply`, {
+        method: "POST",
+        body: JSON.stringify({ applyPrefix, applyConnections }),
+      });
+      toast("Selected correction applied to Discord.");
+      await runAudit();
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  function toast(message: string) {
+    setNotice(message);
+    window.setTimeout(() => setNotice((current) => (current === message ? "" : current)), 5500);
+  }
+  async function saveProfile() {
+    try {
+      await api("/profile", {
+        method: "PUT",
+        body: JSON.stringify({
+          captainName: captain.trim() || null,
+          gameRank: rank === "" ? null : Number(rank),
+          ownedRates: owned,
+          rates,
+          hornPreferred: horn,
+        }),
+      });
+      toast("Profile and ship information saved.");
+      await refresh();
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  function toggleOwned(rate: string, name: string) {
+    setOwned((current: any) => {
+      const list = [...(current?.[rate] ?? [])],
+        has = list.includes(name);
+      return { ...current, [rate]: has ? list.filter((x: string) => x !== name) : [...list, name] };
+    });
+  }
+  function togglePlayable(rate: string, name: string) {
+    setRates((current: any) => {
+      const entry = current?.[rate] ?? { ships: [], preferred: [] },
+        has = (entry.ships ?? []).includes(name),
+        shipList = has ? entry.ships.filter((x: string) => x !== name) : [...(entry.ships ?? []), name],
+        preferred = has ? (entry.preferred ?? []).filter((x: string) => x !== name) : (entry.preferred ?? []);
+      return { ...current, [rate]: { ...entry, ships: shipList, preferred } };
+    });
+  }
+  function togglePreferred(rate: string, name: string) {
+    setRates((current: any) => {
+      const entry = current?.[rate] ?? { ships: [], preferred: [] };
+      if (!(entry.ships ?? []).includes(name)) return current;
+      const has = (entry.preferred ?? []).includes(name),
+        preferred = has
+          ? entry.preferred.filter((x: string) => x !== name)
+          : [...(entry.preferred ?? []), name].slice(-2);
+      return { ...current, [rate]: { ...entry, preferred } };
+    });
+  }
+  async function submitRole() {
+    try {
+      await api("/custom-roles", {
+        method: "POST",
+        body: JSON.stringify({
+          name: roleDraft.name.trim(),
+          primaryColor: roleDraft.primary,
+          secondaryColor: roleDraft.secondary || null,
+          gradientDirection: roleDraft.secondary ? roleDraft.direction : null,
+          unicodeEmoji: roleDraft.emoji.trim() || null,
+          iconData: roleDraft.iconData || null,
+        }),
+      });
+      toast("Custom role request sent for review.");
+      setRoleDraft({ ...roleDraft, name: "" });
+      await refresh();
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  async function decide(id: string, approved: boolean) {
+    try {
+      await api(`/custom-roles/${id}/decision`, { method: "POST", body: JSON.stringify({ approved }) });
+      toast(`Role request ${approved ? "approved" : "declined"}.`);
+      await refresh(admin);
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  async function saveSettings() {
+    try {
+      await api("/settings", {
+        method: "PUT",
+        body: JSON.stringify({
+          welcomeEnabled: Boolean(adminState.welcome_enabled),
+          welcomeChannelId: adminState.welcome_channel_id || null,
+          applicationUrl: adminState.application_url || null,
+          tradeUrl: adminState.trade_url || null,
+          tradeRoleId: adminState.trade_role_id || null,
+          diplomacyEnabled: Boolean(adminState.diplomacy_enabled),
+          diplomacyCategoryId: adminState.diplomacy_category_id || null,
+          diplomacyRoleId: adminState.diplomacy_role_id || null,
+          diplomacyArchiveChannelId: adminState.diplomacy_archive_channel_id || null,
+          diplomacyVoiceEnabled: Boolean(adminState.diplomacy_voice_enabled),
+          customRolesEnabled: Boolean(adminState.custom_roles_enabled),
+          customRoleApprovalChannelId: adminState.custom_role_approval_channel_id || null,
+          customRoleApprovalRoleId: adminState.custom_role_approval_role_id || null,
+          customRoleAnchorRoleId: adminState.custom_role_anchor_role_id || null,
+          memberRoleId: adminState.member_role_id || null,
+          allianceRoleId: adminState.alliance_role_id || null,
+          memberConsoleChannelId: adminState.member_console_channel_id || null,
+          rosterEnabled: Boolean(adminState.roster_enabled),
+          profileReminderRoleId: adminState.profile_reminder_role_id || null,
+          officerRoleIds: adminState.officer_role_ids ?? [],
+          leaveEnabled: Boolean(adminState.leave_enabled),
+          leaveOfficerRoleId: adminState.leave_officer_role_id || null,
+          leaveReminderChannelId: adminState.leave_reminder_channel_id || null,
+          afkRoleId: adminState.afk_role_id || null,
+          bom2MemberRoleId: adminState.bom2_member_role_id || null,
+          bom2AfkRoleId: adminState.bom2_afk_role_id || null,
+          leaveMemberRoleIds: adminState.leave_member_role_ids ?? [],
+        }),
+      });
+      toast("Membership settings saved. Discord panels will repair themselves automatically.");
+      await refresh(true);
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  async function savePrefix() {
+    if (!prefixRole) return;
+    try {
+      await api(`/prefixes/${prefixRole}`, { method: "PUT", body: JSON.stringify({ prefix }) });
+      toast("Guild Prefix rule saved and applied.");
+      await refresh(true);
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  async function deletePrefix(roleId: string) {
+    try {
+      await api(`/prefixes/${roleId}`, { method: "DELETE" });
+      toast("Guild Prefix rule removed.");
+      await refresh(true);
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  async function saveConnection() {
+    if (!sourceRole) return;
+    try {
+      await api(`/connections/${sourceRole}`, {
+        method: "PUT",
+        body: JSON.stringify({ destinationRoleIds: destRoles }),
+      });
+      toast("Role Connection saved and applied to current role holders.");
+      await refresh(true);
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  async function deleteConnection(roleId: string) {
+    try {
+      await api(`/connections/${roleId}`, { method: "DELETE" });
+      toast("Role Connection removed. Roles already granted to members were left in place.");
+      await refresh(true);
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  async function remindIncomplete() {
+    const ids = (roster.members ?? [])
+      .filter((m: any) => !m.profileComplete)
+      .map((m: any) => m.userId)
+      .slice(0, 100);
+    if (!ids.length) {
+      toast("Every roster profile is complete.");
+      return;
+    }
+    try {
+      const result = await api("/remind", { method: "POST", body: JSON.stringify({ userIds: ids }) });
+      toast(
+        `Profile reminder sent to ${result.sent ?? ids.length} member${(result.sent ?? ids.length) === 1 ? "" : "s"}.`,
+      );
+    } catch (e: any) {
+      toast(e.message);
+    }
+  }
+  const memberLabel = (id: string) =>
+    roster.members?.find((m: any) => String(m.userId) === String(id))?.displayName ?? id;
+  const adminDirty = Boolean(
+    admin && JSON.stringify(adminState) !== JSON.stringify(adminMeta?.settings ?? {}),
+  );
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("bom:dirty", { detail: { dirty: adminDirty } }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("bom:dirty", { detail: { dirty: false } }));
+    };
+  }, [adminDirty]);
 
-    {view==="roster"&&<><SavedViewControl section="member-roster" state={{search,incompleteOnly,rosterScope,selectedShip,memberLayout}} onApply={s=>{setSearch(new URLSearchParams(window.location.search).get('member')||String(s.search??''));setIncompleteOnly(s.incompleteOnly===true);setRosterScope(s.rosterScope==='officers'?'officers':'all');setSelectedShip(String(s.selectedShip??''));setMemberLayout(s.memberLayout==='table'?'table':'cards')}}/><section className="membershipToolbar"><label className="membershipSearch"><CommandIcon name="search" size={17}/><input value={search} onChange={(e:any)=>setSearch(e.target.value)} placeholder="Search member, captain, role…"/></label><div className="rosterScope" role="group" aria-label="Roster view"><button className={rosterScope==="all"?"active":""} onClick={()=>setRosterScope("all")}>All <span>{roster.total??0}</span></button><button className={rosterScope==="officers"?"active":""} onClick={()=>setRosterScope("officers")}>Officers <span>{roster.officers??0}</span></button></div><label className="checkLine"><input type="checkbox" checked={incompleteOnly} onChange={(e:any)=>setIncompleteOnly(e.target.checked)}/>Needs profile update</label><label className="memberShipFilter">Find captains by ship<select value={selectedShip} onChange={e=>setSelectedShip(e.target.value)}><option value="">Any ship</option>{shipNames.map(ship=><option value={ship} key={ship}>{ship}</option>)}</select></label><div className="memberViewSwitch"><button type="button" className={memberLayout==="cards"?"active":""} onClick={()=>setMemberLayout("cards")}>Cards</button><button type="button" className={memberLayout==="table"?"active":""} onClick={()=>setMemberLayout("table")}>Table</button></div><button type="button" className="outlineButton" onClick={exportMemberShips}>Export {selectedShip||'Ship Roster'} CSV</button>{summary.canRemind&&<button className="secondaryAction" onClick={()=>void remindIncomplete()}>Remind incomplete profiles</button>}</section><div className="memberFleetExplorer"><label>Find captains by ship<select value={fleetShip} onChange={e=>setFleetShip(e.target.value)}><option value="">All guild ships</option>{guildShipNames.map(name=><option key={name} value={name}>{name}</option>)}</select></label><label>Ship category<select value={fleetMode} onChange={e=>{setFleetMode(e.target.value as "owned"|"playable");setFleetShip("")}}><option value="owned">Owned ships</option><option value="playable">Playable ships</option></select></label><span>{fleetShip?`${fleetMembers.length} captains with ${fleetShip}`:`${fleetMembers.length} members`}</span><button className="outlineButton" disabled={!fleetShip} onClick={exportShipOwners}>Export captain names · CSV</button></div>{memberLayout==="table"?<div className="memberTableWrap"><table className="memberTable"><thead><tr><th>Member</th><th>Captain</th><th>Highest role</th><th>Rank</th><th>Ships</th></tr></thead><tbody>{fleetMembers.map((m:any)=><tr key={m.userId}><td>{m.displayName}</td><td>{m.captainName||"—"}</td><td>{m.highestRole?.name??"Member"}</td><td>{m.gameRank??"—"}</td><td><details className="memberShipDisclosure"><summary>Ships</summary><CaptainShipGallery captain={m} ships={ships}/></details></td></tr>)}</tbody></table></div>:<section className="memberGrid">{fleetMembers.map((m:any)=><article className="memberCard" key={m.userId}><div className="memberIdentity"><span className="memberAvatar">{m.avatarUrl?<img src={m.avatarUrl} alt=""/>:<CommandIcon name="user" size={24}/>}</span><div><h3>{m.displayName}</h3><p>{m.captainName?`Captain ${m.captainName}`:"Captain name not set"}</p></div></div><div className="memberMeta"><span style={{"--role-color":roleColor(m.highestRole?.color)} as any}>{m.highestRole?.name??"Member"}</span>{m.gameRank&&<span>Rank {m.gameRank}</span>}<span className={m.profileComplete?"complete":"attention"}>{m.profileComplete?"Profile complete":"Needs update"}</span></div><div className="memberFleet">{Object.keys(m.rates??{}).sort((a,b)=>Number(a)-Number(b)).map((rate:string)=><span key={rate}><b>{ordinal(rate)}</b><small>{(m.rates?.[rate]?.ships??[]).length} playable · {(m.ownedRates?.[rate]??[]).length} owned</small></span>)}</div><details className="memberShipDisclosure"><summary>Ships</summary><CaptainShipGallery captain={m} ships={ships}/></details></article>)}{!fleetMembers.length&&<div className="emptyMembership">No members match these filters.</div>}</section>}
-    {view==="roster"&&memberLayout==="table"&&!fleetMembers.length&&<div className="emptyMembership">No members match these filters.</div>}</>}
+  return (
+    <div className="membershipExperience">
+      <header className="membershipHeader">
+        <div>
+          <span className="eyebrow">BAND OF MISFITS</span>
+          <h1>{adminOnly ? "Membership & Welcome" : "Guild Members"}</h1>
+          <p>
+            {adminOnly
+              ? "Configure onboarding, roster membership, personal roles, nickname prefixes and connected Discord roles."
+              : "Roster profiles, ships, custom roles and member automation in one place."}
+          </p>
+        </div>
+        <div className="membershipStats">
+          <span>
+            <b>{roster.total ?? 0}</b>
+            <small>Members</small>
+          </span>
+          <span>
+            <b>{roster.incomplete ?? 0}</b>
+            <small>Profiles to update</small>
+          </span>
+        </div>
+      </header>
+      {notice && (
+        <button className="notice membershipNotice" onClick={() => setNotice("")}>
+          {notice}
+        </button>
+      )}
+      {!adminOnly && (
+        <nav className="membershipTabs">
+          {tabs.map(([key, label, icon]) => (
+            <button key={key} className={view === key ? "active" : ""} onClick={() => setView(key)}>
+              <CommandIcon name={icon as any} size={17} />
+              {label}
+            </button>
+          ))}
+        </nav>
+      )}
 
-    {view==="profile"&&<section className="profileWorkspace"><article className="membershipPanel profileBasics"><header><div><span className="eyebrow">CAPTAIN PROFILE</span><h2>My Profile & Ships</h2><p>This profile feeds the Guild Roster and your existing Port Battle ship preferences.</p></div></header><div className="profileFieldGrid"><label>Captain / IGN<input value={captain} onChange={(e:any)=>setCaptain(e.target.value)} maxLength={80} placeholder="Your World of Sea Battles name"/></label><label>Game rank<select value={rank} onChange={(e:any)=>setRank(e.target.value)}><option value="">Choose rank</option>{Array.from({length:16},(_,i)=>15+i).map(x=><option key={x}>{x}</option>)}</select></label><label className="checkLine"><input type="checkbox" checked={horn} onChange={(e:any)=>setHorn(e.target.checked)}/><span><b>Prefer Horn duty</b><small>Shown to Port Battle officers.</small></span></label></div></article><article className="membershipPanel fleetProfile"><header><h2>Ships</h2><p><b>Owned</b> tracks your collection. <b>Playable</b> and <b>Preferred</b> stay connected to Port Battles; each rate supports up to two Preferred ships.</p></header>{Object.keys(byRate).filter(x=>Number(x)>=1&&Number(x)<=7).sort((a,b)=>Number(a)-Number(b)).map((rate:string)=><details key={rate} open={Number(rate)<=3}><summary>{ordinal(rate)} <small>{byRate[rate].length} ships</small></summary><div className="shipProfileTable"><div className="shipProfileHead"><span>Ship</span><span>Owned</span><span>Playable</span><span>Preferred</span></div>{byRate[rate].map((ship:any)=>{const name=String(ship.name),isOwned=(owned?.[rate]??[]).includes(name),playable=(rates?.[rate]?.ships??[]).includes(name),preferred=(rates?.[rate]?.preferred??[]).includes(name),image=ship.image??ship.imageUrl??ship.image_url;return <div className="shipProfileRow" key={ship.id??name}><span>{image?<img src={image} alt=""/>:null}<b>{name}</b></span><input aria-label={`${name} owned`} type="checkbox" checked={isOwned} onChange={()=>toggleOwned(rate,name)}/><input aria-label={`${name} playable`} type="checkbox" checked={playable} onChange={()=>togglePlayable(rate,name)}/><input aria-label={`${name} preferred`} type="checkbox" checked={preferred} disabled={!playable} onChange={()=>togglePreferred(rate,name)}/></div>})}</div></details>)}</article><div className="stickySave"><button className="primaryAction" onClick={()=>void saveProfile()}>Save Profile & Ships</button></div></section>}
+      {view === "roster" && (
+        <>
+          <SavedViewControl
+            section="member-roster"
+            state={{ search, incompleteOnly, rosterScope, selectedShip, memberLayout }}
+            onApply={(s) => {
+              setSearch(new URLSearchParams(window.location.search).get("member") || String(s.search ?? ""));
+              setIncompleteOnly(s.incompleteOnly === true);
+              setRosterScope(s.rosterScope === "officers" ? "officers" : "all");
+              setSelectedShip(String(s.selectedShip ?? ""));
+              setMemberLayout(s.memberLayout === "table" ? "table" : "cards");
+            }}
+          />
+          <section className="membershipToolbar">
+            <label className="membershipSearch">
+              <CommandIcon name="search" size={17} />
+              <input
+                value={search}
+                onChange={(e: any) => setSearch(e.target.value)}
+                placeholder="Search member, captain, role…"
+              />
+            </label>
+            <div className="rosterScope" role="group" aria-label="Roster view">
+              <button className={rosterScope === "all" ? "active" : ""} onClick={() => setRosterScope("all")}>
+                All <span>{roster.total ?? 0}</span>
+              </button>
+              <button
+                className={rosterScope === "officers" ? "active" : ""}
+                onClick={() => setRosterScope("officers")}
+              >
+                Officers <span>{roster.officers ?? 0}</span>
+              </button>
+            </div>
+            <label className="checkLine">
+              <input
+                type="checkbox"
+                checked={incompleteOnly}
+                onChange={(e: any) => setIncompleteOnly(e.target.checked)}
+              />
+              Needs profile update
+            </label>
+            <label className="memberShipFilter">
+              Find captains by ship
+              <select value={selectedShip} onChange={(e) => setSelectedShip(e.target.value)}>
+                <option value="">Any ship</option>
+                {shipNames.map((ship) => (
+                  <option value={ship} key={ship}>
+                    {ship}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <div className="memberViewSwitch">
+              <button
+                type="button"
+                className={memberLayout === "cards" ? "active" : ""}
+                onClick={() => setMemberLayout("cards")}
+              >
+                Cards
+              </button>
+              <button
+                type="button"
+                className={memberLayout === "table" ? "active" : ""}
+                onClick={() => setMemberLayout("table")}
+              >
+                Table
+              </button>
+            </div>
+            <button type="button" className="outlineButton" onClick={exportMemberShips}>
+              Export {selectedShip || "Ship Roster"} CSV
+            </button>
+            {summary.canRemind && (
+              <button className="secondaryAction" onClick={() => void remindIncomplete()}>
+                Remind incomplete profiles
+              </button>
+            )}
+          </section>
+          <div className="memberFleetExplorer">
+            <label>
+              Find captains by ship
+              <select value={fleetShip} onChange={(e) => setFleetShip(e.target.value)}>
+                <option value="">All guild ships</option>
+                {guildShipNames.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Ship category
+              <select
+                value={fleetMode}
+                onChange={(e) => {
+                  setFleetMode(e.target.value as "owned" | "playable");
+                  setFleetShip("");
+                }}
+              >
+                <option value="owned">Owned ships</option>
+                <option value="playable">Playable ships</option>
+              </select>
+            </label>
+            <span>
+              {fleetShip
+                ? `${fleetMembers.length} captains with ${fleetShip}`
+                : `${fleetMembers.length} members`}
+            </span>
+            <button className="outlineButton" disabled={!fleetShip} onClick={exportShipOwners}>
+              Export captain names · CSV
+            </button>
+          </div>
+          {memberLayout === "table" ? (
+            <div className="memberTableWrap">
+              <table className="memberTable">
+                <thead>
+                  <tr>
+                    <th>Member</th>
+                    <th>Captain</th>
+                    <th>Highest role</th>
+                    <th>Rank</th>
+                    <th>Ships</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {fleetMembers.map((m: any) => (
+                    <tr key={m.userId}>
+                      <td>{m.displayName}</td>
+                      <td>{m.captainName || "—"}</td>
+                      <td>{m.highestRole?.name ?? "Member"}</td>
+                      <td>{m.gameRank ?? "—"}</td>
+                      <td>
+                        <details className="memberShipDisclosure">
+                          <summary>Ships</summary>
+                          <CaptainShipGallery captain={m} ships={ships} />
+                        </details>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <section className="memberGrid">
+              {fleetMembers.map((m: any) => (
+                <article className="memberCard" key={m.userId}>
+                  <div className="memberIdentity">
+                    <span className="memberAvatar">
+                      {m.avatarUrl ? <img src={m.avatarUrl} alt="" /> : <CommandIcon name="user" size={24} />}
+                    </span>
+                    <div>
+                      <h3>{m.displayName}</h3>
+                      <p>{m.captainName ? `Captain ${m.captainName}` : "Captain name not set"}</p>
+                    </div>
+                  </div>
+                  <div className="memberMeta">
+                    <span style={{ "--role-color": roleColor(m.highestRole?.color) } as any}>
+                      {m.highestRole?.name ?? "Member"}
+                    </span>
+                    {m.gameRank && <span>Rank {m.gameRank}</span>}
+                    <span className={m.profileComplete ? "complete" : "attention"}>
+                      {m.profileComplete ? "Profile complete" : "Needs update"}
+                    </span>
+                  </div>
+                  <div className="memberFleet">
+                    {Object.keys(m.rates ?? {})
+                      .sort((a, b) => Number(a) - Number(b))
+                      .map((rate: string) => (
+                        <span key={rate}>
+                          <b>{ordinal(rate)}</b>
+                          <small>
+                            {(m.rates?.[rate]?.ships ?? []).length} playable ·{" "}
+                            {(m.ownedRates?.[rate] ?? []).length} owned
+                          </small>
+                        </span>
+                      ))}
+                  </div>
+                  <details className="memberShipDisclosure">
+                    <summary>Ships</summary>
+                    <CaptainShipGallery captain={m} ships={ships} />
+                  </details>
+                </article>
+              ))}
+              {!fleetMembers.length && <div className="emptyMembership">No members match these filters.</div>}
+            </section>
+          )}
+          {view === "roster" && memberLayout === "table" && !fleetMembers.length && (
+            <div className="emptyMembership">No members match these filters.</div>
+          )}
+        </>
+      )}
 
-    {view==="role"&&<section className="roleWorkspace"><article className="membershipPanel roleDesigner"><header><span className="eyebrow">MEMBER SELF-SERVICE</span><h2>Request a Custom Role</h2><p>Preview a personal role, then send it to Admiralty for approval. If enhanced gradients or icons are unavailable in Discord, the approved role safely falls back to its primary color.</p></header><div className="roleDiscordPreview"><div className="roleDiscordChannel"><span>⌗</span><b>general</b><small>Live preview — role name, icon and text color</small></div>{["Welcome aboard, Captain!",roleSample].map((line,i)=><div className="roleDiscordMessage" key={i}><div className="roleDiscordAvatar">{roleIconPreview?<img src={roleIconPreview} alt="Role icon"/>:"☠"}</div><div><header><span style={{color:roleDraft.primary}}>{roleIconPreview?<img className="roleIconTiny" src={roleIconPreview} alt=""/>:roleDraft.emoji||""} {(roster.members??[]).find((m:any)=>String(m.userId)===myUserId)?.displayName??"Your Discord name"}</span><span className="roleMessageBadge">{roleDraft.name||"Custom role"}</span><small>Today at 12:00</small></header><p>{line}</p></div></div>)}<label className="roleDiscordComposer">⌗ <input aria-label="Preview message text" value={roleSample} onChange={e=>setRoleSample(e.target.value)} placeholder="Message #general"/></label></div><div className="roleForm"><label>Role name<input value={roleDraft.name} onChange={(e:any)=>setRoleDraft({...roleDraft,name:e.target.value})} maxLength={80} placeholder="Litefootz Crew"/></label><label>Primary color<input type="color" value={roleDraft.primary} onChange={(e:any)=>setRoleDraft({...roleDraft,primary:e.target.value})}/></label><label>Second color <small>Optional gradient</small><input type="color" value={roleDraft.secondary||roleDraft.primary} onChange={(e:any)=>setRoleDraft({...roleDraft,secondary:e.target.value})}/><button className="textButton" type="button" onClick={()=>setRoleDraft({...roleDraft,secondary:""})}>Use solid color</button></label>{roleDraft.secondary&&<label>Gradient direction<select value={roleDraft.direction} onChange={(e:any)=>setRoleDraft({...roleDraft,direction:e.target.value})}><option value="LEFT_TO_RIGHT">Primary → Secondary</option><option value="RIGHT_TO_LEFT">Secondary → Primary</option></select></label>}<label>Role icon <small>Optional · centered 64×64 PNG</small><input type="file" accept="image/png,image/jpeg,image/webp" onChange={async e=>{const file=e.target.files?.[0];if(!file)return;if(file.size>5*1024*1024){toast('Image must be smaller than 5 MB.');return;}const image=new Image();const url=URL.createObjectURL(file);try{await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error('Image could not be read'));image.src=url;});const canvas=document.createElement('canvas');canvas.width=canvas.height=64;const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Canvas unavailable');const scale=Math.max(64/image.width,64/image.height),w=image.width*scale,h=image.height*scale;ctx.drawImage(image,(64-w)/2,(64-h)/2,w,h);const value=canvas.toDataURL('image/png');setRoleIconPreview(value);setRoleDraft((v:any)=>({...v,iconData:value,emoji:''}));}catch(err:any){toast(err.message);}finally{URL.revokeObjectURL(url);}}}/><small>{roleIconPreview?'Icon ready to submit with request':'PNG, JPG or WebP images supported'}</small></label><label>Unicode emoji <small>Optional</small><input value={roleDraft.emoji} onChange={(e:any)=>setRoleDraft({...roleDraft,emoji:e.target.value})} maxLength={40} placeholder="☠"/></label><button className="primaryAction" disabled={!roleDraft.name.trim()||!summary.publicSettings?.customRolesEnabled} onClick={()=>void submitRole()}>{summary.publicSettings?.customRolesEnabled?"Submit Request":"Custom Roles Disabled"}</button></div></article><article className="membershipPanel"><header><h2>My Requests</h2></header><div className="requestList">{myRequests.map((r:any)=><div key={r.id}><span className={`requestState ${String(r.status).toLowerCase()}`}>{r.status}</span><b>{r.requested_name}</b><small>{new Date(r.created_at).toLocaleString()}</small></div>)}{!myRequests.length&&<p className="uiEmpty">No role requests yet.</p>}</div></article></section>}
+      {view === "profile" && (
+        <section className="profileWorkspace">
+          <article className="membershipPanel profileBasics">
+            <header>
+              <div>
+                <span className="eyebrow">CAPTAIN PROFILE</span>
+                <h2>My Profile & Ships</h2>
+                <p>This profile feeds the Guild Roster and your existing Port Battle ship preferences.</p>
+              </div>
+            </header>
+            <div className="profileFieldGrid">
+              <label>
+                Captain / IGN
+                <input
+                  value={captain}
+                  onChange={(e: any) => setCaptain(e.target.value)}
+                  maxLength={80}
+                  placeholder="Your World of Sea Battles name"
+                />
+              </label>
+              <label>
+                Game rank
+                <select value={rank} onChange={(e: any) => setRank(e.target.value)}>
+                  <option value="">Choose rank</option>
+                  {Array.from({ length: 16 }, (_, i) => 15 + i).map((x) => (
+                    <option key={x}>{x}</option>
+                  ))}
+                </select>
+              </label>
+              <label className="checkLine">
+                <input type="checkbox" checked={horn} onChange={(e: any) => setHorn(e.target.checked)} />
+                <span>
+                  <b>Prefer Horn duty</b>
+                  <small>Shown to Port Battle officers.</small>
+                </span>
+              </label>
+            </div>
+          </article>
+          <article className="membershipPanel fleetProfile">
+            <header>
+              <h2>Ships</h2>
+              <p>
+                <b>Owned</b> tracks your collection. <b>Playable</b> and <b>Preferred</b> stay connected to
+                Port Battles; each rate supports up to two Preferred ships.
+              </p>
+            </header>
+            {Object.keys(byRate)
+              .filter((x) => Number(x) >= 1 && Number(x) <= 7)
+              .sort((a, b) => Number(a) - Number(b))
+              .map((rate: string) => (
+                <details key={rate} open={Number(rate) <= 3}>
+                  <summary>
+                    {ordinal(rate)} <small>{byRate[rate].length} ships</small>
+                  </summary>
+                  <div className="shipProfileTable">
+                    <div className="shipProfileHead">
+                      <span>Ship</span>
+                      <span>Owned</span>
+                      <span>Playable</span>
+                      <span>Preferred</span>
+                    </div>
+                    {byRate[rate].map((ship: any) => {
+                      const name = String(ship.name),
+                        isOwned = (owned?.[rate] ?? []).includes(name),
+                        playable = (rates?.[rate]?.ships ?? []).includes(name),
+                        preferred = (rates?.[rate]?.preferred ?? []).includes(name),
+                        image = ship.image ?? ship.imageUrl ?? ship.image_url;
+                      return (
+                        <div className="shipProfileRow" key={ship.id ?? name}>
+                          <span>
+                            {image ? <img src={image} alt="" /> : null}
+                            <b>{name}</b>
+                          </span>
+                          <input
+                            aria-label={`${name} owned`}
+                            type="checkbox"
+                            checked={isOwned}
+                            onChange={() => toggleOwned(rate, name)}
+                          />
+                          <input
+                            aria-label={`${name} playable`}
+                            type="checkbox"
+                            checked={playable}
+                            onChange={() => togglePlayable(rate, name)}
+                          />
+                          <input
+                            aria-label={`${name} preferred`}
+                            type="checkbox"
+                            checked={preferred}
+                            disabled={!playable}
+                            onChange={() => togglePreferred(rate, name)}
+                          />
+                        </div>
+                      );
+                    })}
+                  </div>
+                </details>
+              ))}
+          </article>
+          <div className="stickySave">
+            <button className="primaryAction" onClick={() => void saveProfile()}>
+              Save Profile & Ships
+            </button>
+          </div>
+        </section>
+      )}
 
-    {view==="media"&&<MediaRequestPanel/>}
-    {view==="admin"&&admin&&<section className="membershipAdmin">
-      <article className="membershipPanel welcomeAdminCard"><header><span className="eyebrow">WELCOME SYSTEM</span><h2>Welcome & Diplomacy</h2><p>The Welcome panel stays at the bottom of its channel and automatically renders the latest joiner&apos;s display name, Discord avatar and the official BOM shield.</p></header><div className="welcomeAdminSplit"><div className="adminFormGrid"><SettingToggle label="Welcome panel enabled" checked={Boolean(adminState.welcome_enabled)} onChange={next=>setAdminState({...adminState,welcome_enabled:next})}/><label>Welcome channel<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.welcome_channel_id??""} onChange={(e:any)=>setAdminState({...adminState,welcome_channel_id:e.target.value||null})}><option value="">Choose channel</option>{discord.textChannels.map((c:any)=><option value={c.id} key={c.id}>#{c.name}</option>)}</DiscordOptionsSelect></label><label>Apply to BOM fallback URL<input value={adminState.application_url??""} onChange={(e:any)=>setAdminState({...adminState,application_url:e.target.value})} placeholder="Used only when native Recruitment is disabled"/><small>When Recruitment is enabled, the Welcome button starts the native BOM application flow.</small></label><label>Trade with Misfits role<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.trade_role_id??""} onChange={(e:any)=>setAdminState({...adminState,trade_role_id:e.target.value||null})}><option value="">Choose Trade role</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect><small>Clicking Trade with Misfits on the Welcome panel grants this role immediately.</small></label><SettingToggle label="Diplomacy enabled" checked={Boolean(adminState.diplomacy_enabled)} onChange={next=>setAdminState({...adminState,diplomacy_enabled:next})}/><label>Diplomacy category<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.diplomacy_category_id??""} onChange={(e:any)=>setAdminState({...adminState,diplomacy_category_id:e.target.value||null})}><option value="">Choose category</option>{discord.categories.map((c:any)=><option value={c.id} key={c.id}>{c.name}</option>)}</DiscordOptionsSelect></label><label>Diplomacy Admiralty role<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.diplomacy_role_id??""} onChange={(e:any)=>setAdminState({...adminState,diplomacy_role_id:e.target.value||null})}><option value="">Choose role</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect></label><label>Transcript archive<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.diplomacy_archive_channel_id??""} onChange={(e:any)=>setAdminState({...adminState,diplomacy_archive_channel_id:e.target.value||null})}><option value="">No archive channel</option>{discord.textChannels.map((c:any)=><option value={c.id} key={c.id}>#{c.name}</option>)}</DiscordOptionsSelect></label><SettingToggle label="Create diplomacy voice room" checked={Boolean(adminState.diplomacy_voice_enabled)} onChange={next=>setAdminState({...adminState,diplomacy_voice_enabled:next})}/></div><div className="liveEmbedPreviewPanel"><span className="cardKicker">LIVE DISCORD PREVIEW</span><DiscordPreview title="Welcome to Band of Misfits" description="Welcome, @captain! The panel below has the fastest routes to apply, trade, or contact diplomacy." image="/branding/defaults/welcome-preview-v423.png" welcomeName={adminState.welcome_last_joiner_name||"Captain"} welcomeAvatar={adminState.welcome_last_joiner_avatar||null} buttons={["Apply to BOM","Trade with Misfits","Diplomacy"]} componentsV2/><small>Updates immediately as you change Welcome settings. Saving is still required before Discord is changed.</small></div></div></article>
+      {view === "role" && (
+        <section className="roleWorkspace">
+          <article className="membershipPanel roleDesigner">
+            <header>
+              <span className="eyebrow">MEMBER SELF-SERVICE</span>
+              <h2>Request a Custom Role</h2>
+              <p>
+                Preview a personal role, then send it to Admiralty for approval. If enhanced gradients or
+                icons are unavailable in Discord, the approved role safely falls back to its primary color.
+              </p>
+            </header>
+            <div className="roleDiscordPreview">
+              <div className="roleDiscordChannel">
+                <span>⌗</span>
+                <b>general</b>
+                <small>Live preview — role name, icon and text color</small>
+              </div>
+              {["Welcome aboard, Captain!", roleSample].map((line, i) => (
+                <div className="roleDiscordMessage" key={i}>
+                  <div className="roleDiscordAvatar">
+                    {roleIconPreview ? <img src={roleIconPreview} alt="Role icon" /> : "☠"}
+                  </div>
+                  <div>
+                    <header>
+                      <span style={{ color: roleDraft.primary }}>
+                        {roleIconPreview ? (
+                          <img className="roleIconTiny" src={roleIconPreview} alt="" />
+                        ) : (
+                          roleDraft.emoji || ""
+                        )}{" "}
+                        {(roster.members ?? []).find((m: any) => String(m.userId) === myUserId)
+                          ?.displayName ?? "Your Discord name"}
+                      </span>
+                      <span className="roleMessageBadge">{roleDraft.name || "Custom role"}</span>
+                      <small>Today at 12:00</small>
+                    </header>
+                    <p>{line}</p>
+                  </div>
+                </div>
+              ))}
+              <label className="roleDiscordComposer">
+                ⌗{" "}
+                <input
+                  aria-label="Preview message text"
+                  value={roleSample}
+                  onChange={(e) => setRoleSample(e.target.value)}
+                  placeholder="Message #general"
+                />
+              </label>
+            </div>
+            <div className="roleForm">
+              <label>
+                Role name
+                <input
+                  value={roleDraft.name}
+                  onChange={(e: any) => setRoleDraft({ ...roleDraft, name: e.target.value })}
+                  maxLength={80}
+                  placeholder="Litefootz Crew"
+                />
+              </label>
+              <label>
+                Primary color
+                <input
+                  type="color"
+                  value={roleDraft.primary}
+                  onChange={(e: any) => setRoleDraft({ ...roleDraft, primary: e.target.value })}
+                />
+              </label>
+              <label>
+                Second color <small>Optional gradient</small>
+                <input
+                  type="color"
+                  value={roleDraft.secondary || roleDraft.primary}
+                  onChange={(e: any) => setRoleDraft({ ...roleDraft, secondary: e.target.value })}
+                />
+                <button
+                  className="textButton"
+                  type="button"
+                  onClick={() => setRoleDraft({ ...roleDraft, secondary: "" })}
+                >
+                  Use solid color
+                </button>
+              </label>
+              {roleDraft.secondary && (
+                <label>
+                  Gradient direction
+                  <select
+                    value={roleDraft.direction}
+                    onChange={(e: any) => setRoleDraft({ ...roleDraft, direction: e.target.value })}
+                  >
+                    <option value="LEFT_TO_RIGHT">Primary → Secondary</option>
+                    <option value="RIGHT_TO_LEFT">Secondary → Primary</option>
+                  </select>
+                </label>
+              )}
+              <label>
+                Role icon <small>Optional · centered 64×64 PNG</small>
+                <input
+                  type="file"
+                  accept="image/png,image/jpeg,image/webp"
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    if (file.size > 5 * 1024 * 1024) {
+                      toast("Image must be smaller than 5 MB.");
+                      return;
+                    }
+                    const image = new Image();
+                    const url = URL.createObjectURL(file);
+                    try {
+                      await new Promise<void>((resolve, reject) => {
+                        image.onload = () => resolve();
+                        image.onerror = () => reject(new Error("Image could not be read"));
+                        image.src = url;
+                      });
+                      const canvas = document.createElement("canvas");
+                      canvas.width = canvas.height = 64;
+                      const ctx = canvas.getContext("2d");
+                      if (!ctx) throw new Error("Canvas unavailable");
+                      const scale = Math.max(64 / image.width, 64 / image.height),
+                        w = image.width * scale,
+                        h = image.height * scale;
+                      ctx.drawImage(image, (64 - w) / 2, (64 - h) / 2, w, h);
+                      const value = canvas.toDataURL("image/png");
+                      setRoleIconPreview(value);
+                      setRoleDraft((v: any) => ({ ...v, iconData: value, emoji: "" }));
+                    } catch (err: any) {
+                      toast(err.message);
+                    } finally {
+                      URL.revokeObjectURL(url);
+                    }
+                  }}
+                />
+                <small>
+                  {roleIconPreview
+                    ? "Icon ready to submit with request"
+                    : "PNG, JPG or WebP images supported"}
+                </small>
+              </label>
+              <label>
+                Unicode emoji <small>Optional</small>
+                <input
+                  value={roleDraft.emoji}
+                  onChange={(e: any) => setRoleDraft({ ...roleDraft, emoji: e.target.value })}
+                  maxLength={40}
+                  placeholder="☠"
+                />
+              </label>
+              <button
+                className="primaryAction"
+                disabled={!roleDraft.name.trim() || !summary.publicSettings?.customRolesEnabled}
+                onClick={() => void submitRole()}
+              >
+                {summary.publicSettings?.customRolesEnabled ? "Submit Request" : "Custom Roles Disabled"}
+              </button>
+            </div>
+          </article>
+          <article className="membershipPanel">
+            <header>
+              <h2>My Requests</h2>
+            </header>
+            <div className="requestList">
+              {myRequests.map((r: any) => (
+                <div key={r.id}>
+                  <span className={`requestState ${String(r.status).toLowerCase()}`}>{r.status}</span>
+                  <b>{r.requested_name}</b>
+                  <small>{new Date(r.created_at).toLocaleString()}</small>
+                </div>
+              ))}
+              {!myRequests.length && <p className="uiEmpty">No role requests yet.</p>}
+            </div>
+          </article>
+        </section>
+      )}
 
-      <article className="membershipPanel"><header><span className="eyebrow">ROSTER & CONTROL DESK</span><h2>Guild Membership & Discord Control Desk</h2><p>Choose the roster role and the channel that owns the persistent BOM Control Desk. The desk combines Leave, Discord-role requests, profiles/roster and Music controls, and automatically stays at the bottom of the channel.</p></header><div className="adminFormGrid"><SettingToggle label="Guild Roster enabled" checked={Boolean(adminState.roster_enabled)} onChange={next=>setAdminState({...adminState,roster_enabled:next})}/><label>BOM member role<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.member_role_id??""} onChange={(e:any)=>setAdminState({...adminState,member_role_id:e.target.value||null})}><option value="">All non-bot server members</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect></label><label>Alliance dashboard role<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.alliance_role_id??''} onChange={(e:any)=>setAdminState({...adminState,alliance_role_id:e.target.value||null})}><option value="">No alliance-role access</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect><small>Events, Music, Port Battles and read-only Guilds & Alliances. Guild members keep their normal access.</small></label><label>BOM Control Desk channel<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.member_console_channel_id??""} onChange={(e:any)=>setAdminState({...adminState,member_console_channel_id:e.target.value||null})}><option value="">Do not post a Control Desk</option>{discord.textChannels.map((c:any)=><option value={c.id} key={c.id}>#{c.name}</option>)}</DiscordOptionsSelect></label><SettingToggle label="Leave of Absence enabled" checked={Boolean(adminState.leave_enabled)} onChange={next=>setAdminState({...adminState,leave_enabled:next})}/><label>Extra guild member roles to remove on leave<RoleTagPicker roles={discord.roles.filter((r:any)=>r.id!==adminState.afk_role_id)} value={adminState.leave_member_role_ids??[]} max={12} onChange={(value:string[])=>setAdminState({...adminState,leave_member_role_ids:value})} onRefresh={()=>void refreshDiscordOptions()}/><small>Optional: e.g. separate BoM 2 membership role. Only roles the user actually holds are removed, and exactly those roles return later.</small></label><label>BOM AFK role<DiscordOptionsSelect value={adminState.afk_role_id??""} onChange={(e:any)=>setAdminState({...adminState,afk_role_id:e.target.value||null})} onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions}><option value="">Select AFK role</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect><small>For members with the BOM member role. Membership and AFK roles must be distinct.</small></label><label>BoM 2 member role<DiscordOptionsSelect value={adminState.bom2_member_role_id??""} onChange={(e:any)=>setAdminState({...adminState,bom2_member_role_id:e.target.value||null})} onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions}><option value="">Not configured</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect><small>Membership role for players in the BoM 2nd guild.</small></label><label>BoM 2 AFK role<DiscordOptionsSelect value={adminState.bom2_afk_role_id??""} onChange={(e:any)=>setAdminState({...adminState,bom2_afk_role_id:e.target.value||null})} onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions}><option value="">Not configured</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect><small>AFK role assigned instead of BoM 2 membership. Select both BoM 2 fields together.</small></label><div className="awayNotice">For extended AFK periods, members should apply in-game to the <b>BoM 2nd guild</b>. This is a reminder, not an automatic in-game transfer.</div><label>Leave officer role<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.leave_officer_role_id??""} onChange={(e:any)=>setAdminState({...adminState,leave_officer_role_id:e.target.value||null})}><option value="">Server managers only</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect><small>Receives the private leave thread and can mark members returned.</small></label><label>Leave return reminders<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.leave_reminder_channel_id??""} onChange={(e:any)=>setAdminState({...adminState,leave_reminder_channel_id:e.target.value||null})}><option value="">Use the Control Desk channel</option>{discord.textChannels.map((c:any)=><option value={c.id} key={c.id}>#{c.name}</option>)}</DiscordOptionsSelect><small>When a return date arrives, the member gets Extend Leave / I Have Returned controls here.</small></label><label>Profile reminder role<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.profile_reminder_role_id??""} onChange={(e:any)=>setAdminState({...adminState,profile_reminder_role_id:e.target.value||null})}><option value="">Dashboard admins</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect></label><label>Officer roster roles<RoleTagPicker roles={discord.roles} value={adminState.officer_role_ids??[]} onChange={ids=>setAdminState({...adminState,officer_role_ids:ids})} onRefresh={()=>void refreshDiscordOptions()}/><small>Select the Discord ranks that belong in the Officers roster view.</small></label></div></article>
+      {view === "media" && <MediaRequestPanel />}
+      {view === "admin" && admin && (
+        <section className="membershipAdmin">
+          <article className="membershipPanel welcomeAdminCard">
+            <header>
+              <span className="eyebrow">WELCOME SYSTEM</span>
+              <h2>Welcome & Diplomacy</h2>
+              <p>
+                The Welcome panel stays at the bottom of its channel and automatically renders the latest
+                joiner&apos;s display name, Discord avatar and the official BOM shield.
+              </p>
+            </header>
+            <div className="welcomeAdminSplit">
+              <div className="adminFormGrid">
+                <SettingToggle
+                  label="Welcome panel enabled"
+                  checked={Boolean(adminState.welcome_enabled)}
+                  onChange={(next) => setAdminState({ ...adminState, welcome_enabled: next })}
+                />
+                <label>
+                  Welcome channel
+                  <DiscordOptionsSelect
+                    onRefresh={() => void refreshDiscordOptions()}
+                    refreshing={refreshingOptions}
+                    value={adminState.welcome_channel_id ?? ""}
+                    onChange={(e: any) =>
+                      setAdminState({ ...adminState, welcome_channel_id: e.target.value || null })
+                    }
+                  >
+                    <option value="">Choose channel</option>
+                    {discord.textChannels.map((c: any) => (
+                      <option value={c.id} key={c.id}>
+                        #{c.name}
+                      </option>
+                    ))}
+                  </DiscordOptionsSelect>
+                </label>
+                <label>
+                  Apply to BOM fallback URL
+                  <input
+                    value={adminState.application_url ?? ""}
+                    onChange={(e: any) => setAdminState({ ...adminState, application_url: e.target.value })}
+                    placeholder="Used only when native Recruitment is disabled"
+                  />
+                  <small>
+                    When Recruitment is enabled, the Welcome button starts the native BOM application flow.
+                  </small>
+                </label>
+                <label>
+                  Trade with Misfits role
+                  <DiscordOptionsSelect
+                    onRefresh={() => void refreshDiscordOptions()}
+                    refreshing={refreshingOptions}
+                    value={adminState.trade_role_id ?? ""}
+                    onChange={(e: any) =>
+                      setAdminState({ ...adminState, trade_role_id: e.target.value || null })
+                    }
+                  >
+                    <option value="">Choose Trade role</option>
+                    {discord.roles.map((r: any) => (
+                      <option value={r.id} key={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </DiscordOptionsSelect>
+                  <small>
+                    Clicking Trade with Misfits on the Welcome panel grants this role immediately.
+                  </small>
+                </label>
+                <SettingToggle
+                  label="Diplomacy enabled"
+                  checked={Boolean(adminState.diplomacy_enabled)}
+                  onChange={(next) => setAdminState({ ...adminState, diplomacy_enabled: next })}
+                />
+                <label>
+                  Diplomacy category
+                  <DiscordOptionsSelect
+                    onRefresh={() => void refreshDiscordOptions()}
+                    refreshing={refreshingOptions}
+                    value={adminState.diplomacy_category_id ?? ""}
+                    onChange={(e: any) =>
+                      setAdminState({ ...adminState, diplomacy_category_id: e.target.value || null })
+                    }
+                  >
+                    <option value="">Choose category</option>
+                    {discord.categories.map((c: any) => (
+                      <option value={c.id} key={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </DiscordOptionsSelect>
+                </label>
+                <label>
+                  Diplomacy Admiralty role
+                  <DiscordOptionsSelect
+                    onRefresh={() => void refreshDiscordOptions()}
+                    refreshing={refreshingOptions}
+                    value={adminState.diplomacy_role_id ?? ""}
+                    onChange={(e: any) =>
+                      setAdminState({ ...adminState, diplomacy_role_id: e.target.value || null })
+                    }
+                  >
+                    <option value="">Choose role</option>
+                    {discord.roles.map((r: any) => (
+                      <option value={r.id} key={r.id}>
+                        {r.name}
+                      </option>
+                    ))}
+                  </DiscordOptionsSelect>
+                </label>
+                <label>
+                  Transcript archive
+                  <DiscordOptionsSelect
+                    onRefresh={() => void refreshDiscordOptions()}
+                    refreshing={refreshingOptions}
+                    value={adminState.diplomacy_archive_channel_id ?? ""}
+                    onChange={(e: any) =>
+                      setAdminState({ ...adminState, diplomacy_archive_channel_id: e.target.value || null })
+                    }
+                  >
+                    <option value="">No archive channel</option>
+                    {discord.textChannels.map((c: any) => (
+                      <option value={c.id} key={c.id}>
+                        #{c.name}
+                      </option>
+                    ))}
+                  </DiscordOptionsSelect>
+                </label>
+                <SettingToggle
+                  label="Create diplomacy voice room"
+                  checked={Boolean(adminState.diplomacy_voice_enabled)}
+                  onChange={(next) => setAdminState({ ...adminState, diplomacy_voice_enabled: next })}
+                />
+              </div>
+              <div className="liveEmbedPreviewPanel">
+                <span className="cardKicker">LIVE DISCORD PREVIEW</span>
+                <DiscordPreview
+                  title="Welcome to Band of Misfits"
+                  description="Welcome, @captain! The panel below has the fastest routes to apply, trade, or contact diplomacy."
+                  image="/branding/defaults/welcome-preview-v423.png"
+                  welcomeName={adminState.welcome_last_joiner_name || "Captain"}
+                  welcomeAvatar={adminState.welcome_last_joiner_avatar || null}
+                  buttons={["Apply to BOM", "Trade with Misfits", "Diplomacy"]}
+                  componentsV2
+                />
+                <small>
+                  Updates immediately as you change Welcome settings. Saving is still required before Discord
+                  is changed.
+                </small>
+              </div>
+            </div>
+          </article>
 
-      <article className="membershipPanel"><header><span className="eyebrow">CUSTOM ROLES</span><h2>Role Requests</h2><p>Members can submit one pending role request at a time. Approval creates the role or updates the personal role already owned by that member.</p></header><div className="adminFormGrid"><SettingToggle label="Custom roles enabled" checked={Boolean(adminState.custom_roles_enabled)} onChange={next=>setAdminState({...adminState,custom_roles_enabled:next})}/><label>Approval channel<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.custom_role_approval_channel_id??""} onChange={(e:any)=>setAdminState({...adminState,custom_role_approval_channel_id:e.target.value||null})}><option value="">Choose channel</option>{discord.textChannels.map((c:any)=><option value={c.id} key={c.id}>#{c.name}</option>)}</DiscordOptionsSelect></label><label>Reviewer role<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.custom_role_approval_role_id??""} onChange={(e:any)=>setAdminState({...adminState,custom_role_approval_role_id:e.target.value||null})}><option value="">Admins only</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect></label><label>Role position anchor<DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={adminState.custom_role_anchor_role_id??""} onChange={(e:any)=>setAdminState({...adminState,custom_role_anchor_role_id:e.target.value||null})}><option value="">No anchor</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect></label></div><div className="approvalQueue">{requests.filter((r:any)=>r.status==="PENDING").map((r:any)=><div key={r.id}><span><b>{r.requested_name}</b><small>{memberLabel(r.user_id)} · {hex(r.primary_color)}{r.secondary_color!=null?` → ${hex(r.secondary_color)}`:""}</small></span><span><button className="secondaryAction" onClick={()=>void decide(r.id,false)}>Decline</button><button className="primaryAction" onClick={()=>void decide(r.id,true)}>Approve</button></span></div>)}{!requests.some((r:any)=>r.status==="PENDING")&&<p className="uiEmpty">No requests waiting for review.</p>}</div></article>
+          <article className="membershipPanel">
+            <header>
+              <span className="eyebrow">ROSTER & CONTROL DESK</span>
+              <h2>Guild Membership & Discord Control Desk</h2>
+              <p>
+                Choose the roster role and the channel that owns the persistent BOM Control Desk. The desk
+                combines Leave, Discord-role requests, profiles/roster and Music controls, and automatically
+                stays at the bottom of the channel.
+              </p>
+            </header>
+            <div className="adminFormGrid">
+              <SettingToggle
+                label="Guild Roster enabled"
+                checked={Boolean(adminState.roster_enabled)}
+                onChange={(next) => setAdminState({ ...adminState, roster_enabled: next })}
+              />
+              <label>
+                BOM member role
+                <DiscordOptionsSelect
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                  value={adminState.member_role_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, member_role_id: e.target.value || null })
+                  }
+                >
+                  <option value="">All non-bot server members</option>
+                  {discord.roles.map((r: any) => (
+                    <option value={r.id} key={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+              </label>
+              <label>
+                Alliance dashboard role
+                <DiscordOptionsSelect
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                  value={adminState.alliance_role_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, alliance_role_id: e.target.value || null })
+                  }
+                >
+                  <option value="">No alliance-role access</option>
+                  {discord.roles.map((r: any) => (
+                    <option value={r.id} key={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+                <small>
+                  Events, Music, Port Battles and read-only Guilds & Alliances. Guild members keep their
+                  normal access.
+                </small>
+              </label>
+              <label>
+                BOM Control Desk channel
+                <DiscordOptionsSelect
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                  value={adminState.member_console_channel_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, member_console_channel_id: e.target.value || null })
+                  }
+                >
+                  <option value="">Do not post a Control Desk</option>
+                  {discord.textChannels.map((c: any) => (
+                    <option value={c.id} key={c.id}>
+                      #{c.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+              </label>
+              <SettingToggle
+                label="Leave of Absence enabled"
+                checked={Boolean(adminState.leave_enabled)}
+                onChange={(next) => setAdminState({ ...adminState, leave_enabled: next })}
+              />
+              <label>
+                Extra guild member roles to remove on leave
+                <RoleTagPicker
+                  roles={discord.roles.filter((r: any) => r.id !== adminState.afk_role_id)}
+                  value={adminState.leave_member_role_ids ?? []}
+                  max={12}
+                  onChange={(value: string[]) =>
+                    setAdminState({ ...adminState, leave_member_role_ids: value })
+                  }
+                  onRefresh={() => void refreshDiscordOptions()}
+                />
+                <small>
+                  Optional: e.g. separate BoM 2 membership role. Only roles the user actually holds are
+                  removed, and exactly those roles return later.
+                </small>
+              </label>
+              <label>
+                BOM AFK role
+                <DiscordOptionsSelect
+                  value={adminState.afk_role_id ?? ""}
+                  onChange={(e: any) => setAdminState({ ...adminState, afk_role_id: e.target.value || null })}
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                >
+                  <option value="">Select AFK role</option>
+                  {discord.roles.map((r: any) => (
+                    <option value={r.id} key={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+                <small>
+                  For members with the BOM member role. Membership and AFK roles must be distinct.
+                </small>
+              </label>
+              <label>
+                BoM 2 member role
+                <DiscordOptionsSelect
+                  value={adminState.bom2_member_role_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, bom2_member_role_id: e.target.value || null })
+                  }
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                >
+                  <option value="">Not configured</option>
+                  {discord.roles.map((r: any) => (
+                    <option value={r.id} key={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+                <small>Membership role for players in the BoM 2nd guild.</small>
+              </label>
+              <label>
+                BoM 2 AFK role
+                <DiscordOptionsSelect
+                  value={adminState.bom2_afk_role_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, bom2_afk_role_id: e.target.value || null })
+                  }
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                >
+                  <option value="">Not configured</option>
+                  {discord.roles.map((r: any) => (
+                    <option value={r.id} key={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+                <small>
+                  AFK role assigned instead of BoM 2 membership. Select both BoM 2 fields together.
+                </small>
+              </label>
+              <div className="awayNotice">
+                For extended AFK periods, members should apply in-game to the <b>BoM 2nd guild</b>. This is a
+                reminder, not an automatic in-game transfer.
+              </div>
+              <label>
+                Leave officer role
+                <DiscordOptionsSelect
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                  value={adminState.leave_officer_role_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, leave_officer_role_id: e.target.value || null })
+                  }
+                >
+                  <option value="">Server managers only</option>
+                  {discord.roles.map((r: any) => (
+                    <option value={r.id} key={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+                <small>Receives the private leave thread and can mark members returned.</small>
+              </label>
+              <label>
+                Leave return reminders
+                <DiscordOptionsSelect
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                  value={adminState.leave_reminder_channel_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, leave_reminder_channel_id: e.target.value || null })
+                  }
+                >
+                  <option value="">Use the Control Desk channel</option>
+                  {discord.textChannels.map((c: any) => (
+                    <option value={c.id} key={c.id}>
+                      #{c.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+                <small>
+                  When a return date arrives, the member gets Extend Leave / I Have Returned controls here.
+                </small>
+              </label>
+              <label>
+                Profile reminder role
+                <DiscordOptionsSelect
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                  value={adminState.profile_reminder_role_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, profile_reminder_role_id: e.target.value || null })
+                  }
+                >
+                  <option value="">Dashboard admins</option>
+                  {discord.roles.map((r: any) => (
+                    <option value={r.id} key={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+              </label>
+              <label>
+                Officer roster roles
+                <RoleTagPicker
+                  roles={discord.roles}
+                  value={adminState.officer_role_ids ?? []}
+                  onChange={(ids) => setAdminState({ ...adminState, officer_role_ids: ids })}
+                  onRefresh={() => void refreshDiscordOptions()}
+                />
+                <small>Select the Discord ranks that belong in the Officers roster view.</small>
+              </label>
+            </div>
+          </article>
 
-      <AwayAdminPanel/>
-      <MediaRequestPanel admin/>
-      <article className="membershipPanel prefixAuditPanel"><header><span className="eyebrow">ADMIRALTY AUDIT</span><h2>Guild Prefix & Role Connections Audit</h2><p>Scan every Discord member for duplicate/mismatched prefixes and missing linked roles. Nothing changes until you approve an individual correction.</p></header><button className="goldButton" type="button" disabled={auditing} onClick={()=>void runAudit()}>{auditing?'Scanning Discord…':'Scan All Members'}</button>{audit&&<><p>{audit.scanned} members scanned · {audit.totalIssues} issues found{audit.truncated?' · first 600 displayed':''}</p><div className="prefixAuditQueue">{audit.issues.map((x:any)=><article key={x.userId}><div><b>{x.current}</b><small>Suggested: {x.proposed}</small><small>{x.reasons.join(' · ')}</small>{x.missingRoleNames?.length>0&&<small>Missing linked roles: {x.missingRoleNames.join(', ')}</small>}</div><div className="controlRow">{x.current!==x.proposed&&!x.conflict&&<button type="button" className="outlineButton" onClick={()=>void applyAudit(x.userId,true,false)}>Fix Prefix</button>}{x.missingRoleIds?.length>0&&<button type="button" className="outlineButton" onClick={()=>void applyAudit(x.userId,false,true)}>Add Connected Roles</button>}{x.conflict&&<small>Conflicting guild roles — resolve manually first</small>}</div></article>)}{!audit.issues.length&&<p className="uiEmpty">No prefix or connection problems found.</p>}</div></>}</article>
-      <article className="membershipPanel"><header><span className="eyebrow">GUILD PREFIX</span><h2>Nickname Prefix Rules</h2><p>Highest matching Discord role wins when a member has multiple configured prefixes. Existing members are reconciled when a rule changes.</p></header><div className="inlineAdminForm"><DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={prefixRole} onChange={(e:any)=>setPrefixRole(e.target.value)}><option value="">Choose role</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect><input value={prefix} onChange={(e:any)=>setPrefix(e.target.value)} placeholder="[BOM]"/><button className="primaryAction" disabled={!prefixRole} onClick={()=>void savePrefix()}>Save rule</button></div><div className="ruleList">{(adminMeta?.prefixes??[]).map((r:any)=><div key={r.role_id}><span><b>{r.prefix}</b><small>{roleName(r.role_id,discord.roles)}</small></span><button className="textButton dangerText" onClick={()=>void deletePrefix(r.role_id)}>Remove</button></div>)}</div></article>
+          <article className="membershipPanel">
+            <header>
+              <span className="eyebrow">CUSTOM ROLES</span>
+              <h2>Role Requests</h2>
+              <p>
+                Members can submit one pending role request at a time. Approval creates the role or updates
+                the personal role already owned by that member.
+              </p>
+            </header>
+            <div className="adminFormGrid">
+              <SettingToggle
+                label="Custom roles enabled"
+                checked={Boolean(adminState.custom_roles_enabled)}
+                onChange={(next) => setAdminState({ ...adminState, custom_roles_enabled: next })}
+              />
+              <label>
+                Approval channel
+                <DiscordOptionsSelect
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                  value={adminState.custom_role_approval_channel_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, custom_role_approval_channel_id: e.target.value || null })
+                  }
+                >
+                  <option value="">Choose channel</option>
+                  {discord.textChannels.map((c: any) => (
+                    <option value={c.id} key={c.id}>
+                      #{c.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+              </label>
+              <label>
+                Reviewer role
+                <DiscordOptionsSelect
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                  value={adminState.custom_role_approval_role_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, custom_role_approval_role_id: e.target.value || null })
+                  }
+                >
+                  <option value="">Admins only</option>
+                  {discord.roles.map((r: any) => (
+                    <option value={r.id} key={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+              </label>
+              <label>
+                Role position anchor
+                <DiscordOptionsSelect
+                  onRefresh={() => void refreshDiscordOptions()}
+                  refreshing={refreshingOptions}
+                  value={adminState.custom_role_anchor_role_id ?? ""}
+                  onChange={(e: any) =>
+                    setAdminState({ ...adminState, custom_role_anchor_role_id: e.target.value || null })
+                  }
+                >
+                  <option value="">No anchor</option>
+                  {discord.roles.map((r: any) => (
+                    <option value={r.id} key={r.id}>
+                      {r.name}
+                    </option>
+                  ))}
+                </DiscordOptionsSelect>
+              </label>
+            </div>
+            <div className="approvalQueue">
+              {requests
+                .filter((r: any) => r.status === "PENDING")
+                .map((r: any) => (
+                  <div key={r.id}>
+                    <span>
+                      <b>{r.requested_name}</b>
+                      <small>
+                        {memberLabel(r.user_id)} · {hex(r.primary_color)}
+                        {r.secondary_color != null ? ` → ${hex(r.secondary_color)}` : ""}
+                      </small>
+                    </span>
+                    <span>
+                      <button className="secondaryAction" onClick={() => void decide(r.id, false)}>
+                        Decline
+                      </button>
+                      <button className="primaryAction" onClick={() => void decide(r.id, true)}>
+                        Approve
+                      </button>
+                    </span>
+                  </div>
+                ))}
+              {!requests.some((r: any) => r.status === "PENDING") && (
+                <p className="uiEmpty">No requests waiting for review.</p>
+              )}
+            </div>
+          </article>
 
-      <article className="membershipPanel"><header><span className="eyebrow">ROLE CONNECTIONS</span><h2>Connected Roles</h2><p>Receiving the source role grants up to five linked roles. Just like the Python bot, removing the source role does not remove roles already granted.</p></header><div className="inlineAdminForm connectionForm"><DiscordOptionsSelect onRefresh={()=>void refreshDiscordOptions()} refreshing={refreshingOptions} value={sourceRole} onChange={(e:any)=>setSourceRole(e.target.value)}><option value="">Source role</option>{discord.roles.map((r:any)=><option value={r.id} key={r.id}>{r.name}</option>)}</DiscordOptionsSelect><RoleTagPicker roles={discord.roles.filter((r:any)=>r.id!==sourceRole)} value={destRoles} max={5} onChange={setDestRoles} onRefresh={()=>void refreshDiscordOptions()}/><button className="primaryAction" disabled={!sourceRole} onClick={()=>void saveConnection()}>Save connection</button></div><div className="ruleList">{(adminMeta?.connections??[]).map((r:any)=><div key={r.source_role_id}><span><b>{roleName(r.source_role_id,discord.roles)}</b><small>→ {(r.destination_role_ids??[]).map((id:string)=>roleName(id,discord.roles)).join(", ")||"No linked roles"}</small></span><button className="textButton dangerText" onClick={()=>void deleteConnection(r.source_role_id)}>Remove</button></div>)}</div></article>
-      <SaveBar dirty={adminDirty} onSave={()=>void saveSettings()} onReset={()=>setAdminState(adminMeta?.settings??{})}/>
-    </section>}
-  </div>;
+          <AwayAdminPanel />
+          <MediaRequestPanel admin />
+          <article className="membershipPanel prefixAuditPanel">
+            <header>
+              <span className="eyebrow">ADMIRALTY AUDIT</span>
+              <h2>Guild Prefix & Role Connections Audit</h2>
+              <p>
+                Scan every Discord member for duplicate/mismatched prefixes and missing linked roles. Nothing
+                changes until you approve an individual correction.
+              </p>
+            </header>
+            <button className="goldButton" type="button" disabled={auditing} onClick={() => void runAudit()}>
+              {auditing ? "Scanning Discord…" : "Scan All Members"}
+            </button>
+            {audit && (
+              <>
+                <p>
+                  {audit.scanned} members scanned · {audit.totalIssues} issues found
+                  {audit.truncated ? " · first 600 displayed" : ""}
+                </p>
+                <div className="prefixAuditQueue">
+                  {audit.issues.map((x: any) => (
+                    <article key={x.userId}>
+                      <div>
+                        <b>{x.current}</b>
+                        <small>Suggested: {x.proposed}</small>
+                        <small>{x.reasons.join(" · ")}</small>
+                        {x.missingRoleNames?.length > 0 && (
+                          <small>Missing linked roles: {x.missingRoleNames.join(", ")}</small>
+                        )}
+                      </div>
+                      <div className="controlRow">
+                        {x.current !== x.proposed && !x.conflict && (
+                          <button
+                            type="button"
+                            className="outlineButton"
+                            onClick={() => void applyAudit(x.userId, true, false)}
+                          >
+                            Fix Prefix
+                          </button>
+                        )}
+                        {x.missingRoleIds?.length > 0 && (
+                          <button
+                            type="button"
+                            className="outlineButton"
+                            onClick={() => void applyAudit(x.userId, false, true)}
+                          >
+                            Add Connected Roles
+                          </button>
+                        )}
+                        {x.conflict && <small>Conflicting guild roles — resolve manually first</small>}
+                      </div>
+                    </article>
+                  ))}
+                  {!audit.issues.length && <p className="uiEmpty">No prefix or connection problems found.</p>}
+                </div>
+              </>
+            )}
+          </article>
+          <article className="membershipPanel">
+            <header>
+              <span className="eyebrow">GUILD PREFIX</span>
+              <h2>Nickname Prefix Rules</h2>
+              <p>
+                Highest matching Discord role wins when a member has multiple configured prefixes. Existing
+                members are reconciled when a rule changes.
+              </p>
+            </header>
+            <div className="inlineAdminForm">
+              <DiscordOptionsSelect
+                onRefresh={() => void refreshDiscordOptions()}
+                refreshing={refreshingOptions}
+                value={prefixRole}
+                onChange={(e: any) => setPrefixRole(e.target.value)}
+              >
+                <option value="">Choose role</option>
+                {discord.roles.map((r: any) => (
+                  <option value={r.id} key={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </DiscordOptionsSelect>
+              <input value={prefix} onChange={(e: any) => setPrefix(e.target.value)} placeholder="[BOM]" />
+              <button className="primaryAction" disabled={!prefixRole} onClick={() => void savePrefix()}>
+                Save rule
+              </button>
+            </div>
+            <div className="ruleList">
+              {(adminMeta?.prefixes ?? []).map((r: any) => (
+                <div key={r.role_id}>
+                  <span>
+                    <b>{r.prefix}</b>
+                    <small>{roleName(r.role_id, discord.roles)}</small>
+                  </span>
+                  <button className="textButton dangerText" onClick={() => void deletePrefix(r.role_id)}>
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="membershipPanel">
+            <header>
+              <span className="eyebrow">ROLE CONNECTIONS</span>
+              <h2>Connected Roles</h2>
+              <p>
+                Receiving the source role grants up to five linked roles. Just like the Python bot, removing
+                the source role does not remove roles already granted.
+              </p>
+            </header>
+            <div className="inlineAdminForm connectionForm">
+              <DiscordOptionsSelect
+                onRefresh={() => void refreshDiscordOptions()}
+                refreshing={refreshingOptions}
+                value={sourceRole}
+                onChange={(e: any) => setSourceRole(e.target.value)}
+              >
+                <option value="">Source role</option>
+                {discord.roles.map((r: any) => (
+                  <option value={r.id} key={r.id}>
+                    {r.name}
+                  </option>
+                ))}
+              </DiscordOptionsSelect>
+              <RoleTagPicker
+                roles={discord.roles.filter((r: any) => r.id !== sourceRole)}
+                value={destRoles}
+                max={5}
+                onChange={setDestRoles}
+                onRefresh={() => void refreshDiscordOptions()}
+              />
+              <button className="primaryAction" disabled={!sourceRole} onClick={() => void saveConnection()}>
+                Save connection
+              </button>
+            </div>
+            <div className="ruleList">
+              {(adminMeta?.connections ?? []).map((r: any) => (
+                <div key={r.source_role_id}>
+                  <span>
+                    <b>{roleName(r.source_role_id, discord.roles)}</b>
+                    <small>
+                      →{" "}
+                      {(r.destination_role_ids ?? [])
+                        .map((id: string) => roleName(id, discord.roles))
+                        .join(", ") || "No linked roles"}
+                    </small>
+                  </span>
+                  <button
+                    className="textButton dangerText"
+                    onClick={() => void deleteConnection(r.source_role_id)}
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          </article>
+          <SaveBar
+            dirty={adminDirty}
+            onSave={() => void saveSettings()}
+            onReset={() => setAdminState(adminMeta?.settings ?? {})}
+          />
+        </section>
+      )}
+    </div>
+  );
 }

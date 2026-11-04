@@ -2,7 +2,7 @@
 // The sidebar shows one entry per section; a section's tabs render as a tab bar
 // at the top of every page in that section. Links a viewer cannot use are hidden.
 
-import type {IconName} from "@/components/CommandIcon";
+import type { IconName } from "@/components/CommandIcon";
 
 export type Feature = "portBattles" | "wiki" | "recruitment" | "music" | "membership";
 export type Requirement = "admin" | "pbManager";
@@ -34,11 +34,26 @@ export const NAV_SECTIONS: NavSection[] = [
     label: "Port Battles",
     icon: "battle",
     tabs: [
-      { href: "/dashboard/port-battles", label: "Battles", feature: "portBattles", match: ["/dashboard/port-dossier"] },
-      { href: "/dashboard/battle-prep", label: "Prep", feature: "portBattles", match: ["/dashboard/prep-review"] },
+      {
+        href: "/dashboard/port-battles",
+        label: "Battles",
+        feature: "portBattles",
+        match: ["/dashboard/port-dossier"],
+      },
+      {
+        href: "/dashboard/battle-prep",
+        label: "Prep",
+        feature: "portBattles",
+        match: ["/dashboard/prep-review"],
+      },
       { href: "/dashboard/battle-review", label: "Review", feature: "portBattles" },
       { href: "/dashboard/after-action-reports", label: "Reports", feature: "portBattles" },
-      { href: "/dashboard/admin/port-battles", label: "Setup", feature: "portBattles", requires: "pbManager" },
+      {
+        href: "/dashboard/admin/port-battles",
+        label: "Setup",
+        feature: "portBattles",
+        requires: "pbManager",
+      },
     ],
   },
   {
@@ -74,8 +89,19 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: "/dashboard/clash", label: "Clash of Clans" },
     ],
   },
-  { key: "music", label: "Music", icon: "music", tabs: [{ href: "/dashboard/music", label: "Music", feature: "music" }] },
-  { key: "events", label: "Events", icon: "activity", seasonal: true, tabs: [{ href: "/dashboard/events", label: "Event" }] },
+  {
+    key: "music",
+    label: "Music",
+    icon: "music",
+    tabs: [{ href: "/dashboard/music", label: "Music", feature: "music" }],
+  },
+  {
+    key: "events",
+    label: "Events",
+    icon: "activity",
+    seasonal: true,
+    tabs: [{ href: "/dashboard/events", label: "Event" }],
+  },
   {
     key: "admin",
     label: "Admin",
@@ -99,7 +125,9 @@ const allowed = (requires: Requirement | undefined, v: Viewer) =>
 
 export function tabMatches(tab: NavTab, pathname: string) {
   const prefixes = [tab.href, ...(tab.match ?? [])];
-  return prefixes.some((p) => (tab.exact && p === tab.href ? pathname === p : pathname === p || pathname.startsWith(p + "/")));
+  return prefixes.some((p) =>
+    tab.exact && p === tab.href ? pathname === p : pathname === p || pathname.startsWith(p + "/"),
+  );
 }
 
 /** Sections and tabs this viewer can actually use. */
@@ -108,7 +136,9 @@ export function visibleSections(v: Viewer): NavSection[] {
     .map((s) => ({
       ...s,
       label: s.seasonal && v.event ? v.event : s.label,
-      tabs: s.tabs.filter((t) => allowed(t.requires, v) && (!t.feature || v.featureFlags[t.feature] !== false)),
+      tabs: s.tabs.filter(
+        (t) => allowed(t.requires, v) && (!t.feature || v.featureFlags[t.feature] !== false),
+      ),
     }))
     .filter((s) => s.tabs.length > 0);
 }
@@ -119,7 +149,9 @@ export function locate(sections: NavSection[], pathname: string) {
   for (const section of sections)
     for (const tab of section.tabs)
       if (tabMatches(tab, pathname)) {
-        const len = Math.max(...[tab.href, ...(tab.match ?? [])].filter((p) => pathname.startsWith(p)).map((p) => p.length));
+        const len = Math.max(
+          ...[tab.href, ...(tab.match ?? [])].filter((p) => pathname.startsWith(p)).map((p) => p.length),
+        );
         if (!best || len > best.len) best = { section, tab, len };
       }
   return best ? { section: best.section, tab: best.tab } : null;
@@ -130,7 +162,8 @@ export const sectionHref = (s: NavSection) => s.tabs[0].href;
 
 /** Feature flag that gates a route, used to show the "module disabled" state. */
 export function routeFeature(pathname: string): Feature | null {
-  for (const s of NAV_SECTIONS) for (const t of s.tabs) if (t.feature && tabMatches(t, pathname)) return t.feature;
+  for (const s of NAV_SECTIONS)
+    for (const t of s.tabs) if (t.feature && tabMatches(t, pathname)) return t.feature;
   if (pathname.startsWith("/dashboard/admin/membership")) return "membership";
   return null;
 }
@@ -140,7 +173,10 @@ export function routeFeature(pathname: string): Feature | null {
  * set up the next event; members see it while an event runs and for two weeks
  * after it ends (prize draws, results).
  */
-export function eventLabel(status: { active?: boolean; name?: string | null; endsAt?: string | null; canManage?: boolean } | null, now = Date.now()) {
+export function eventLabel(
+  status: { active?: boolean; name?: string | null; endsAt?: string | null; canManage?: boolean } | null,
+  now = Date.now(),
+) {
   if (!status) return null;
   const grace = 14 * 24 * 60 * 60 * 1000;
   const running = Boolean(status.active) && (!status.endsAt || now < Date.parse(status.endsAt) + grace);

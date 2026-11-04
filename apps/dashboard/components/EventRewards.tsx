@@ -1,31 +1,447 @@
-'use client';
-import {useEffect,useState} from 'react';
-import {operationsApi} from './operationsApi';
-import {lollipopsPerHour} from '@bom/shared';
-export function EventHourlyCalculator({storageKey}:{storageKey:string}){
- const [earned,setEarned]=useState(''),[hours,setHours]=useState(''),[minutes,setMinutes]=useState('0'),[ready,setReady]=useState(false);
- useEffect(()=>{try{const s=JSON.parse(localStorage.getItem(storageKey)??'null');if(s){setEarned(String(s.earned??''));setHours(String(s.hours??''));setMinutes(String(s.minutes??'0'));}}catch{}setReady(true);},[storageKey]);
- useEffect(()=>{if(ready)try{localStorage.setItem(storageKey,JSON.stringify({earned,hours,minutes}));}catch{}},[earned,hours,minutes,ready,storageKey]);
- const valid=earned!==''&&(hours!==''||Number(minutes)>0),rate=valid?lollipopsPerHour(Number(earned),Number(hours||0),Number(minutes)):null;
- return <section id="halloween-hourly" className="opsCard eventAnchor eventHourly"><h2>Lollipops per Hour</h2><p>Enter the Lollipops you earned and the active time spent earning them. Use matching totals for one session or your whole event.</p><div className="opsRow"><label>Lollipops earned<input type="number" min="0" step="1" value={earned} onChange={e=>setEarned(e.target.value)} placeholder="e.g. 600"/></label><label>Active hours<input type="number" min="0" step="1" value={hours} onChange={e=>setHours(e.target.value)} placeholder="e.g. 2"/></label><label>Additional minutes<input type="number" min="0" max="59" step="1" value={minutes} onChange={e=>setMinutes(e.target.value)}/></label></div><output aria-live="polite" className="eventHourlyResult">{rate===null?'Enter earned Lollipops and a positive duration.':`${rate.toLocaleString(undefined,{maximumFractionDigits:1})} Lollipops / hour`}</output><small>Exclude purchased Lollipops. Active farming time gives a useful rate; calendar time since the event began does not. Saved on this device.</small></section>;
+"use client";
+import { useEffect, useState } from "react";
+import { operationsApi } from "./operationsApi";
+import { lollipopsPerHour } from "@bom/shared";
+export function EventHourlyCalculator({ storageKey }: { storageKey: string }) {
+  const [earned, setEarned] = useState(""),
+    [hours, setHours] = useState(""),
+    [minutes, setMinutes] = useState("0"),
+    [ready, setReady] = useState(false);
+  useEffect(() => {
+    try {
+      const s = JSON.parse(localStorage.getItem(storageKey) ?? "null");
+      if (s) {
+        setEarned(String(s.earned ?? ""));
+        setHours(String(s.hours ?? ""));
+        setMinutes(String(s.minutes ?? "0"));
+      }
+    } catch {}
+    setReady(true);
+  }, [storageKey]);
+  useEffect(() => {
+    if (ready)
+      try {
+        localStorage.setItem(storageKey, JSON.stringify({ earned, hours, minutes }));
+      } catch {}
+  }, [earned, hours, minutes, ready, storageKey]);
+  const valid = earned !== "" && (hours !== "" || Number(minutes) > 0),
+    rate = valid ? lollipopsPerHour(Number(earned), Number(hours || 0), Number(minutes)) : null;
+  return (
+    <section id="halloween-hourly" className="opsCard eventAnchor eventHourly">
+      <h2>Lollipops per Hour</h2>
+      <p>
+        Enter the Lollipops you earned and the active time spent earning them. Use matching totals for one
+        session or your whole event.
+      </p>
+      <div className="opsRow">
+        <label>
+          Lollipops earned
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={earned}
+            onChange={(e) => setEarned(e.target.value)}
+            placeholder="e.g. 600"
+          />
+        </label>
+        <label>
+          Active hours
+          <input
+            type="number"
+            min="0"
+            step="1"
+            value={hours}
+            onChange={(e) => setHours(e.target.value)}
+            placeholder="e.g. 2"
+          />
+        </label>
+        <label>
+          Additional minutes
+          <input
+            type="number"
+            min="0"
+            max="59"
+            step="1"
+            value={minutes}
+            onChange={(e) => setMinutes(e.target.value)}
+          />
+        </label>
+      </div>
+      <output aria-live="polite" className="eventHourlyResult">
+        {rate === null
+          ? "Enter earned Lollipops and a positive duration."
+          : `${rate.toLocaleString(undefined, { maximumFractionDigits: 1 })} Lollipops / hour`}
+      </output>
+      <small>
+        Exclude purchased Lollipops. Active farming time gives a useful rate; calendar time since the event
+        began does not. Saved on this device.
+      </small>
+    </section>
+  );
 }
-const when=(s:string)=>new Date(s).toLocaleString();
-const inputDate=(s:string)=>{const d=new Date(s);return new Date(d.getTime()-d.getTimezoneOffset()*60000).toISOString().slice(0,16);};
-export default function EventRewards({campaignId}:{campaignId:string}){
- const [data,setData]=useState<any>(null),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[kind,setKind]=useState('TICKETS_HEAVY'),[amount,setAmount]=useState('5000'),[end,setEnd]=useState(''),[pending,setPending]=useState<{key:string;id:string}|null>(null);
- async function load(settings=false){const d=await operationsApi('event-tool/rewards');setData(d);if(settings)setEnd(inputDate(d.endAt));}
- useEffect(()=>{void load(true).catch(e=>setNotice(e.message));const timer=setInterval(()=>void load().catch(()=>{}),30000);return()=>clearInterval(timer);},[campaignId]);
- async function action(fn:()=>Promise<void>){setBusy(true);try{await fn();await load();}catch(e:any){setNotice(e.message);}finally{setBusy(false);}}
- const closed=data&&Date.now()>=Date.parse(data.endAt),requests=data?.requests??[];
- return <section id="halloween-rewards" className="opsCard eventAnchor eventRewards"><div className="eventSectionHeading"><div><span className="eventBadge tagPRIORITIZE">GUILD PRIZES</span><h2>Halloween Rewards & Lottery</h2></div><img src="/event-guide/branding/evil-misfit-role-icon.png" width="64" height="64" alt="Evil Misfit Halloween crest"/></div>
- {notice&&<p className="opsNotice" role="status">{notice}</p>}
- <div className="eventPrizeGrid"><article><h3>Daily Quest Lottery</h3><p>Each completed daily quest earns <b>1 ticket</b>. One winner receives a <b>1st Rate ship of their choice</b>.</p><small>Extra tickets: 5,000 Heavy Shot or 10,000 Saxon Shot each, after approval.</small></article><article><h3>Fastest Progress · Top 3</h3><p>First, second and third place each choose a <b>3rd or 4th Rate ship</b>. Items earned during the event count 1 point; items already owned count 0.5 points.</p></article><article><h3>Full Completion</h3><p>Every player who finishes all checklist goals earns <b>10,000 Saxon Shot</b>.</p><small>Final standings and reward entitlements are recorded with the draw.</small></article><article><h3>Heavy Shot Donation Prizes</h3><p><b>1st:</b> 1st Rate of choice<br/><b>2nd:</b> 2nd Rate of choice<br/><b>3rd:</b> 3rd Rate of choice</p><small>All approved Heavy Shot donations count toward the drive and lottery.</small></article></div><p><b>No Imperial or Premium ship prizes. Unique ships are permitted.</b> Ship and ammunition prizes are delivered in game by Admiralty.</p>
- {!data?<p className="uiLoading" role="status">Loading lottery…</p>:<><div className="eventLotterySummary"><b>Your tickets: {Number(data.mine.quest_tickets)+Number(data.mine.bonus_tickets)}</b><span>{data.mine.quest_tickets} from daily quests + {data.mine.bonus_tickets} approved extras</span><span>Event ends: {when(data.endAt)}</span><span>Automatic draw: {when(data.drawAt)} · 24 hours later</span><small>Times shown in {Intl.DateTimeFormat().resolvedOptions().timeZone}. Requests close at event end; existing requests can be approved until the draw. Unapproved requests expire.</small></div>
- {data.result&&<div className="opsNotice"><b>{data.result.winner_id?`Lottery winner: ${data.result.winner_id}`:'Lottery complete: no eligible tickets.'}</b><p>{data.result.total_tickets} tickets · Winning ticket #{data.result.winning_ticket??'—'} · Drawn {when(data.result.drawn_at)}</p><small>Draw results are saved permanently and will not reroll after a restart.</small></div>}
- <details><summary>Donate · Submit for Approval</summary><p>Your private event-channel thread includes you and the designated reviewer. Credit is added only after they press Yes.</p><fieldset disabled={busy||closed} className="eventForm"><label>Credit this donation toward<select value={kind} onChange={e=>{setKind(e.target.value);setAmount(e.target.value==='TICKETS_SAXON'?'10000':'5000');setPending(null);}}><option value="TICKETS_HEAVY">Heavy Shot</option><option value="TICKETS_SAXON">Saxon Shot</option></select></label><label>Total ammunition to donate<input type="number" min="1" max="1000000000" step="1" value={amount} onChange={e=>setAmount(e.target.value)}/></label><p>One ticket for each complete 5,000 Heavy Shot or 10,000 Saxon Shot. Partial donations carry forward. Heavy Shot also counts toward the drive.</p><button className="primary" onClick={()=>void action(async()=>{const key=JSON.stringify([kind,amount]),requestKey=pending?.key===key?pending.id:crypto.randomUUID();setPending({key,id:requestKey});const [purpose,resource]=kind.split('_');await operationsApi('event-tool/donation-requests',{method:'POST',body:JSON.stringify({campaignId,purpose,resource,amount:Number(amount),requestKey})});setPending(null);setNotice('Request submitted. Your private approval thread will appear in the event channel.');})}>Submit Donation Request</button></fieldset>{closed&&<p>The event has ended. New requests are closed.</p>}</details>
- <details><summary>Donation Requests ({requests.length})</summary><div className="opsTableScroll"><table><thead><tr><th>Player</th><th>Donation</th><th>Credit</th><th>Status</th><th>Thread</th>{data.canReview&&<th>Review</th>}</tr></thead><tbody>{requests.map((r:any)=><tr key={r.id}><td>{r.display_name}</td><td>{r.amount.toLocaleString()} {r.resource==='HEAVY'?'Heavy Shot':'Saxon Shot'}</td><td>{r.resource==='HEAVY'?'Heavy drive + lottery':'Lottery'}</td><td>{r.status}{r.error&&<small>{r.error}</small>}</td><td>{r.thread_id?<a href={`https://discord.com/channels/${data.guildId}/${r.thread_id}`} target="_blank" rel="noreferrer">Open thread</a>:'Queued'}</td>{data.canReview&&<td>{r.status==='APPROVED'&&Date.now()<Date.parse(data.drawAt)&&<button disabled={busy} onClick={()=>{if(confirm('Void this approved receipt and remove its credit?'))void action(async()=>{await operationsApi('event-tool/donation-requests/'+r.id,{method:'DELETE',body:JSON.stringify({campaignId})});setNotice('Receipt voided. Its original approval remains in the audit history.');});}}>Void approval</button>}{r.status==='PENDING'&&Date.now()<Date.parse(data.drawAt)&&['Yes','No'].map(label=><button disabled={busy} key={label} onClick={()=>void action(async()=>{await operationsApi(`event-tool/donation-requests/${r.id}/review`,{method:'POST',body:JSON.stringify({campaignId,approve:label==='Yes'})});setNotice('Request reviewed.');})}>{label}</button>)}</td>}</tr>)}</tbody></table></div></details>
- {!!data.prizes.length&&<details open><summary>{data.canManage?'Admiralty · Prize Delivery':'Your Prizes'}</summary><div className="opsTableScroll"><table><thead><tr><th>Player</th><th>Prize</th><th>Delivery</th></tr></thead><tbody>{data.prizes.map((p:any)=><tr key={p.user_id+p.kind}><td>{p.user_id}</td><td>{p.prize}</td><td>{p.fulfilled_at?'Delivered '+when(p.fulfilled_at):data.canManage?<button disabled={busy} onClick={()=>{if(confirm('Confirm this prize was delivered in game?'))void action(async()=>{await operationsApi('event-tool/rewards/fulfill',{method:'PUT',body:JSON.stringify({campaignId,userId:p.user_id,kind:p.kind})});});}}>Mark delivered</button>:'Awaiting Admiralty delivery'}</td></tr>)}</tbody></table></div></details>}
- {data.canManage&&<details><summary>Admiralty · Event End & Draw Schedule</summary><p>Set the exact event-end instant. The draw runs 24 hours later. Settings lock after the draw.</p><label>Event end in your local timezone<input type="datetime-local" disabled={busy||Boolean(data.result)} value={end} onChange={e=>setEnd(e.target.value)}/></label><button disabled={busy||Boolean(data.result)||!end} onClick={()=>void action(async()=>{await operationsApi('event-tool/rewards/settings',{method:'PUT',body:JSON.stringify({campaignId,endAt:new Date(end).toISOString(),version:data.version})});setNotice('Event end saved. Draw scheduled 24 hours later.');})}>Save End Time</button></details>}
- </>}
- </section>;
+const when = (s: string) => new Date(s).toLocaleString();
+const inputDate = (s: string) => {
+  const d = new Date(s);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+};
+export default function EventRewards({ campaignId }: { campaignId: string }) {
+  const [data, setData] = useState<any>(null),
+    [notice, setNotice] = useState(""),
+    [busy, setBusy] = useState(false),
+    [kind, setKind] = useState("TICKETS_HEAVY"),
+    [amount, setAmount] = useState("5000"),
+    [end, setEnd] = useState(""),
+    [pending, setPending] = useState<{ key: string; id: string } | null>(null);
+  async function load(settings = false) {
+    const d = await operationsApi("event-tool/rewards");
+    setData(d);
+    if (settings) setEnd(inputDate(d.endAt));
+  }
+  useEffect(() => {
+    void load(true).catch((e) => setNotice(e.message));
+    const timer = setInterval(() => void load().catch(() => {}), 30000);
+    return () => clearInterval(timer);
+  }, [campaignId]);
+  async function action(fn: () => Promise<void>) {
+    setBusy(true);
+    try {
+      await fn();
+      await load();
+    } catch (e: any) {
+      setNotice(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const closed = data && Date.now() >= Date.parse(data.endAt),
+    requests = data?.requests ?? [];
+  return (
+    <section id="halloween-rewards" className="opsCard eventAnchor eventRewards">
+      <div className="eventSectionHeading">
+        <div>
+          <span className="eventBadge tagPRIORITIZE">GUILD PRIZES</span>
+          <h2>Halloween Rewards & Lottery</h2>
+        </div>
+        <img
+          src="/event-guide/branding/evil-misfit-role-icon.png"
+          width="64"
+          height="64"
+          alt="Evil Misfit Halloween crest"
+        />
+      </div>
+      {notice && (
+        <p className="opsNotice" role="status">
+          {notice}
+        </p>
+      )}
+      <div className="eventPrizeGrid">
+        <article>
+          <h3>Daily Quest Lottery</h3>
+          <p>
+            Each completed daily quest earns <b>1 ticket</b>. One winner receives a{" "}
+            <b>1st Rate ship of their choice</b>.
+          </p>
+          <small>Extra tickets: 5,000 Heavy Shot or 10,000 Saxon Shot each, after approval.</small>
+        </article>
+        <article>
+          <h3>Fastest Progress · Top 3</h3>
+          <p>
+            First, second and third place each choose a <b>3rd or 4th Rate ship</b>. Items earned during the
+            event count 1 point; items already owned count 0.5 points.
+          </p>
+        </article>
+        <article>
+          <h3>Full Completion</h3>
+          <p>
+            Every player who finishes all checklist goals earns <b>10,000 Saxon Shot</b>.
+          </p>
+          <small>Final standings and reward entitlements are recorded with the draw.</small>
+        </article>
+        <article>
+          <h3>Heavy Shot Donation Prizes</h3>
+          <p>
+            <b>1st:</b> 1st Rate of choice
+            <br />
+            <b>2nd:</b> 2nd Rate of choice
+            <br />
+            <b>3rd:</b> 3rd Rate of choice
+          </p>
+          <small>All approved Heavy Shot donations count toward the drive and lottery.</small>
+        </article>
+      </div>
+      <p>
+        <b>No Imperial or Premium ship prizes. Unique ships are permitted.</b> Ship and ammunition prizes are
+        delivered in game by Admiralty.
+      </p>
+      {!data ? (
+        <p className="uiLoading" role="status">
+          Loading lottery…
+        </p>
+      ) : (
+        <>
+          <div className="eventLotterySummary">
+            <b>Your tickets: {Number(data.mine.quest_tickets) + Number(data.mine.bonus_tickets)}</b>
+            <span>
+              {data.mine.quest_tickets} from daily quests + {data.mine.bonus_tickets} approved extras
+            </span>
+            <span>Event ends: {when(data.endAt)}</span>
+            <span>Automatic draw: {when(data.drawAt)} · 24 hours later</span>
+            <small>
+              Times shown in {Intl.DateTimeFormat().resolvedOptions().timeZone}. Requests close at event end;
+              existing requests can be approved until the draw. Unapproved requests expire.
+            </small>
+          </div>
+          {data.result && (
+            <div className="opsNotice">
+              <b>
+                {data.result.winner_id
+                  ? `Lottery winner: ${data.result.winner_id}`
+                  : "Lottery complete: no eligible tickets."}
+              </b>
+              <p>
+                {data.result.total_tickets} tickets · Winning ticket #{data.result.winning_ticket ?? "—"} ·
+                Drawn {when(data.result.drawn_at)}
+              </p>
+              <small>Draw results are saved permanently and will not reroll after a restart.</small>
+            </div>
+          )}
+          <details>
+            <summary>Donate · Submit for Approval</summary>
+            <p>
+              Your private event-channel thread includes you and the designated reviewer. Credit is added only
+              after they press Yes.
+            </p>
+            <fieldset disabled={busy || closed} className="eventForm">
+              <label>
+                Credit this donation toward
+                <select
+                  value={kind}
+                  onChange={(e) => {
+                    setKind(e.target.value);
+                    setAmount(e.target.value === "TICKETS_SAXON" ? "10000" : "5000");
+                    setPending(null);
+                  }}
+                >
+                  <option value="TICKETS_HEAVY">Heavy Shot</option>
+                  <option value="TICKETS_SAXON">Saxon Shot</option>
+                </select>
+              </label>
+              <label>
+                Total ammunition to donate
+                <input
+                  type="number"
+                  min="1"
+                  max="1000000000"
+                  step="1"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                />
+              </label>
+              <p>
+                One ticket for each complete 5,000 Heavy Shot or 10,000 Saxon Shot. Partial donations carry
+                forward. Heavy Shot also counts toward the drive.
+              </p>
+              <button
+                className="primary"
+                onClick={() =>
+                  void action(async () => {
+                    const key = JSON.stringify([kind, amount]),
+                      requestKey = pending?.key === key ? pending.id : crypto.randomUUID();
+                    setPending({ key, id: requestKey });
+                    const [purpose, resource] = kind.split("_");
+                    await operationsApi("event-tool/donation-requests", {
+                      method: "POST",
+                      body: JSON.stringify({
+                        campaignId,
+                        purpose,
+                        resource,
+                        amount: Number(amount),
+                        requestKey,
+                      }),
+                    });
+                    setPending(null);
+                    setNotice(
+                      "Request submitted. Your private approval thread will appear in the event channel.",
+                    );
+                  })
+                }
+              >
+                Submit Donation Request
+              </button>
+            </fieldset>
+            {closed && <p>The event has ended. New requests are closed.</p>}
+          </details>
+          <details>
+            <summary>Donation Requests ({requests.length})</summary>
+            <div className="opsTableScroll">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Player</th>
+                    <th>Donation</th>
+                    <th>Credit</th>
+                    <th>Status</th>
+                    <th>Thread</th>
+                    {data.canReview && <th>Review</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {requests.map((r: any) => (
+                    <tr key={r.id}>
+                      <td>{r.display_name}</td>
+                      <td>
+                        {r.amount.toLocaleString()} {r.resource === "HEAVY" ? "Heavy Shot" : "Saxon Shot"}
+                      </td>
+                      <td>{r.resource === "HEAVY" ? "Heavy drive + lottery" : "Lottery"}</td>
+                      <td>
+                        {r.status}
+                        {r.error && <small>{r.error}</small>}
+                      </td>
+                      <td>
+                        {r.thread_id ? (
+                          <a
+                            href={`https://discord.com/channels/${data.guildId}/${r.thread_id}`}
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            Open thread
+                          </a>
+                        ) : (
+                          "Queued"
+                        )}
+                      </td>
+                      {data.canReview && (
+                        <td>
+                          {r.status === "APPROVED" && Date.now() < Date.parse(data.drawAt) && (
+                            <button
+                              disabled={busy}
+                              onClick={() => {
+                                if (confirm("Void this approved receipt and remove its credit?"))
+                                  void action(async () => {
+                                    await operationsApi("event-tool/donation-requests/" + r.id, {
+                                      method: "DELETE",
+                                      body: JSON.stringify({ campaignId }),
+                                    });
+                                    setNotice(
+                                      "Receipt voided. Its original approval remains in the audit history.",
+                                    );
+                                  });
+                              }}
+                            >
+                              Void approval
+                            </button>
+                          )}
+                          {r.status === "PENDING" &&
+                            Date.now() < Date.parse(data.drawAt) &&
+                            ["Yes", "No"].map((label) => (
+                              <button
+                                disabled={busy}
+                                key={label}
+                                onClick={() =>
+                                  void action(async () => {
+                                    await operationsApi(`event-tool/donation-requests/${r.id}/review`, {
+                                      method: "POST",
+                                      body: JSON.stringify({ campaignId, approve: label === "Yes" }),
+                                    });
+                                    setNotice("Request reviewed.");
+                                  })
+                                }
+                              >
+                                {label}
+                              </button>
+                            ))}
+                        </td>
+                      )}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </details>
+          {!!data.prizes.length && (
+            <details open>
+              <summary>{data.canManage ? "Admiralty · Prize Delivery" : "Your Prizes"}</summary>
+              <div className="opsTableScroll">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>Player</th>
+                      <th>Prize</th>
+                      <th>Delivery</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {data.prizes.map((p: any) => (
+                      <tr key={p.user_id + p.kind}>
+                        <td>{p.user_id}</td>
+                        <td>{p.prize}</td>
+                        <td>
+                          {p.fulfilled_at ? (
+                            "Delivered " + when(p.fulfilled_at)
+                          ) : data.canManage ? (
+                            <button
+                              disabled={busy}
+                              onClick={() => {
+                                if (confirm("Confirm this prize was delivered in game?"))
+                                  void action(async () => {
+                                    await operationsApi("event-tool/rewards/fulfill", {
+                                      method: "PUT",
+                                      body: JSON.stringify({ campaignId, userId: p.user_id, kind: p.kind }),
+                                    });
+                                  });
+                              }}
+                            >
+                              Mark delivered
+                            </button>
+                          ) : (
+                            "Awaiting Admiralty delivery"
+                          )}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </details>
+          )}
+          {data.canManage && (
+            <details>
+              <summary>Admiralty · Event End & Draw Schedule</summary>
+              <p>
+                Set the exact event-end instant. The draw runs 24 hours later. Settings lock after the draw.
+              </p>
+              <label>
+                Event end in your local timezone
+                <input
+                  type="datetime-local"
+                  disabled={busy || Boolean(data.result)}
+                  value={end}
+                  onChange={(e) => setEnd(e.target.value)}
+                />
+              </label>
+              <button
+                disabled={busy || Boolean(data.result) || !end}
+                onClick={() =>
+                  void action(async () => {
+                    await operationsApi("event-tool/rewards/settings", {
+                      method: "PUT",
+                      body: JSON.stringify({
+                        campaignId,
+                        endAt: new Date(end).toISOString(),
+                        version: data.version,
+                      }),
+                    });
+                    setNotice("Event end saved. Draw scheduled 24 hours later.");
+                  })
+                }
+              >
+                Save End Time
+              </button>
+            </details>
+          )}
+        </>
+      )}
+    </section>
+  );
 }

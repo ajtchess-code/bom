@@ -1,10 +1,173 @@
-'use client';
-import EventCraftingCost from './EventCraftingCost';
-import {useEffect,useState} from 'react';
-export default function EventGoalCard({item,progress,busy,eligible,onSave,celebrate=false}:{item:any;progress:any;busy:boolean;eligible:boolean;celebrate?:boolean;onSave:(patch:any)=>Promise<void>}){
- const [quantity,setQuantity]=useState(String(progress?.quantity??0)),[badImage,setBadImage]=useState<string[]>([]);useEffect(()=>setQuantity(String(progress?.quantity??0)),[progress?.quantity]);const goal=item.goal??item.target??(item.group==='Cannons'?item.preferred:null),quantified=Boolean(goal||item.group==='Cannons'),count=Number(progress?.quantity??0),done=Boolean(progress?.completed),ratio=goal?Math.min(100,count/goal*100):done?100:0,disabled=busy||!eligible,ownedLabel=item.group.includes('Rate')?'I have this ship already':item.key.includes('lantern')?'I have this lantern already':'I have these weapons already';
- return <article className={`eventGoalCard ${done?'isDone':''} ${quantified?'eventSupplyCard':''} ${celebrate?'eventGoalCelebrate':''}`}>{!quantified&&<div className="eventGoalMedia">{item.image&&<img src={item.image} alt={item.name} loading="lazy"/>}{item.ships?.filter((s:any)=>s.image&&!badImage.includes(s.image)).map((s:any)=><img key={s.name} src={s.image} alt={s.name} loading="lazy" onError={()=>setBadImage(v=>[...v,s.image])}/>)}{!item.image&&!item.ships?.some((s:any)=>s.image&&!badImage.includes(s.image))&&<span aria-hidden="true">{item.group==='Cannons'?'✦':quantified?'▣':'⚓'}</span>}</div>}<div className="eventGoalBody"><div className="eventGoalTitle"><h4>{quantified&&item.image&&<img className="eventItemIcon" src={item.image} alt=""/>}{item.name}</h4><label className="eventCheck"><input aria-label={`Complete ${item.name}`} type="checkbox" checked={done} disabled={disabled} onChange={e=>void onSave({completed:e.target.checked})}/><span aria-hidden="true">✓</span></label></div><div className="eventBadges">{(item.tags??[item.priority==='OPTIONAL'?'OPTIONAL':'PREFERRED']).map((tag:string)=><span key={tag} className={`eventBadge tag${tag}`}>{tag}</span>)}{item.key==='12-apostolov'&&<span className="eventBadge tagINFO">GUILD SUPPLIES LICENSE</span>}{progress?.already_owned&&<span className="eventBadge tagOWNED">ALREADY HAVE</span>}</div>
- {quantified&&<div className="eventQuantity"><div className="eventQuantityTotals"><strong>{count.toLocaleString()}<span> / {goal?goal.toLocaleString():'—'}</span></strong><small>{item.target?'Required goal':goal?'Preferred goal':'Count tracked · mark complete manually'}</small></div>{goal&&<div className="eventProgressBar" role="progressbar" aria-label={`${item.name} progress`} aria-valuemin={0} aria-valuemax={goal} aria-valuenow={Math.min(count,goal)}><i style={{width:`${ratio}%`}}/>{[25,50,75].map(n=><em key={n} style={{left:`${n}%`}}/>)}</div>}<div className="eventQuantityInput"><label>Acquired<input aria-label={`${item.name} acquired`} type="number" min={0} max={1000000000} step={1} value={quantity} disabled={disabled} onChange={e=>setQuantity(e.target.value)}/></label><button disabled={disabled||quantity===''||!Number.isSafeInteger(Number(quantity))||Number(quantity)<0||Number(quantity)>1000000000||Number(quantity)===count} onClick={()=>void onSave({quantity:Number(quantity)})}>Save count</button></div>{goal&&<div className="eventQuarterMarkers" aria-label={`${item.name} quarter milestones`}>{[25,50,75,100].map(n=><span key={n} className={ratio>=n?'secured':''}><b>{ratio>=n?'✓':'○'} {n}%</b><small>{Math.ceil(goal*n/100).toLocaleString()}</small></span>)}</div>}</div>}
- {item.coinCost!==undefined&&<p className="eventLanternCost"><b>{item.coinCost.toLocaleString()} coins</b><small>Premium shop · separate from Lollipops</small></p>}{item.ships?.length>0&&<EventCraftingCost ships={item.ships}/>}
- <button className={`eventOwnedButton ${progress?.already_owned?'active':''}`} disabled={disabled} aria-pressed={Boolean(progress?.already_owned)} onClick={()=>void onSave({alreadyOwned:!progress?.already_owned})}>{progress?.already_owned?'✓ '+ownedLabel:ownedLabel}</button>{progress?.error&&<p className="eventCardError">Announcement pending: {progress.error}</p>}</div></article>;
+"use client";
+import EventCraftingCost from "./EventCraftingCost";
+import { useEffect, useState } from "react";
+export default function EventGoalCard({
+  item,
+  progress,
+  busy,
+  eligible,
+  onSave,
+  celebrate = false,
+}: {
+  item: any;
+  progress: any;
+  busy: boolean;
+  eligible: boolean;
+  celebrate?: boolean;
+  onSave: (patch: any) => Promise<void>;
+}) {
+  const [quantity, setQuantity] = useState(String(progress?.quantity ?? 0)),
+    [badImage, setBadImage] = useState<string[]>([]);
+  useEffect(() => setQuantity(String(progress?.quantity ?? 0)), [progress?.quantity]);
+  const goal = item.goal ?? item.target ?? (item.group === "Cannons" ? item.preferred : null),
+    quantified = Boolean(goal || item.group === "Cannons"),
+    count = Number(progress?.quantity ?? 0),
+    done = Boolean(progress?.completed),
+    ratio = goal ? Math.min(100, (count / goal) * 100) : done ? 100 : 0,
+    disabled = busy || !eligible,
+    ownedLabel = item.group.includes("Rate")
+      ? "I have this ship already"
+      : item.key.includes("lantern")
+        ? "I have this lantern already"
+        : "I have these weapons already";
+  return (
+    <article
+      className={`eventGoalCard ${done ? "isDone" : ""} ${quantified ? "eventSupplyCard" : ""} ${celebrate ? "eventGoalCelebrate" : ""}`}
+    >
+      {!quantified && (
+        <div className="eventGoalMedia">
+          {item.image && <img src={item.image} alt={item.name} loading="lazy" />}
+          {item.ships
+            ?.filter((s: any) => s.image && !badImage.includes(s.image))
+            .map((s: any) => (
+              <img
+                key={s.name}
+                src={s.image}
+                alt={s.name}
+                loading="lazy"
+                onError={() => setBadImage((v) => [...v, s.image])}
+              />
+            ))}
+          {!item.image && !item.ships?.some((s: any) => s.image && !badImage.includes(s.image)) && (
+            <span aria-hidden="true">{item.group === "Cannons" ? "✦" : quantified ? "▣" : "⚓"}</span>
+          )}
+        </div>
+      )}
+      <div className="eventGoalBody">
+        <div className="eventGoalTitle">
+          <h4>
+            {quantified && item.image && <img className="eventItemIcon" src={item.image} alt="" />}
+            {item.name}
+          </h4>
+          <label className="eventCheck">
+            <input
+              aria-label={`Complete ${item.name}`}
+              type="checkbox"
+              checked={done}
+              disabled={disabled}
+              onChange={(e) => void onSave({ completed: e.target.checked })}
+            />
+            <span aria-hidden="true">✓</span>
+          </label>
+        </div>
+        <div className="eventBadges">
+          {(item.tags ?? [item.priority === "OPTIONAL" ? "OPTIONAL" : "PREFERRED"]).map((tag: string) => (
+            <span key={tag} className={`eventBadge tag${tag}`}>
+              {tag}
+            </span>
+          ))}
+          {item.key === "12-apostolov" && <span className="eventBadge tagINFO">GUILD SUPPLIES LICENSE</span>}
+          {progress?.already_owned && <span className="eventBadge tagOWNED">ALREADY HAVE</span>}
+        </div>
+        {quantified && (
+          <div className="eventQuantity">
+            <div className="eventQuantityTotals">
+              <strong>
+                {count.toLocaleString()}
+                <span> / {goal ? goal.toLocaleString() : "—"}</span>
+              </strong>
+              <small>
+                {item.target
+                  ? "Required goal"
+                  : goal
+                    ? "Preferred goal"
+                    : "Count tracked · mark complete manually"}
+              </small>
+            </div>
+            {goal && (
+              <div
+                className="eventProgressBar"
+                role="progressbar"
+                aria-label={`${item.name} progress`}
+                aria-valuemin={0}
+                aria-valuemax={goal}
+                aria-valuenow={Math.min(count, goal)}
+              >
+                <i style={{ width: `${ratio}%` }} />
+                {[25, 50, 75].map((n) => (
+                  <em key={n} style={{ left: `${n}%` }} />
+                ))}
+              </div>
+            )}
+            <div className="eventQuantityInput">
+              <label>
+                Acquired
+                <input
+                  aria-label={`${item.name} acquired`}
+                  type="number"
+                  min={0}
+                  max={1000000000}
+                  step={1}
+                  value={quantity}
+                  disabled={disabled}
+                  onChange={(e) => setQuantity(e.target.value)}
+                />
+              </label>
+              <button
+                disabled={
+                  disabled ||
+                  quantity === "" ||
+                  !Number.isSafeInteger(Number(quantity)) ||
+                  Number(quantity) < 0 ||
+                  Number(quantity) > 1000000000 ||
+                  Number(quantity) === count
+                }
+                onClick={() => void onSave({ quantity: Number(quantity) })}
+              >
+                Save count
+              </button>
+            </div>
+            {goal && (
+              <div className="eventQuarterMarkers" aria-label={`${item.name} quarter milestones`}>
+                {[25, 50, 75, 100].map((n) => (
+                  <span key={n} className={ratio >= n ? "secured" : ""}>
+                    <b>
+                      {ratio >= n ? "✓" : "○"} {n}%
+                    </b>
+                    <small>{Math.ceil((goal * n) / 100).toLocaleString()}</small>
+                  </span>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+        {item.coinCost !== undefined && (
+          <p className="eventLanternCost">
+            <b>{item.coinCost.toLocaleString()} coins</b>
+            <small>Premium shop · separate from Lollipops</small>
+          </p>
+        )}
+        {item.ships?.length > 0 && <EventCraftingCost ships={item.ships} />}
+        <button
+          className={`eventOwnedButton ${progress?.already_owned ? "active" : ""}`}
+          disabled={disabled}
+          aria-pressed={Boolean(progress?.already_owned)}
+          onClick={() => void onSave({ alreadyOwned: !progress?.already_owned })}
+        >
+          {progress?.already_owned ? "✓ " + ownedLabel : ownedLabel}
+        </button>
+        {progress?.error && <p className="eventCardError">Announcement pending: {progress.error}</p>}
+      </div>
+    </article>
+  );
 }

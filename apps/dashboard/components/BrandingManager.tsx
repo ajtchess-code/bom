@@ -2,36 +2,250 @@
 
 import { ChangeEvent, useEffect, useMemo, useState, type CSSProperties } from "react";
 
-type Brand={workerId:number;colorKey:string;colorHex:string;roleId:string|null;isDefault:boolean;avatarUrl:string;bannerUrl:string;defaultAvatarUrl:string;defaultBannerUrl:string};
-type Draft={colorHex:string;avatarDataUrl?:string;bannerDataUrl?:string;roleIconDataUrl?:string};
+type Brand = {
+  workerId: number;
+  colorKey: string;
+  colorHex: string;
+  roleId: string | null;
+  isDefault: boolean;
+  avatarUrl: string;
+  bannerUrl: string;
+  defaultAvatarUrl: string;
+  defaultBannerUrl: string;
+};
+type Draft = { colorHex: string; avatarDataUrl?: string; bannerDataUrl?: string; roleIconDataUrl?: string };
 
-async function api(path:string,init:RequestInit={}){const h=new Headers(init.headers);if(init.body&&!h.has("content-type"))h.set("content-type","application/json");return fetch(path,{...init,headers:h});}
-const readDataUrl=(file:File)=>new Promise<string>((resolve,reject)=>{const r=new FileReader();r.onload=()=>resolve(String(r.result));r.onerror=()=>reject(r.error);r.readAsDataURL(file);});
-async function roleIconFrom(dataUrl:string){return new Promise<string>((resolve,reject)=>{const img=new Image();img.onload=()=>{const c=document.createElement("canvas");c.width=64;c.height=64;const x=c.getContext("2d");if(!x)return reject(new Error("Canvas unavailable"));x.clearRect(0,0,64,64);x.drawImage(img,0,0,64,64);resolve(c.toDataURL("image/png"));};img.onerror=()=>reject(new Error("Unable to resize role icon"));img.src=dataUrl;});}
+async function api(path: string, init: RequestInit = {}) {
+  const h = new Headers(init.headers);
+  if (init.body && !h.has("content-type")) h.set("content-type", "application/json");
+  return fetch(path, { ...init, headers: h });
+}
+const readDataUrl = (file: File) =>
+  new Promise<string>((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(String(r.result));
+    r.onerror = () => reject(r.error);
+    r.readAsDataURL(file);
+  });
+async function roleIconFrom(dataUrl: string) {
+  return new Promise<string>((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement("canvas");
+      c.width = 64;
+      c.height = 64;
+      const x = c.getContext("2d");
+      if (!x) return reject(new Error("Canvas unavailable"));
+      x.clearRect(0, 0, 64, 64);
+      x.drawImage(img, 0, 0, 64, 64);
+      resolve(c.toDataURL("image/png"));
+    };
+    img.onerror = () => reject(new Error("Unable to resize role icon"));
+    img.src = dataUrl;
+  });
+}
 
-export default function BrandingManager(){
-  const [brands,setBrands]=useState<Brand[]>([]);const [drafts,setDrafts]=useState<Record<number,Draft>>({});const [busy,setBusy]=useState<Record<number,string>>({});const [notice,setNotice]=useState("");const [stamp,setStamp]=useState(Date.now());
-  async function load(){const r=await api("/api/internal/music/branding",{cache:"no-store"});if(r.ok){const list=await r.json();setBrands(list);setDrafts(Object.fromEntries(list.map((b:Brand)=>[b.workerId,{colorHex:b.colorHex}])));setStamp(Date.now());}}
-  useEffect(()=>{void load();},[]);
-  const allDefault=useMemo(()=>brands.length===8&&brands.every(x=>x.isDefault),[brands]);
-  function setDraft(id:number,patch:Partial<Draft>){setDrafts(d=>({...d,[id]:{...(d[id]??{colorHex:"#9B4DFF"}),...patch}}));}
-  async function pickAvatar(id:number,e:ChangeEvent<HTMLInputElement>){const f=e.target.files?.[0];if(!f)return;const data=await readDataUrl(f);const icon=await roleIconFrom(data);setDraft(id,{avatarDataUrl:data,roleIconDataUrl:icon});}
-  async function pickBanner(id:number,e:ChangeEvent<HTMLInputElement>){const f=e.target.files?.[0];if(!f)return;setDraft(id,{bannerDataUrl:await readDataUrl(f)});}
-  async function save(id:number,apply=false){setBusy(b=>({...b,[id]:apply?"Saving + applying":"Saving"}));const d=drafts[id]??{} as Draft;const r=await api(`/api/internal/music/branding/${id}`,{method:"PUT",body:JSON.stringify(d)});if(!r.ok){const j=await r.json().catch(()=>null);setNotice(j?.message??`Worker ${id} save failed (${r.status})`);setBusy(b=>({...b,[id]:""}));return;}if(apply){const a=await api(`/api/internal/music/branding/${id}/apply`,{method:"POST",body:"{}"});const j=await a.json().catch(()=>null);if(!a.ok)setNotice(j?.message??`Worker ${id} apply failed (${a.status})`);else setNotice(j?.bannerApplied===false?`Worker ${id}: avatar/role applied. Discord rejected the bot banner: ${j.bannerWarning??"unsupported"}`:`Worker ${id} branding applied to Discord.`);}else setNotice(`Worker ${id} branding saved.`);setBusy(b=>({...b,[id]:""}));await load();}
-  async function applyOnly(id:number){setBusy(b=>({...b,[id]:"Applying"}));const r=await api(`/api/internal/music/branding/${id}/apply`,{method:"POST",body:"{}"});const j=await r.json().catch(()=>null);setBusy(b=>({...b,[id]:""}));setNotice(r.ok?(j?.bannerApplied===false?`Worker ${id}: avatar/role applied; Discord did not accept the banner.`:`Worker ${id} branding applied.`):(j?.message??`Apply failed (${r.status})`));}
-  async function reset(id:number){if(!confirm(`Restore BOM Music Bot ${id} to its official default logo, banner and color?`))return;setBusy(b=>({...b,[id]:"Restoring"}));await api(`/api/internal/music/branding/${id}/reset`,{method:"POST",body:"{}"});const a=await api(`/api/internal/music/branding/${id}/apply`,{method:"POST",body:"{}"});const j=await a.json().catch(()=>null);setBusy(b=>({...b,[id]:""}));setNotice(a.ok?`Worker ${id} restored to the official default.`:(j?.message??`Worker ${id} restored locally; Discord apply failed.`));await load();}
-  async function applyDefaults(){if(!confirm("Restore and apply the official BOM branding to all eight music workers?"))return;setNotice("Restoring all eight default worker brands…");const r=await api("/api/internal/music/branding/apply-defaults",{method:"POST",body:"{}"});const j=await r.json().catch(()=>null);const failures=j?.results?.filter((x:any)=>!x.ok)?.length??0;setNotice(failures?`Defaults restored; ${failures} worker(s) could not be applied to Discord. Check tokens/role hierarchy.`:"All eight official defaults are restored and applied.");await load();}
-  return <section className="panel brandingPanel">
-    <div className="panelHead brandingHead"><div><h3>Branding</h3><span>Music bot profile pictures, banners, role colors & role icons</span></div><div className="brandingActions"><span className={allDefault?"statusPill brandDefault":"statusPill"}>{allDefault?"Official defaults":"Custom branding active"}</span><button className="goldButton" onClick={()=>void applyDefaults()}>Restore + apply all defaults</button></div></div>
-    <p className="muted brandingHelp">Each music account has a permanent BOM default. Custom uploads can replace the avatar/banner later, while <b>Restore Default</b> always returns that worker to the official matching color set. Applying branding also creates or updates a matching non-managed Discord role, assigns it to the worker, sets the role color, and uses the worker logo as the role icon.</p>
-    {notice&&<div className="brandingNotice" onClick={()=>setNotice("")}>{notice}</div>}
-    <div className="brandingGrid">{brands.map(b=>{const d=drafts[b.workerId]??{colorHex:b.colorHex};const avatar=d.avatarDataUrl??`${b.avatarUrl}?v=${stamp}`;const banner=d.bannerDataUrl??`${b.bannerUrl}?v=${stamp}`;return <article className="brandCard" key={b.workerId} style={{"--worker-color":d.colorHex} as CSSProperties}>
-      <div className="brandBanner"><img src={banner} alt={`BOM Music Bot ${b.workerId} banner`}/><div className="brandAvatar"><img src={avatar} alt={`BOM Music Bot ${b.workerId} logo`}/></div><span className="brandIndex">Music Bot {b.workerId}</span></div>
-      <div className="brandCardBody"><div className="brandIdentity"><div><b>BOM Music Bot {b.workerId}</b><small>{b.isDefault?`Official ${b.colorKey} default`:"Custom branding"}</small></div><span className="brandSwatch" style={{background:d.colorHex}}/></div>
-      <label className="brandColor">Role color <span><input type="color" value={d.colorHex} onChange={e=>setDraft(b.workerId,{colorHex:e.target.value.toUpperCase()})}/><input value={d.colorHex} maxLength={7} onChange={e=>setDraft(b.workerId,{colorHex:e.target.value})}/></span></label>
-      <div className="brandUploads"><label>Profile picture<input type="file" accept="image/png" onChange={e=>void pickAvatar(b.workerId,e)}/></label><label>Profile banner<input type="file" accept="image/png" onChange={e=>void pickBanner(b.workerId,e)}/></label></div>
-      <div className="brandButtons"><button onClick={()=>void save(b.workerId,false)} disabled={Boolean(busy[b.workerId])}>Save</button><button className="applyBrand" onClick={()=>void save(b.workerId,true)} disabled={Boolean(busy[b.workerId])}>{busy[b.workerId]||"Save + Apply"}</button><button className="resetBrand" onClick={()=>void reset(b.workerId)} disabled={Boolean(busy[b.workerId])}>Restore Default</button></div>
-      {b.roleId&&<small className="roleLink">Discord role linked: {b.roleId}</small>}
-      </div></article>})}</div>
-  </section>;
+export default function BrandingManager() {
+  const [brands, setBrands] = useState<Brand[]>([]);
+  const [drafts, setDrafts] = useState<Record<number, Draft>>({});
+  const [busy, setBusy] = useState<Record<number, string>>({});
+  const [notice, setNotice] = useState("");
+  const [stamp, setStamp] = useState(Date.now());
+  async function load() {
+    const r = await api("/api/internal/music/branding", { cache: "no-store" });
+    if (r.ok) {
+      const list = await r.json();
+      setBrands(list);
+      setDrafts(Object.fromEntries(list.map((b: Brand) => [b.workerId, { colorHex: b.colorHex }])));
+      setStamp(Date.now());
+    }
+  }
+  useEffect(() => {
+    void load();
+  }, []);
+  const allDefault = useMemo(() => brands.length === 8 && brands.every((x) => x.isDefault), [brands]);
+  function setDraft(id: number, patch: Partial<Draft>) {
+    setDrafts((d) => ({ ...d, [id]: { ...(d[id] ?? { colorHex: "#9B4DFF" }), ...patch } }));
+  }
+  async function pickAvatar(id: number, e: ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    const data = await readDataUrl(f);
+    const icon = await roleIconFrom(data);
+    setDraft(id, { avatarDataUrl: data, roleIconDataUrl: icon });
+  }
+  async function pickBanner(id: number, e: ChangeEvent<HTMLInputElement>) {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    setDraft(id, { bannerDataUrl: await readDataUrl(f) });
+  }
+  async function save(id: number, apply = false) {
+    setBusy((b) => ({ ...b, [id]: apply ? "Saving + applying" : "Saving" }));
+    const d = drafts[id] ?? ({} as Draft);
+    const r = await api(`/api/internal/music/branding/${id}`, { method: "PUT", body: JSON.stringify(d) });
+    if (!r.ok) {
+      const j = await r.json().catch(() => null);
+      setNotice(j?.message ?? `Worker ${id} save failed (${r.status})`);
+      setBusy((b) => ({ ...b, [id]: "" }));
+      return;
+    }
+    if (apply) {
+      const a = await api(`/api/internal/music/branding/${id}/apply`, { method: "POST", body: "{}" });
+      const j = await a.json().catch(() => null);
+      if (!a.ok) setNotice(j?.message ?? `Worker ${id} apply failed (${a.status})`);
+      else
+        setNotice(
+          j?.bannerApplied === false
+            ? `Worker ${id}: avatar/role applied. Discord rejected the bot banner: ${j.bannerWarning ?? "unsupported"}`
+            : `Worker ${id} branding applied to Discord.`,
+        );
+    } else setNotice(`Worker ${id} branding saved.`);
+    setBusy((b) => ({ ...b, [id]: "" }));
+    await load();
+  }
+  async function applyOnly(id: number) {
+    setBusy((b) => ({ ...b, [id]: "Applying" }));
+    const r = await api(`/api/internal/music/branding/${id}/apply`, { method: "POST", body: "{}" });
+    const j = await r.json().catch(() => null);
+    setBusy((b) => ({ ...b, [id]: "" }));
+    setNotice(
+      r.ok
+        ? j?.bannerApplied === false
+          ? `Worker ${id}: avatar/role applied; Discord did not accept the banner.`
+          : `Worker ${id} branding applied.`
+        : (j?.message ?? `Apply failed (${r.status})`),
+    );
+  }
+  async function reset(id: number) {
+    if (!confirm(`Restore BOM Music Bot ${id} to its official default logo, banner and color?`)) return;
+    setBusy((b) => ({ ...b, [id]: "Restoring" }));
+    await api(`/api/internal/music/branding/${id}/reset`, { method: "POST", body: "{}" });
+    const a = await api(`/api/internal/music/branding/${id}/apply`, { method: "POST", body: "{}" });
+    const j = await a.json().catch(() => null);
+    setBusy((b) => ({ ...b, [id]: "" }));
+    setNotice(
+      a.ok
+        ? `Worker ${id} restored to the official default.`
+        : (j?.message ?? `Worker ${id} restored locally; Discord apply failed.`),
+    );
+    await load();
+  }
+  async function applyDefaults() {
+    if (!confirm("Restore and apply the official BOM branding to all eight music workers?")) return;
+    setNotice("Restoring all eight default worker brands…");
+    const r = await api("/api/internal/music/branding/apply-defaults", { method: "POST", body: "{}" });
+    const j = await r.json().catch(() => null);
+    const failures = j?.results?.filter((x: any) => !x.ok)?.length ?? 0;
+    setNotice(
+      failures
+        ? `Defaults restored; ${failures} worker(s) could not be applied to Discord. Check tokens/role hierarchy.`
+        : "All eight official defaults are restored and applied.",
+    );
+    await load();
+  }
+  return (
+    <section className="panel brandingPanel">
+      <div className="panelHead brandingHead">
+        <div>
+          <h3>Branding</h3>
+          <span>Music bot profile pictures, banners, role colors & role icons</span>
+        </div>
+        <div className="brandingActions">
+          <span className={allDefault ? "statusPill brandDefault" : "statusPill"}>
+            {allDefault ? "Official defaults" : "Custom branding active"}
+          </span>
+          <button className="goldButton" onClick={() => void applyDefaults()}>
+            Restore + apply all defaults
+          </button>
+        </div>
+      </div>
+      <p className="muted brandingHelp">
+        Each music account has a permanent BOM default. Custom uploads can replace the avatar/banner later,
+        while <b>Restore Default</b> always returns that worker to the official matching color set. Applying
+        branding also creates or updates a matching non-managed Discord role, assigns it to the worker, sets
+        the role color, and uses the worker logo as the role icon.
+      </p>
+      {notice && (
+        <div className="brandingNotice" onClick={() => setNotice("")}>
+          {notice}
+        </div>
+      )}
+      <div className="brandingGrid">
+        {brands.map((b) => {
+          const d = drafts[b.workerId] ?? { colorHex: b.colorHex };
+          const avatar = d.avatarDataUrl ?? `${b.avatarUrl}?v=${stamp}`;
+          const banner = d.bannerDataUrl ?? `${b.bannerUrl}?v=${stamp}`;
+          return (
+            <article
+              className="brandCard"
+              key={b.workerId}
+              style={{ "--worker-color": d.colorHex } as CSSProperties}
+            >
+              <div className="brandBanner">
+                <img src={banner} alt={`BOM Music Bot ${b.workerId} banner`} />
+                <div className="brandAvatar">
+                  <img src={avatar} alt={`BOM Music Bot ${b.workerId} logo`} />
+                </div>
+                <span className="brandIndex">Music Bot {b.workerId}</span>
+              </div>
+              <div className="brandCardBody">
+                <div className="brandIdentity">
+                  <div>
+                    <b>BOM Music Bot {b.workerId}</b>
+                    <small>{b.isDefault ? `Official ${b.colorKey} default` : "Custom branding"}</small>
+                  </div>
+                  <span className="brandSwatch" style={{ background: d.colorHex }} />
+                </div>
+                <label className="brandColor">
+                  Role color{" "}
+                  <span>
+                    <input
+                      type="color"
+                      value={d.colorHex}
+                      onChange={(e) => setDraft(b.workerId, { colorHex: e.target.value.toUpperCase() })}
+                    />
+                    <input
+                      value={d.colorHex}
+                      maxLength={7}
+                      onChange={(e) => setDraft(b.workerId, { colorHex: e.target.value })}
+                    />
+                  </span>
+                </label>
+                <div className="brandUploads">
+                  <label>
+                    Profile picture
+                    <input type="file" accept="image/png" onChange={(e) => void pickAvatar(b.workerId, e)} />
+                  </label>
+                  <label>
+                    Profile banner
+                    <input type="file" accept="image/png" onChange={(e) => void pickBanner(b.workerId, e)} />
+                  </label>
+                </div>
+                <div className="brandButtons">
+                  <button onClick={() => void save(b.workerId, false)} disabled={Boolean(busy[b.workerId])}>
+                    Save
+                  </button>
+                  <button
+                    className="applyBrand"
+                    onClick={() => void save(b.workerId, true)}
+                    disabled={Boolean(busy[b.workerId])}
+                  >
+                    {busy[b.workerId] || "Save + Apply"}
+                  </button>
+                  <button
+                    className="resetBrand"
+                    onClick={() => void reset(b.workerId)}
+                    disabled={Boolean(busy[b.workerId])}
+                  >
+                    Restore Default
+                  </button>
+                </div>
+                {b.roleId && <small className="roleLink">Discord role linked: {b.roleId}</small>}
+              </div>
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
 }

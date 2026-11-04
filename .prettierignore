@@ -1,0 +1,19 @@
+node_modules
+dist
+.next
+**/*.css
+**/*.json
+**/*.md
+third_party
+third-party
+data
+# Only the dashboard UI is formatted for now: many tests assert on exact
+# source text in apps/*/src and packages, so formatting those needs the
+# tests updated first.
+apps/api
+apps/controller
+apps/worker
+packages
+intel-relay
+integrations
+scripts

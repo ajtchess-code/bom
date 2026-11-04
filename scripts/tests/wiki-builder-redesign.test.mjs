@@ -1,6 +1,6 @@
 import test from 'node:test';import assert from 'node:assert/strict';import vm from 'node:vm';import {readFile} from 'node:fs/promises';import ts from 'typescript';
 const text=await readFile(new URL('../../apps/dashboard/components/ShipBuilderDashboard.tsx',import.meta.url),'utf8');
-const clientCode=text.slice(text.indexOf('const clone='),text.indexOf('function ItemImage'));
+const clientCode=text.slice(text.indexOf('const clone'),text.indexOf('function ItemImage'));
 const ctx=vm.createContext({Map,Set,JSON,Math,Number,String,Object,Array});vm.runInContext(ts.transpileModule(clientCode+'\nglobalThis.fns={mountAllowed,normalizedLoadout,blankLoadout,calculate};',{compilerOptions:{target:ts.ScriptTarget.ES2022,module:ts.ModuleKind.None}}).outputText,ctx);const f=ctx.fns;
 const ship={level:3,upgrades:2,stats:{cargo:1000,crew:160,speed:8.2},fitting:{sides:{port:[{max_size:12,guns:10},{max_size:6,guns:2}],mortar:[{allowed:['m'],guns:1}]},gun_limits:{port:12,mortar:1},required_mortar_upgrade:'mortar-upgrade'}};
 const weapon={id:'gun',name:'12-pdr cannon',kind:'weapon',ship_ranks:[3],group:'Cannon',mount_sides:[]};const mortar={id:'m',name:'6-inch mortar',kind:'weapon',group:'Mortar',ship_ranks:[]};

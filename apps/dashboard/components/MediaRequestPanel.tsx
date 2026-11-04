@@ -1,34 +1,327 @@
 "use client";
-import {useEffect,useState} from "react";
-type Kind="EMOJI"|"ANIMATED_EMOJI"|"STICKER"|"SOUNDBOARD";
-const kinds:Record<Kind,string>={EMOJI:"Emoji",ANIMATED_EMOJI:"Animated emoji",STICKER:"Sticker",SOUNDBOARD:"Soundboard clip"};
-async function readMedia(file:File,kind:Kind){
- const max=kind==='SOUNDBOARD'?512*1024:kind==='ANIMATED_EMOJI'?1024*1024:1024*1024;
- if(file.size>max)throw new Error(`File exceeds the ${Math.round(max/1024)} KiB upload limit.`);
- const bytes=new Uint8Array(await file.arrayBuffer());
- if(kind==='ANIMATED_EMOJI'&&file.type!=='image/gif')throw new Error('Animated emoji requires a GIF file.');
- if(kind==='SOUNDBOARD'&&file.type!=='audio/mpeg')throw new Error('Soundboard requires an MP3 file under 512 KiB and five seconds.');
- if(kind==='EMOJI'||kind==='STICKER'){
-  if(!['image/png','image/jpeg','image/webp','image/gif'].includes(file.type))throw new Error('Choose a PNG, JPEG, WebP or GIF image.');
-  const blobUrl=URL.createObjectURL(file);
-  try{const image=new Image();await new Promise<void>((resolve,reject)=>{image.onload=()=>resolve();image.onerror=()=>reject(new Error('Could not decode image.'));image.src=blobUrl});
-   const edge=kind==='STICKER'?320:128,scale=Math.min(edge/image.naturalWidth,edge/image.naturalHeight),canvas=document.createElement('canvas');canvas.width=edge;canvas.height=edge;const ctx=canvas.getContext('2d');if(!ctx)throw new Error('Image conversion unavailable.');ctx.clearRect(0,0,edge,edge);ctx.drawImage(image,(edge-image.naturalWidth*scale)/2,(edge-image.naturalHeight*scale)/2,image.naturalWidth*scale,image.naturalHeight*scale);return {data:canvas.toDataURL('image/png').split(',')[1],mime:'image/png'};
-  }finally{URL.revokeObjectURL(blobUrl)}
- }
- let binary='';for(const byte of bytes)binary+=String.fromCharCode(byte);return {data:btoa(binary),mime:file.type};
+import { useEffect, useState } from "react";
+type Kind = "EMOJI" | "ANIMATED_EMOJI" | "STICKER" | "SOUNDBOARD";
+const kinds: Record<Kind, string> = {
+  EMOJI: "Emoji",
+  ANIMATED_EMOJI: "Animated emoji",
+  STICKER: "Sticker",
+  SOUNDBOARD: "Soundboard clip",
+};
+async function readMedia(file: File, kind: Kind) {
+  const max = kind === "SOUNDBOARD" ? 512 * 1024 : kind === "ANIMATED_EMOJI" ? 1024 * 1024 : 1024 * 1024;
+  if (file.size > max) throw new Error(`File exceeds the ${Math.round(max / 1024)} KiB upload limit.`);
+  const bytes = new Uint8Array(await file.arrayBuffer());
+  if (kind === "ANIMATED_EMOJI" && file.type !== "image/gif")
+    throw new Error("Animated emoji requires a GIF file.");
+  if (kind === "SOUNDBOARD" && file.type !== "audio/mpeg")
+    throw new Error("Soundboard requires an MP3 file under 512 KiB and five seconds.");
+  if (kind === "EMOJI" || kind === "STICKER") {
+    if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(file.type))
+      throw new Error("Choose a PNG, JPEG, WebP or GIF image.");
+    const blobUrl = URL.createObjectURL(file);
+    try {
+      const image = new Image();
+      await new Promise<void>((resolve, reject) => {
+        image.onload = () => resolve();
+        image.onerror = () => reject(new Error("Could not decode image."));
+        image.src = blobUrl;
+      });
+      const edge = kind === "STICKER" ? 320 : 128,
+        scale = Math.min(edge / image.naturalWidth, edge / image.naturalHeight),
+        canvas = document.createElement("canvas");
+      canvas.width = edge;
+      canvas.height = edge;
+      const ctx = canvas.getContext("2d");
+      if (!ctx) throw new Error("Image conversion unavailable.");
+      ctx.clearRect(0, 0, edge, edge);
+      ctx.drawImage(
+        image,
+        (edge - image.naturalWidth * scale) / 2,
+        (edge - image.naturalHeight * scale) / 2,
+        image.naturalWidth * scale,
+        image.naturalHeight * scale,
+      );
+      return { data: canvas.toDataURL("image/png").split(",")[1], mime: "image/png" };
+    } finally {
+      URL.revokeObjectURL(blobUrl);
+    }
+  }
+  let binary = "";
+  for (const byte of bytes) binary += String.fromCharCode(byte);
+  return { data: btoa(binary), mime: file.type };
 }
-async function api(path:string,init:RequestInit={}){const r=await fetch(`/api/internal/membership/media-requests${path}`,{...init,headers:{'Content-Type':'application/json',...(init.headers??{})},cache:'no-store'});const json=await r.json().catch(()=>({}));if(!r.ok)throw new Error(json.error??`Request failed (${r.status})`);return json}
-export default function MediaRequestPanel({admin=false}:{admin?:boolean}){
- const [selectedKinds,setSelectedKinds]=useState<Kind[]>(['EMOJI']),[kind,setKind]=useState<Kind>('EMOJI'),[name,setName]=useState(''),[description,setDescription]=useState(''),[tags,setTags]=useState('🏴‍☠️'),[file,setFile]=useState<File|null>(null),[list,setList]=useState<any[]>([]),[busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[preview,setPreview]=useState(''),[notes,setNotes]=useState<Record<string,string>>({});
- async function refresh(){try{setList(await api(''));}catch(e:any){setNotice(e.message)}}
- useEffect(()=>{void refresh();const value=new URLSearchParams(location.search).get('type')?.toUpperCase() as Kind;if(value&&['EMOJI','ANIMATED_EMOJI','STICKER','SOUNDBOARD'].includes(value)){setKind(value);setSelectedKinds([value]);}},[]);
- useEffect(()=>{if(!file){setPreview('');return;}if(!file.type.startsWith('image/')){setPreview('');return;}const url=URL.createObjectURL(file);setPreview(url);return()=>URL.revokeObjectURL(url);},[file]);
- async function submit(){if(!file||!name.trim()||!selectedKinds.length)return;setBusy(true);let remaining=[...selectedKinds];try{const prepared=await Promise.all(selectedKinds.map(async kind=>({kind,...await readMedia(file,kind)})));for(const media of prepared){await api('',{method:'POST',body:JSON.stringify({kind:media.kind,name:name.trim(),description,tags,mime:media.mime,data:media.data})});remaining=remaining.filter(k=>k!==media.kind);setSelectedKinds(remaining);}setName('');setFile(null);setSelectedKinds(['EMOJI']);setKind('EMOJI');setNotice('All requested media types sent for separate Admiralty approval.');await refresh();}catch(e:any){setNotice(`${e.message} ${remaining.length<selectedKinds.length?'Some requests were already submitted. Retry submits only the remaining types.':''}`);await refresh();}finally{setBusy(false)}}
- async function decide(id:string,approved:boolean){if(!confirm(approved?'Publish this guild expression to Discord?':'Decline this request?'))return;setBusy(true);try{await api(`/${encodeURIComponent(id)}/decision`,{method:'POST',body:JSON.stringify({approved,note:notes[id]||undefined})});await refresh();setNotice(approved?'Published to Discord.':'Request declined.')}catch(e:any){setNotice(e.message)}finally{setBusy(false)}}
- const pending=list.filter(x=>x.status==='PENDING');
- return <section className="membershipPanel mediaRequestsPanel"><header><span className="eyebrow">GUILD EXPRESSIONS</span><h2>{admin?'Admiralty Media Approval Queue':'Request an Emoji, Sticker or Soundboard Clip'}</h2><p>{admin?'Review and publish submissions to Discord. Uploads are never published before you approve them.':'Submit a Discord-ready image or sound. The dashboard centers and scales supported images; Admiralty reviews each request.'}</p></header>
- {!admin&&<div className="mediaRequestForm"><fieldset><legend>Requested Media Types · Select All That Apply</legend>{(Object.keys(kinds) as Kind[]).map(v=><label className="checkLine" key={v}><input type="checkbox" checked={selectedKinds.includes(v)} onChange={e=>{const next=e.target.checked?[...selectedKinds,v]:selectedKinds.filter(k=>k!==v);setSelectedKinds(next);setKind(next.includes('SOUNDBOARD')?'SOUNDBOARD':next.includes('ANIMATED_EMOJI')?'ANIMATED_EMOJI':next[0]??'EMOJI');}}/>{kinds[v]}</label>)}<small>One image can become both an emoji and a sticker. Submit audio separately from images.</small></fieldset><label>Name<input value={name} maxLength={32} onChange={e=>setName(e.target.value)} placeholder="my_ship_emoji"/></label><label>Upload file<input type="file" accept={kind==='ANIMATED_EMOJI'?'image/gif':kind==='SOUNDBOARD'?'audio/mpeg': 'image/png,image/jpeg,image/webp,image/gif'} onChange={e=>setFile(e.target.files?.[0]??null)}/>{preview&&<img className="mediaRequestPreview" src={preview} alt="Selected upload preview"/>}</label>{selectedKinds.includes('STICKER')&&<label>Sticker tags<input value={tags} onChange={e=>setTags(e.target.value)}/></label>}<label className="mediaFormSpan">Description (optional)<textarea rows={2} value={description} onChange={e=>setDescription(e.target.value)} maxLength={100}/></label><p className="mediaFormSpan muted">Images are centered into {kind==='STICKER'?'320×320':'128×128'} pixels. Animated GIFs are resized while retaining motion. Soundboard clips must be MP3, at most five seconds and 512 KiB.</p><button type="button" className="goldButton" onClick={()=>void submit()} disabled={busy||!file||!name.trim()||!selectedKinds.length}>{busy?'Submitting…':'Send for approval'}</button></div>}
- {notice&&<p className="mediaRequestsNotice" role="status">{notice}</p>}
- <div className="mediaRequestsList"><div className="panelHead"><h3>{admin?`${pending.length} pending approval`:'Your requests'}</h3><button className="outlineButton" type="button" onClick={()=>void refresh()}>Refresh</button></div>{(admin?pending:list).map(r=><article key={r.id}><span><b>{kinds[r.kind as Kind]??r.kind} · {r.name}</b><small>{admin?`Member ${r.user_id} · `:''}{r.status} · {new Date(r.created_at).toLocaleDateString()}</small>{r.description&&<small>{r.description}</small>}{r.reviewer_note&&<small>{r.reviewer_note}</small>}{r.status==='PENDING'&&(r.kind==='SOUNDBOARD'?<audio controls preload="none" src={`/api/internal/membership/media-requests/${r.id}/preview`}/>:<img className="mediaRequestPreview" src={`/api/internal/membership/media-requests/${r.id}/preview`} alt={`Preview ${r.name}`}/>)}</span>{admin&&<div className="mediaApprovalControls"><input value={notes[r.id]??''} maxLength={500} placeholder="Admiralty note (optional)" onChange={e=>setNotes(current=>({...current,[r.id]:e.target.value}))}/><div className="buttonRow"><button type="button" disabled={busy} className="outlineButton" onClick={()=>void decide(r.id,false)}>Decline</button><button type="button" disabled={busy} className="goldButton" onClick={()=>void decide(r.id,true)}>Approve & Publish</button></div></div>}</article>)}{!(admin?pending:list).length&&<p className="muted">{admin?'No submissions awaiting approval.':'No media requests yet.'}</p>}</div>
- </section>;
+async function api(path: string, init: RequestInit = {}) {
+  const r = await fetch(`/api/internal/membership/media-requests${path}`, {
+    ...init,
+    headers: { "Content-Type": "application/json", ...(init.headers ?? {}) },
+    cache: "no-store",
+  });
+  const json = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(json.error ?? `Request failed (${r.status})`);
+  return json;
+}
+export default function MediaRequestPanel({ admin = false }: { admin?: boolean }) {
+  const [selectedKinds, setSelectedKinds] = useState<Kind[]>(["EMOJI"]),
+    [kind, setKind] = useState<Kind>("EMOJI"),
+    [name, setName] = useState(""),
+    [description, setDescription] = useState(""),
+    [tags, setTags] = useState("🏴‍☠️"),
+    [file, setFile] = useState<File | null>(null),
+    [list, setList] = useState<any[]>([]),
+    [busy, setBusy] = useState(false),
+    [notice, setNotice] = useState(""),
+    [preview, setPreview] = useState(""),
+    [notes, setNotes] = useState<Record<string, string>>({});
+  async function refresh() {
+    try {
+      setList(await api(""));
+    } catch (e: any) {
+      setNotice(e.message);
+    }
+  }
+  useEffect(() => {
+    void refresh();
+    const value = new URLSearchParams(location.search).get("type")?.toUpperCase() as Kind;
+    if (value && ["EMOJI", "ANIMATED_EMOJI", "STICKER", "SOUNDBOARD"].includes(value)) {
+      setKind(value);
+      setSelectedKinds([value]);
+    }
+  }, []);
+  useEffect(() => {
+    if (!file) {
+      setPreview("");
+      return;
+    }
+    if (!file.type.startsWith("image/")) {
+      setPreview("");
+      return;
+    }
+    const url = URL.createObjectURL(file);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [file]);
+  async function submit() {
+    if (!file || !name.trim() || !selectedKinds.length) return;
+    setBusy(true);
+    let remaining = [...selectedKinds];
+    try {
+      const prepared = await Promise.all(
+        selectedKinds.map(async (kind) => ({ kind, ...(await readMedia(file, kind)) })),
+      );
+      for (const media of prepared) {
+        await api("", {
+          method: "POST",
+          body: JSON.stringify({
+            kind: media.kind,
+            name: name.trim(),
+            description,
+            tags,
+            mime: media.mime,
+            data: media.data,
+          }),
+        });
+        remaining = remaining.filter((k) => k !== media.kind);
+        setSelectedKinds(remaining);
+      }
+      setName("");
+      setFile(null);
+      setSelectedKinds(["EMOJI"]);
+      setKind("EMOJI");
+      setNotice("All requested media types sent for separate Admiralty approval.");
+      await refresh();
+    } catch (e: any) {
+      setNotice(
+        `${e.message} ${remaining.length < selectedKinds.length ? "Some requests were already submitted. Retry submits only the remaining types." : ""}`,
+      );
+      await refresh();
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function decide(id: string, approved: boolean) {
+    if (!confirm(approved ? "Publish this guild expression to Discord?" : "Decline this request?")) return;
+    setBusy(true);
+    try {
+      await api(`/${encodeURIComponent(id)}/decision`, {
+        method: "POST",
+        body: JSON.stringify({ approved, note: notes[id] || undefined }),
+      });
+      await refresh();
+      setNotice(approved ? "Published to Discord." : "Request declined.");
+    } catch (e: any) {
+      setNotice(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const pending = list.filter((x) => x.status === "PENDING");
+  return (
+    <section className="membershipPanel mediaRequestsPanel">
+      <header>
+        <span className="eyebrow">GUILD EXPRESSIONS</span>
+        <h2>{admin ? "Admiralty Media Approval Queue" : "Request an Emoji, Sticker or Soundboard Clip"}</h2>
+        <p>
+          {admin
+            ? "Review and publish submissions to Discord. Uploads are never published before you approve them."
+            : "Submit a Discord-ready image or sound. The dashboard centers and scales supported images; Admiralty reviews each request."}
+        </p>
+      </header>
+      {!admin && (
+        <div className="mediaRequestForm">
+          <fieldset>
+            <legend>Requested Media Types · Select All That Apply</legend>
+            {(Object.keys(kinds) as Kind[]).map((v) => (
+              <label className="checkLine" key={v}>
+                <input
+                  type="checkbox"
+                  checked={selectedKinds.includes(v)}
+                  onChange={(e) => {
+                    const next = e.target.checked
+                      ? [...selectedKinds, v]
+                      : selectedKinds.filter((k) => k !== v);
+                    setSelectedKinds(next);
+                    setKind(
+                      next.includes("SOUNDBOARD")
+                        ? "SOUNDBOARD"
+                        : next.includes("ANIMATED_EMOJI")
+                          ? "ANIMATED_EMOJI"
+                          : (next[0] ?? "EMOJI"),
+                    );
+                  }}
+                />
+                {kinds[v]}
+              </label>
+            ))}
+            <small>
+              One image can become both an emoji and a sticker. Submit audio separately from images.
+            </small>
+          </fieldset>
+          <label>
+            Name
+            <input
+              value={name}
+              maxLength={32}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="my_ship_emoji"
+            />
+          </label>
+          <label>
+            Upload file
+            <input
+              type="file"
+              accept={
+                kind === "ANIMATED_EMOJI"
+                  ? "image/gif"
+                  : kind === "SOUNDBOARD"
+                    ? "audio/mpeg"
+                    : "image/png,image/jpeg,image/webp,image/gif"
+              }
+              onChange={(e) => setFile(e.target.files?.[0] ?? null)}
+            />
+            {preview && <img className="mediaRequestPreview" src={preview} alt="Selected upload preview" />}
+          </label>
+          {selectedKinds.includes("STICKER") && (
+            <label>
+              Sticker tags
+              <input value={tags} onChange={(e) => setTags(e.target.value)} />
+            </label>
+          )}
+          <label className="mediaFormSpan">
+            Description (optional)
+            <textarea
+              rows={2}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              maxLength={100}
+            />
+          </label>
+          <p className="mediaFormSpan muted">
+            Images are centered into {kind === "STICKER" ? "320×320" : "128×128"} pixels. Animated GIFs are
+            resized while retaining motion. Soundboard clips must be MP3, at most five seconds and 512 KiB.
+          </p>
+          <button
+            type="button"
+            className="goldButton"
+            onClick={() => void submit()}
+            disabled={busy || !file || !name.trim() || !selectedKinds.length}
+          >
+            {busy ? "Submitting…" : "Send for approval"}
+          </button>
+        </div>
+      )}
+      {notice && (
+        <p className="mediaRequestsNotice" role="status">
+          {notice}
+        </p>
+      )}
+      <div className="mediaRequestsList">
+        <div className="panelHead">
+          <h3>{admin ? `${pending.length} pending approval` : "Your requests"}</h3>
+          <button className="outlineButton" type="button" onClick={() => void refresh()}>
+            Refresh
+          </button>
+        </div>
+        {(admin ? pending : list).map((r) => (
+          <article key={r.id}>
+            <span>
+              <b>
+                {kinds[r.kind as Kind] ?? r.kind} · {r.name}
+              </b>
+              <small>
+                {admin ? `Member ${r.user_id} · ` : ""}
+                {r.status} · {new Date(r.created_at).toLocaleDateString()}
+              </small>
+              {r.description && <small>{r.description}</small>}
+              {r.reviewer_note && <small>{r.reviewer_note}</small>}
+              {r.status === "PENDING" &&
+                (r.kind === "SOUNDBOARD" ? (
+                  <audio
+                    controls
+                    preload="none"
+                    src={`/api/internal/membership/media-requests/${r.id}/preview`}
+                  />
+                ) : (
+                  <img
+                    className="mediaRequestPreview"
+                    src={`/api/internal/membership/media-requests/${r.id}/preview`}
+                    alt={`Preview ${r.name}`}
+                  />
+                ))}
+            </span>
+            {admin && (
+              <div className="mediaApprovalControls">
+                <input
+                  value={notes[r.id] ?? ""}
+                  maxLength={500}
+                  placeholder="Admiralty note (optional)"
+                  onChange={(e) => setNotes((current) => ({ ...current, [r.id]: e.target.value }))}
+                />
+                <div className="buttonRow">
+                  <button
+                    type="button"
+                    disabled={busy}
+                    className="outlineButton"
+                    onClick={() => void decide(r.id, false)}
+                  >
+                    Decline
+                  </button>
+                  <button
+                    type="button"
+                    disabled={busy}
+                    className="goldButton"
+                    onClick={() => void decide(r.id, true)}
+                  >
+                    Approve & Publish
+                  </button>
+                </div>
+              </div>
+            )}
+          </article>
+        ))}
+        {!(admin ? pending : list).length && (
+          <p className="muted">{admin ? "No submissions awaiting approval." : "No media requests yet."}</p>
+        )}
+      </div>
+    </section>
+  );
 }

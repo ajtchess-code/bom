@@ -1,62 +1,795 @@
-'use client';
-import {EventBrandingAssets} from './EventRankRoles';
-import EventRewards,{EventHourlyCalculator} from './EventRewards';
-import {EventWorkspaceNav,EventOverview,HalloweenSwitch,eventViewForHash,type EventView} from './EventWorkspace';
-import {useEffect,useState} from 'react';
-import EventDonations from './EventDonations';
-import EventPatchNotes from './EventPatchNotes';
-import EventSealComparison from './EventSealComparison';
-import EventEconomy,{EventRewardTrack,EventExchangeChart} from './EventEconomy';
-import HalloweenDecor,{HalloweenDivider} from './HalloweenDecor';
-import {EventSectionNav,EventPersonalSummary,EventPersonalRank,EventChecklistGroup} from './EventHub';
-import EventCalculator from './EventCalculator';
-import EventGoalCard from './EventGoalCard';
-import EventBuildGuide from './EventBuildGuide';
-import {operationsApi} from './operationsApi';
-import './CommunityOperations.css';
-import './EventWorkspace.css';
-export default function EventToolDashboard(){
- const [view,setView]=useState<EventView>('overview'),[effects,setEffects]=useState(false);
- function changeView(next:EventView){setView(next);history.replaceState(null,'','#event-'+next);}
- useEffect(()=>{const update=()=>setView(eventViewForHash(location.hash));update();try{setEffects(localStorage.getItem('bom:halloween-effects')==='true');}catch{}window.addEventListener('hashchange',update);return()=>window.removeEventListener('hashchange',update);},[]);
- function toggleEffects(){setEffects(v=>{try{localStorage.setItem('bom:halloween-effects',String(!v));}catch{}return !v;});}
- const [data,setData]=useState<any>(null),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[leadership,setLeadership]=useState<any>(null),[filter,setFilter]=useState('missing');
- const [name,setName]=useState('Guild Event'),[start,setStart]=useState(''),[zone,setZone]=useState('America/Chicago'),[channel,setChannel]=useState(''),[roles,setRoles]=useState('');
- const [goalFilter,setGoalFilter]=useState('all'),[goalSearch,setGoalSearch]=useState(''),[shopping,setShopping]=useState<{total:number;remaining:number}|null>(null),[completion,setCompletion]=useState<{key:string;name:string;nonce:number}|null>(null);
- const [enabled,setEnabled]=useState(false),[cadence,setCadence]=useState('once'),[times,setTimes]=useState('09:00'),[hours,setHours]=useState('12'),[reminderZone,setReminderZone]=useState('America/Chicago');
- async function load(preferences=false){const d=await operationsApi('event-tool');setData(d);if(preferences){if(!d.campaign)setRoles((d.defaultParticipantRoles??[]).join(', '));setChannel(d.campaign?.announcement_channel_id??'');const p=d.reminders;setEnabled(Boolean(p?.enabled));setCadence(p?.mode==='INTERVAL'?'interval':p?.times?.length===2?'twice':'once');setTimes((p?.times??['09:00']).join(', '));setHours(String((p?.interval_minutes??720)/60));setReminderZone(Intl.DateTimeFormat().resolvedOptions().timeZone||'UTC');}return d;}
- useEffect(()=>{const root=document.documentElement,prior=root.getAttribute('data-halloween-event');root.setAttribute('data-halloween-event','true');return()=>{if(prior===null)root.removeAttribute('data-halloween-event');else root.setAttribute('data-halloween-event',prior);};},[]);
- useEffect(()=>{void load(true).catch(e=>setNotice(e.message));},[]);
- useEffect(()=>{if(!completion)return;const timer=setTimeout(()=>setCompletion(null),3500);return()=>clearTimeout(timer);},[completion]);
- async function action(fn:()=>Promise<void>){setBusy(true);try{await fn();}catch(e:any){setNotice(e.message);if(e.message.includes('another tab')||e.message.includes('active event changed'))await load();}finally{setBusy(false);}}
- const c=data?.campaign,progress=data?.progress??[],quests=data?.quests??[],items=data?.items??[],groups=[...new Set<string>(items.map((i:any)=>i.group))],totalDone=progress.filter((i:any)=>i.completed).length;
- async function saveProgress(kind:string,key:string,patch:any,version:number){await action(async()=>{await operationsApi(`event-tool/${kind}/${key}`,{method:'PUT',body:JSON.stringify({campaignId:c.id,...patch,version})});const next=await load();const before=progress.find((p:any)=>p.item_key===key),after=(next.progress??[]).find((p:any)=>p.item_key===key);if(kind==='items'&&!before?.completed&&after?.completed)setCompletion({key,name:items.find((i:any)=>i.key===key)?.name??'Goal',nonce:Date.now()});setNotice(kind==='items'?'Saved. Milestone posts settle after 30 seconds.':'Daily quest updated. Reminders pause for today when completed.');});}
- const board=data?.leaderboard??[],ownRank=board.find((r:any)=>String(r.user_id)===String(data?.viewerId)&&Number(r.completed_count)>0)?.rank??null,questDone=(data?.days??[]).filter((day:string)=>quests.some((q:any)=>q.quest_date===day&&q.completed)).length;
- const shownItems=items.filter((i:any)=>{const done=Boolean(progress.find((p:any)=>p.item_key===i.key)?.completed),tags=i.tags??[];return (!goalSearch||`${i.name} ${i.group}`.toLowerCase().includes(goalSearch.toLowerCase().trim()))&&(goalFilter==='all'||goalFilter==='prioritize'&&(tags.includes('PRIORITIZE')||i.priority==='PRIORITY')||goalFilter==='missing'&&!done||goalFilter==='completed'&&done);});
- async function toggle(kind:string,key:string,completed:boolean,version:number){await saveProgress(kind,key,{completed},version);}
- return <div className={`opsPage eventExperience eventWorkspace ${effects?'':'eventCalm'}`}>{effects&&<HalloweenDecor/>}<header className="eventHalloweenHero"><div className="eventHeroIdentity"><img src="/event-guide/branding/halloween-guild-logo.png" alt="BOM Halloween crest" width="88" height="88"/><div><span className="eventBadge tagPRIORITIZE">BAND OF MISFITS · HALLOWEEN</span><h1>Halloween at the Harbor</h1><p className="halloweenSubtitle">WoSB Halloween Event 2026 · Fill your hold. Haunt the leaderboard.</p><p>{c?`${c.name} · ${c.start_date} · ${c.timezone}`:'Your personal two-week event tracker'}</p></div></div><div className="eventHeroActions"><label>Halloween effects<HalloweenSwitch checked={effects} onChange={toggleEffects} label="Halloween effects"/></label><button disabled={busy} onClick={()=>void action(async()=>{await load();if(leadership)setLeadership(await operationsApi('event-tool/leadership'));})}>Refresh</button></div></header>
- {c&&<><EventPersonalSummary done={totalDone} total={items.length} quests={questDone} rank={ownRank} questTickets={questDone} remaining={shopping?.remaining??null}/><EventWorkspaceNav view={view} onChange={changeView} canManage={Boolean(data?.canManage)}/><div className="eventWorkspaceHint">{({overview:"Your next action and the fleet’s progress.",progress:"Daily quests, loot checklist and reminder preferences.",rewards:"Prizes, lottery tickets, approved donations and rankings.",guides:"Event rules, recommended builds and farming advice.",calculators:"Measure your farming rate and plan your Lollipop spending.",admiralty:"Roster checks, event configuration and branding assets."})[view]}</div></>}
- {completion&&<div key={completion.nonce} className="eventLootToast" role="status"><b>Loot secured!</b><span>{completion.name}</span></div>}
- {notice&&<p className="opsNotice" role="status">{notice}</p>}
- <div id="event-workspace-panel" role="tabpanel" aria-labelledby={"event-tab-"+view} tabIndex={0} className="eventWorkspacePanel">
- {c&&view==='overview'&&<EventOverview campaignId={c.id} questDone={questDone} totalDone={totalDone} total={items.length} eligible={data.eligible} busy={busy} todayDone={quests.some((q:any)=>q.quest_date===data.today&&q.completed)} onQuest={()=>void toggle('quests',data.today,true,quests.find((q:any)=>q.quest_date===data.today)?.version??0)} onChange={changeView}/>}
- {view==='guides'&&<><section className="opsCard eventGuidance"><h2>Get the Most from the Event</h2><p>{data?.guidance}</p><strong>At the supplied prices, the large Battle Mark bundle gives the best gold per Lollipop. Compare rates in Calculators.</strong></section>
- <EventPatchNotes/></>}
- {c&&view==='rewards'&&<><EventRewards key={"rewards:"+c.id} campaignId={c.id}/><EventDonations key={c.id} campaignId={c.id} canManage={data.canManage}/></>}
- {!c&&<section className="opsCard"><h2>No Event Configured</h2><p>Leadership needs to choose the event's first day and congratulations channel. Progress and reminders are private to each player.</p></section>}
- {c&&<>{view==='progress'&&<><section id="halloween-daily" tabIndex={-1} className="opsCard eventAnchor"><h2>Daily Event Quest · 14 Days</h2><p>Mark each day after completing its daily quest. Dates use {c.timezone}. Completion is self-reported.</p><div className="eventCalendar">{data.days.map((date:string,n:number)=>{const p=quests.find((q:any)=>q.quest_date===date),done=Boolean(p?.completed),future=date>data.today;return <label key={date} className={`eventDay ${done?'done':''} ${date===data.today?'today':''}`}><span>Day {n+1}{date===data.today?' · Today':''}</span><b>{date}</b><input type="checkbox" aria-label={`Daily quest ${date}`} checked={done} disabled={busy||future||!data.eligible||Boolean(c.ends_at&&Date.now()>=Date.parse(c.ends_at))} onChange={e=>void toggle('quests',date,e.target.checked,p?.version??0)}/><small>{future?'Upcoming':done?'Completed':'Not yet reported'}</small></label>;})}</div><EventRewardTrack count={questDone}/></section>
- {!data.eligible&&<p className="opsNotice">You can view this event, but your roles are not included in its participant list.</p>}
- <section id="halloween-checklist" tabIndex={-1} className="opsCard eventAnchor"><div className="eventSectionHeading"><div><span className="eventBadge tagPREFERRED">YOUR LOOT MANIFEST</span><h2>Your Event Checklist</h2></div><div className="eventScore"><b>{totalDone}</b><span>/ {items.length}<small>GOALS COMPLETE</small></span></div></div><div className="eventChecklistTools"><div role="group" aria-label="Checklist view" className="eventChecklistTabs">{[['all','All'],['prioritize','Prioritize'],['missing','Missing'],['completed','Completed']].map(([value,label])=><button type="button" key={value} aria-pressed={goalFilter===value} onClick={()=>setGoalFilter(value)}>{label}</button>)}</div><label>Find a goal<input type="search" value={goalSearch} onChange={e=>setGoalSearch(e.target.value)} placeholder="Ship, cannon, ammunition…"/></label></div><small className="eventResultCount">{shownItems.length} of {items.length} goals shown · fully completed categories collapse automatically</small><div className="eventCategoryList">{groups.map(group=>{const all=items.filter((i:any)=>i.group===group),visible=shownItems.filter((i:any)=>i.group===group);return visible.length?<EventChecklistGroup key={group} name={group} total={all.length} done={all.filter((i:any)=>progress.some((p:any)=>p.item_key===i.key&&p.completed)).length} autoCollapse={goalFilter!=='completed'}>{visible.map((item:any)=>{const p=progress.find((p:any)=>p.item_key===item.key);return <EventGoalCard key={item.key} item={item} progress={p} busy={busy} eligible={data.eligible&&!Boolean(c.ends_at&&Date.now()>=Date.parse(c.ends_at))} celebrate={completion?.key===item.key} onSave={patch=>saveProgress('items',item.key,patch,p?.version??0)}/>;})}</EventChecklistGroup>:null;})}</div>{!shownItems.length&&<div className="eventFilterEmpty"><p className="uiEmpty">No goals match this view.</p><button onClick={()=>{setGoalFilter('all');setGoalSearch('');}}>Clear filters</button></div>}</section>
- </>}{view==='rewards'&&<section id="halloween-leaderboard" tabIndex={-1} className="opsCard eventLeaderboard eventAnchor"><div><span className="eventBadge tagPRIORITIZE">BRAGGING RIGHTS</span><h2>Fastest Progress</h2><p><b>Top 3: a 3rd or 4th Rate ship of choice. Full completion: 10,000 Saxon Shot.</b> No Imperial or Premium ships; Unique permitted.</p><p>Earned during the event: 1 point; already owned: 0.5 points. Ties go to whoever reached their total first. Self-reported progress.</p></div><ol>{(data.leaderboard??[]).filter((p:any)=>p.completed_count>0).slice(0,10).map((p:any)=><li key={p.user_id}><span className="eventLeaderRank">{p.rank<=3?<img src={`/event-guide/donation-trophy-${p.rank}.png`} alt={['Gold','Silver','Bronze'][p.rank-1]+' trophy'}/>:p.rank<=9?<img src={`/event-guide/ranks/rank-${p.rank}.png`} alt={`Rank ${p.rank} medal`}/>: '#'+p.rank}</span><b>{p.display_name}</b><strong>{Number(p.score_half_points)/2}<small> points · {p.completed_count} / {items.length} goals</small></strong></li>)}</ol>{!(data.leaderboard??[]).some((p:any)=>p.completed_count>0)&&<p>The first bragging rights are still afloat. Check off a goal to join.</p>}<EventPersonalRank board={board} userId={String(data.viewerId??'')} total={items.length}/></section>
- }
- {view==='guides'&&<EventBuildGuide guide={data.shipGuide??[]} crew={data.crewGuide??''}/>}
- {view==='calculators'&&<><EventHourlyCalculator storageKey={`bom:event-hourly:${c.id}:${data.viewerId}`}/>
- <EventEconomy campaignId={c.id} eligible={data.eligible} revision={JSON.stringify([quests,progress])}/><EventExchangeChart/><EventSealComparison/>
- <EventCalculator onTotals={setShopping} storageKey={`bom:event-cart:${c.id}:${data.viewerId??'self'}`}/>
- </>}{view==='progress'&&<section className="opsCard"><h2>Opt-in Daily Quest DM Reminders</h2><p>Reminders stop for the day once its quest is checked off, and end after the 14-day event. Global DM mutes and notification preferences are respected; skipped reminders are not replayed.</p><fieldset disabled={busy||!data.eligible} className="eventForm"><div className="eventReminderOpt"><span>Send me event quest reminders</span><HalloweenSwitch checked={enabled} label="Send me event quest reminders" onChange={()=>setEnabled(v=>!v)}/></div><div className="opsRow"><label>Frequency<select value={cadence} onChange={e=>{setCadence(e.target.value);setTimes(e.target.value==='twice'?'09:00, 18:00':'09:00');}}><option value="once">Once a day</option><option value="twice">Twice a day</option><option value="interval">Custom interval</option></select></label>{cadence==='interval'?<label>Every X hours<input type="number" min="0.5" max="168" step="0.5" value={hours} onChange={e=>setHours(e.target.value)}/></label>:<label>{cadence==='twice'?'Two local times (HH:MM, HH:MM)':'Local time (HH:MM)'}<input value={times} onChange={e=>setTimes(e.target.value)} placeholder="09:00, 18:00"/></label>}<p className="eventDetectedZone">Detected local timezone <b>{reminderZone}</b><small>Reminder times use your device timezone. Save your subscription to apply this timezone.</small></p></div><button className="primary" onClick={()=>void action(async()=>{const selected=times.split(',').map(s=>s.trim()).filter(Boolean);if(enabled&&cadence!=='interval'&&selected.length!==(cadence==='twice'?2:1))throw Error('Enter the selected number of local reminder times.');await operationsApi('event-tool/reminders',{method:'PUT',body:JSON.stringify({campaignId:c.id,enabled,mode:cadence==='interval'?'INTERVAL':'TIMES',times:selected,intervalMinutes:Math.round(Number(hours)*60),timezone:reminderZone})});await load();setNotice(enabled?'DM reminder subscription saved.':'DM reminders stopped.');})}>Save Reminder Subscription</button></fieldset>{data.reminders?.last_status&&<small>Last delivery status: {data.reminders.last_status}{data.reminders.error?' · '+data.reminders.error:''}</small>}</section>}</>}
- {data?.canManage&&view==='admiralty'&&<><EventBrandingAssets/><section className="opsCard"><h2>Leadership · Daily Quest Overview</h2><p>Only players who have saved checklist progress, a daily quest, or a reminder subscription appear here. Blank cells mean no completion was reported.</p><button disabled={busy||!c} onClick={()=>void action(async()=>{setLeadership(await operationsApi('event-tool/leadership'));})}>Load Current Roster</button>{leadership&&<><label>Show<select value={filter} onChange={e=>setFilter(e.target.value)}><option value="missing">No completion reported today</option><option value="all">Everyone</option></select></label><div className="opsTableScroll"><table><thead><tr><th>Player</th><th>Items</th>{data.days.map((d:string)=><th key={d}>{d.slice(5)}</th>)}</tr></thead><tbody>{leadership.members.filter((m:any)=>filter==='all'||!m.quests.some((q:any)=>q.quest_date===data.today&&q.completed)).map((m:any)=><tr key={m.userId}><td>{m.name}<small>{m.userId}</small>{m.announcementErrors.map((e:any)=><small key={e.item}>{e.item}: {e.error}</small>)}</td><td>{m.completedItems}/{items.length}</td>{data.days.map((d:string)=><td key={d}>{d>data.today?'Upcoming':m.quests.some((q:any)=>q.quest_date===d&&q.completed)?'✓':'—'}</td>)}</tr>)}</tbody></table></div><small>Roster refreshed {new Date(leadership.refreshedAt).toLocaleString()}. Self-reported completion; this does not verify in-game activity.</small></>}</section>
- <section className="opsCard"><a className="opsLink" href="/dashboard/admin/event-crafting">Configure ship crafting costs</a><h2>Event Setup</h2><p>Choose a guild text channel for milestone cards, donation approval threads and the Components v2 event leaderboard. The bot needs private-thread creation and thread-message permissions. Progress posts settle after 30 seconds.</p><label>Event channel ID (congratulations + sticky leaderboard)<input value={channel} onChange={e=>setChannel(e.target.value)}/></label>{c&&<button disabled={busy} onClick={()=>void action(async()=>{await operationsApi('event-tool/campaign',{method:'PUT',body:JSON.stringify({campaignId:c.id,announcementChannelId:channel})});setNotice('Congratulations channel saved.');await load();})}>Save Announcement Channel</button>}
- <details><summary>{c?'Start a New Event':'Create Two-Week Event'}</summary><p>A new event starts fresh checklists and subscriptions. Prior event records are retained separately.</p><div className="opsRow"><label>Event name<input value={name} maxLength={100} onChange={e=>setName(e.target.value)}/></label><label>First quest day<input type="date" value={start} onChange={e=>setStart(e.target.value)}/></label><label>Event day timezone<input value={zone} onChange={e=>setZone(e.target.value)}/></label></div><label>Participant role IDs (comma separated)<input value={roles} onChange={e=>setRoles(e.target.value)} placeholder="Member / BoM 2 role IDs"/></label><small>Leave empty for all dashboard-eligible guild and alliance members. The configured alliance dashboard role is also eligible.</small><button disabled={busy||!start} onClick={()=>{if(!c||confirm('Archive the current event and start a new 14-day event with fresh progress?'))void action(async()=>{await operationsApi('event-tool/campaign',{method:'POST',body:JSON.stringify({name,startDate:start,timezone:zone,announcementChannelId:channel,participantRoleIds:roles.split(',').map(s=>s.trim()).filter(Boolean),replaceCampaignId:c?.id})});await load(true);setLeadership(null);setNotice('Event created.');});}}>Create Event</button></details></section></>}
- </div>
- </div>;
+"use client";
+import { EventBrandingAssets } from "./EventRankRoles";
+import EventRewards, { EventHourlyCalculator } from "./EventRewards";
+import {
+  EventWorkspaceNav,
+  EventOverview,
+  HalloweenSwitch,
+  eventViewForHash,
+  type EventView,
+} from "./EventWorkspace";
+import { useEffect, useState } from "react";
+import EventDonations from "./EventDonations";
+import EventPatchNotes from "./EventPatchNotes";
+import EventSealComparison from "./EventSealComparison";
+import EventEconomy, { EventRewardTrack, EventExchangeChart } from "./EventEconomy";
+import HalloweenDecor, { HalloweenDivider } from "./HalloweenDecor";
+import { EventSectionNav, EventPersonalSummary, EventPersonalRank, EventChecklistGroup } from "./EventHub";
+import EventCalculator from "./EventCalculator";
+import EventGoalCard from "./EventGoalCard";
+import EventBuildGuide from "./EventBuildGuide";
+import { operationsApi } from "./operationsApi";
+import "./CommunityOperations.css";
+import "./EventWorkspace.css";
+export default function EventToolDashboard() {
+  const [view, setView] = useState<EventView>("overview"),
+    [effects, setEffects] = useState(false);
+  function changeView(next: EventView) {
+    setView(next);
+    history.replaceState(null, "", "#event-" + next);
+  }
+  useEffect(() => {
+    const update = () => setView(eventViewForHash(location.hash));
+    update();
+    try {
+      setEffects(localStorage.getItem("bom:halloween-effects") === "true");
+    } catch {}
+    window.addEventListener("hashchange", update);
+    return () => window.removeEventListener("hashchange", update);
+  }, []);
+  function toggleEffects() {
+    setEffects((v) => {
+      try {
+        localStorage.setItem("bom:halloween-effects", String(!v));
+      } catch {}
+      return !v;
+    });
+  }
+  const [data, setData] = useState<any>(null),
+    [notice, setNotice] = useState(""),
+    [busy, setBusy] = useState(false),
+    [leadership, setLeadership] = useState<any>(null),
+    [filter, setFilter] = useState("missing");
+  const [name, setName] = useState("Guild Event"),
+    [start, setStart] = useState(""),
+    [zone, setZone] = useState("America/Chicago"),
+    [channel, setChannel] = useState(""),
+    [roles, setRoles] = useState("");
+  const [goalFilter, setGoalFilter] = useState("all"),
+    [goalSearch, setGoalSearch] = useState(""),
+    [shopping, setShopping] = useState<{ total: number; remaining: number } | null>(null),
+    [completion, setCompletion] = useState<{ key: string; name: string; nonce: number } | null>(null);
+  const [enabled, setEnabled] = useState(false),
+    [cadence, setCadence] = useState("once"),
+    [times, setTimes] = useState("09:00"),
+    [hours, setHours] = useState("12"),
+    [reminderZone, setReminderZone] = useState("America/Chicago");
+  async function load(preferences = false) {
+    const d = await operationsApi("event-tool");
+    setData(d);
+    if (preferences) {
+      if (!d.campaign) setRoles((d.defaultParticipantRoles ?? []).join(", "));
+      setChannel(d.campaign?.announcement_channel_id ?? "");
+      const p = d.reminders;
+      setEnabled(Boolean(p?.enabled));
+      setCadence(p?.mode === "INTERVAL" ? "interval" : p?.times?.length === 2 ? "twice" : "once");
+      setTimes((p?.times ?? ["09:00"]).join(", "));
+      setHours(String((p?.interval_minutes ?? 720) / 60));
+      setReminderZone(Intl.DateTimeFormat().resolvedOptions().timeZone || "UTC");
+    }
+    return d;
+  }
+  useEffect(() => {
+    const root = document.documentElement,
+      prior = root.getAttribute("data-halloween-event");
+    root.setAttribute("data-halloween-event", "true");
+    return () => {
+      if (prior === null) root.removeAttribute("data-halloween-event");
+      else root.setAttribute("data-halloween-event", prior);
+    };
+  }, []);
+  useEffect(() => {
+    void load(true).catch((e) => setNotice(e.message));
+  }, []);
+  useEffect(() => {
+    if (!completion) return;
+    const timer = setTimeout(() => setCompletion(null), 3500);
+    return () => clearTimeout(timer);
+  }, [completion]);
+  async function action(fn: () => Promise<void>) {
+    setBusy(true);
+    try {
+      await fn();
+    } catch (e: any) {
+      setNotice(e.message);
+      if (e.message.includes("another tab") || e.message.includes("active event changed")) await load();
+    } finally {
+      setBusy(false);
+    }
+  }
+  const c = data?.campaign,
+    progress = data?.progress ?? [],
+    quests = data?.quests ?? [],
+    items = data?.items ?? [],
+    groups = [...new Set<string>(items.map((i: any) => i.group))],
+    totalDone = progress.filter((i: any) => i.completed).length;
+  async function saveProgress(kind: string, key: string, patch: any, version: number) {
+    await action(async () => {
+      await operationsApi(`event-tool/${kind}/${key}`, {
+        method: "PUT",
+        body: JSON.stringify({ campaignId: c.id, ...patch, version }),
+      });
+      const next = await load();
+      const before = progress.find((p: any) => p.item_key === key),
+        after = (next.progress ?? []).find((p: any) => p.item_key === key);
+      if (kind === "items" && !before?.completed && after?.completed)
+        setCompletion({
+          key,
+          name: items.find((i: any) => i.key === key)?.name ?? "Goal",
+          nonce: Date.now(),
+        });
+      setNotice(
+        kind === "items"
+          ? "Saved. Milestone posts settle after 30 seconds."
+          : "Daily quest updated. Reminders pause for today when completed.",
+      );
+    });
+  }
+  const board = data?.leaderboard ?? [],
+    ownRank =
+      board.find((r: any) => String(r.user_id) === String(data?.viewerId) && Number(r.completed_count) > 0)
+        ?.rank ?? null,
+    questDone = (data?.days ?? []).filter((day: string) =>
+      quests.some((q: any) => q.quest_date === day && q.completed),
+    ).length;
+  const shownItems = items.filter((i: any) => {
+    const done = Boolean(progress.find((p: any) => p.item_key === i.key)?.completed),
+      tags = i.tags ?? [];
+    return (
+      (!goalSearch || `${i.name} ${i.group}`.toLowerCase().includes(goalSearch.toLowerCase().trim())) &&
+      (goalFilter === "all" ||
+        (goalFilter === "prioritize" && (tags.includes("PRIORITIZE") || i.priority === "PRIORITY")) ||
+        (goalFilter === "missing" && !done) ||
+        (goalFilter === "completed" && done))
+    );
+  });
+  async function toggle(kind: string, key: string, completed: boolean, version: number) {
+    await saveProgress(kind, key, { completed }, version);
+  }
+  return (
+    <div className={`opsPage eventExperience eventWorkspace ${effects ? "" : "eventCalm"}`}>
+      {effects && <HalloweenDecor />}
+      <header className="eventHalloweenHero">
+        <div className="eventHeroIdentity">
+          <img
+            src="/event-guide/branding/halloween-guild-logo.png"
+            alt="BOM Halloween crest"
+            width="88"
+            height="88"
+          />
+          <div>
+            <span className="eventBadge tagPRIORITIZE">BAND OF MISFITS · HALLOWEEN</span>
+            <h1>Halloween at the Harbor</h1>
+            <p className="halloweenSubtitle">
+              WoSB Halloween Event 2026 · Fill your hold. Haunt the leaderboard.
+            </p>
+            <p>
+              {c ? `${c.name} · ${c.start_date} · ${c.timezone}` : "Your personal two-week event tracker"}
+            </p>
+          </div>
+        </div>
+        <div className="eventHeroActions">
+          <label>
+            Halloween effects
+            <HalloweenSwitch checked={effects} onChange={toggleEffects} label="Halloween effects" />
+          </label>
+          <button
+            disabled={busy}
+            onClick={() =>
+              void action(async () => {
+                await load();
+                if (leadership) setLeadership(await operationsApi("event-tool/leadership"));
+              })
+            }
+          >
+            Refresh
+          </button>
+        </div>
+      </header>
+      {c && (
+        <>
+          <EventPersonalSummary
+            done={totalDone}
+            total={items.length}
+            quests={questDone}
+            rank={ownRank}
+            questTickets={questDone}
+            remaining={shopping?.remaining ?? null}
+          />
+          <EventWorkspaceNav view={view} onChange={changeView} canManage={Boolean(data?.canManage)} />
+          <div className="eventWorkspaceHint">
+            {
+              {
+                overview: "Your next action and the fleet’s progress.",
+                progress: "Daily quests, loot checklist and reminder preferences.",
+                rewards: "Prizes, lottery tickets, approved donations and rankings.",
+                guides: "Event rules, recommended builds and farming advice.",
+                calculators: "Measure your farming rate and plan your Lollipop spending.",
+                admiralty: "Roster checks, event configuration and branding assets.",
+              }[view]
+            }
+          </div>
+        </>
+      )}
+      {completion && (
+        <div key={completion.nonce} className="eventLootToast" role="status">
+          <b>Loot secured!</b>
+          <span>{completion.name}</span>
+        </div>
+      )}
+      {notice && (
+        <p className="opsNotice" role="status">
+          {notice}
+        </p>
+      )}
+      <div
+        id="event-workspace-panel"
+        role="tabpanel"
+        aria-labelledby={"event-tab-" + view}
+        tabIndex={0}
+        className="eventWorkspacePanel"
+      >
+        {c && view === "overview" && (
+          <EventOverview
+            campaignId={c.id}
+            questDone={questDone}
+            totalDone={totalDone}
+            total={items.length}
+            eligible={data.eligible}
+            busy={busy}
+            todayDone={quests.some((q: any) => q.quest_date === data.today && q.completed)}
+            onQuest={() =>
+              void toggle(
+                "quests",
+                data.today,
+                true,
+                quests.find((q: any) => q.quest_date === data.today)?.version ?? 0,
+              )
+            }
+            onChange={changeView}
+          />
+        )}
+        {view === "guides" && (
+          <>
+            <section className="opsCard eventGuidance">
+              <h2>Get the Most from the Event</h2>
+              <p>{data?.guidance}</p>
+              <strong>
+                At the supplied prices, the large Battle Mark bundle gives the best gold per Lollipop. Compare
+                rates in Calculators.
+              </strong>
+            </section>
+            <EventPatchNotes />
+          </>
+        )}
+        {c && view === "rewards" && (
+          <>
+            <EventRewards key={"rewards:" + c.id} campaignId={c.id} />
+            <EventDonations key={c.id} campaignId={c.id} canManage={data.canManage} />
+          </>
+        )}
+        {!c && (
+          <section className="opsCard">
+            <h2>No Event Configured</h2>
+            <p>
+              Leadership needs to choose the event's first day and congratulations channel. Progress and
+              reminders are private to each player.
+            </p>
+          </section>
+        )}
+        {c && (
+          <>
+            {view === "progress" && (
+              <>
+                <section id="halloween-daily" tabIndex={-1} className="opsCard eventAnchor">
+                  <h2>Daily Event Quest · 14 Days</h2>
+                  <p>
+                    Mark each day after completing its daily quest. Dates use {c.timezone}. Completion is
+                    self-reported.
+                  </p>
+                  <div className="eventCalendar">
+                    {data.days.map((date: string, n: number) => {
+                      const p = quests.find((q: any) => q.quest_date === date),
+                        done = Boolean(p?.completed),
+                        future = date > data.today;
+                      return (
+                        <label
+                          key={date}
+                          className={`eventDay ${done ? "done" : ""} ${date === data.today ? "today" : ""}`}
+                        >
+                          <span>
+                            Day {n + 1}
+                            {date === data.today ? " · Today" : ""}
+                          </span>
+                          <b>{date}</b>
+                          <input
+                            type="checkbox"
+                            aria-label={`Daily quest ${date}`}
+                            checked={done}
+                            disabled={
+                              busy ||
+                              future ||
+                              !data.eligible ||
+                              Boolean(c.ends_at && Date.now() >= Date.parse(c.ends_at))
+                            }
+                            onChange={(e) => void toggle("quests", date, e.target.checked, p?.version ?? 0)}
+                          />
+                          <small>{future ? "Upcoming" : done ? "Completed" : "Not yet reported"}</small>
+                        </label>
+                      );
+                    })}
+                  </div>
+                  <EventRewardTrack count={questDone} />
+                </section>
+                {!data.eligible && (
+                  <p className="opsNotice">
+                    You can view this event, but your roles are not included in its participant list.
+                  </p>
+                )}
+                <section id="halloween-checklist" tabIndex={-1} className="opsCard eventAnchor">
+                  <div className="eventSectionHeading">
+                    <div>
+                      <span className="eventBadge tagPREFERRED">YOUR LOOT MANIFEST</span>
+                      <h2>Your Event Checklist</h2>
+                    </div>
+                    <div className="eventScore">
+                      <b>{totalDone}</b>
+                      <span>
+                        / {items.length}
+                        <small>GOALS COMPLETE</small>
+                      </span>
+                    </div>
+                  </div>
+                  <div className="eventChecklistTools">
+                    <div role="group" aria-label="Checklist view" className="eventChecklistTabs">
+                      {[
+                        ["all", "All"],
+                        ["prioritize", "Prioritize"],
+                        ["missing", "Missing"],
+                        ["completed", "Completed"],
+                      ].map(([value, label]) => (
+                        <button
+                          type="button"
+                          key={value}
+                          aria-pressed={goalFilter === value}
+                          onClick={() => setGoalFilter(value)}
+                        >
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+                    <label>
+                      Find a goal
+                      <input
+                        type="search"
+                        value={goalSearch}
+                        onChange={(e) => setGoalSearch(e.target.value)}
+                        placeholder="Ship, cannon, ammunition…"
+                      />
+                    </label>
+                  </div>
+                  <small className="eventResultCount">
+                    {shownItems.length} of {items.length} goals shown · fully completed categories collapse
+                    automatically
+                  </small>
+                  <div className="eventCategoryList">
+                    {groups.map((group) => {
+                      const all = items.filter((i: any) => i.group === group),
+                        visible = shownItems.filter((i: any) => i.group === group);
+                      return visible.length ? (
+                        <EventChecklistGroup
+                          key={group}
+                          name={group}
+                          total={all.length}
+                          done={
+                            all.filter((i: any) =>
+                              progress.some((p: any) => p.item_key === i.key && p.completed),
+                            ).length
+                          }
+                          autoCollapse={goalFilter !== "completed"}
+                        >
+                          {visible.map((item: any) => {
+                            const p = progress.find((p: any) => p.item_key === item.key);
+                            return (
+                              <EventGoalCard
+                                key={item.key}
+                                item={item}
+                                progress={p}
+                                busy={busy}
+                                eligible={
+                                  data.eligible && !Boolean(c.ends_at && Date.now() >= Date.parse(c.ends_at))
+                                }
+                                celebrate={completion?.key === item.key}
+                                onSave={(patch) => saveProgress("items", item.key, patch, p?.version ?? 0)}
+                              />
+                            );
+                          })}
+                        </EventChecklistGroup>
+                      ) : null;
+                    })}
+                  </div>
+                  {!shownItems.length && (
+                    <div className="eventFilterEmpty">
+                      <p className="uiEmpty">No goals match this view.</p>
+                      <button
+                        onClick={() => {
+                          setGoalFilter("all");
+                          setGoalSearch("");
+                        }}
+                      >
+                        Clear filters
+                      </button>
+                    </div>
+                  )}
+                </section>
+              </>
+            )}
+            {view === "rewards" && (
+              <section
+                id="halloween-leaderboard"
+                tabIndex={-1}
+                className="opsCard eventLeaderboard eventAnchor"
+              >
+                <div>
+                  <span className="eventBadge tagPRIORITIZE">BRAGGING RIGHTS</span>
+                  <h2>Fastest Progress</h2>
+                  <p>
+                    <b>Top 3: a 3rd or 4th Rate ship of choice. Full completion: 10,000 Saxon Shot.</b> No
+                    Imperial or Premium ships; Unique permitted.
+                  </p>
+                  <p>
+                    Earned during the event: 1 point; already owned: 0.5 points. Ties go to whoever reached
+                    their total first. Self-reported progress.
+                  </p>
+                </div>
+                <ol>
+                  {(data.leaderboard ?? [])
+                    .filter((p: any) => p.completed_count > 0)
+                    .slice(0, 10)
+                    .map((p: any) => (
+                      <li key={p.user_id}>
+                        <span className="eventLeaderRank">
+                          {p.rank <= 3 ? (
+                            <img
+                              src={`/event-guide/donation-trophy-${p.rank}.png`}
+                              alt={["Gold", "Silver", "Bronze"][p.rank - 1] + " trophy"}
+                            />
+                          ) : p.rank <= 9 ? (
+                            <img src={`/event-guide/ranks/rank-${p.rank}.png`} alt={`Rank ${p.rank} medal`} />
+                          ) : (
+                            "#" + p.rank
+                          )}
+                        </span>
+                        <b>{p.display_name}</b>
+                        <strong>
+                          {Number(p.score_half_points) / 2}
+                          <small>
+                            {" "}
+                            points · {p.completed_count} / {items.length} goals
+                          </small>
+                        </strong>
+                      </li>
+                    ))}
+                </ol>
+                {!(data.leaderboard ?? []).some((p: any) => p.completed_count > 0) && (
+                  <p>The first bragging rights are still afloat. Check off a goal to join.</p>
+                )}
+                <EventPersonalRank board={board} userId={String(data.viewerId ?? "")} total={items.length} />
+              </section>
+            )}
+            {view === "guides" && (
+              <EventBuildGuide guide={data.shipGuide ?? []} crew={data.crewGuide ?? ""} />
+            )}
+            {view === "calculators" && (
+              <>
+                <EventHourlyCalculator storageKey={`bom:event-hourly:${c.id}:${data.viewerId}`} />
+                <EventEconomy
+                  campaignId={c.id}
+                  eligible={data.eligible}
+                  revision={JSON.stringify([quests, progress])}
+                />
+                <EventExchangeChart />
+                <EventSealComparison />
+                <EventCalculator
+                  onTotals={setShopping}
+                  storageKey={`bom:event-cart:${c.id}:${data.viewerId ?? "self"}`}
+                />
+              </>
+            )}
+            {view === "progress" && (
+              <section className="opsCard">
+                <h2>Opt-in Daily Quest DM Reminders</h2>
+                <p>
+                  Reminders stop for the day once its quest is checked off, and end after the 14-day event.
+                  Global DM mutes and notification preferences are respected; skipped reminders are not
+                  replayed.
+                </p>
+                <fieldset disabled={busy || !data.eligible} className="eventForm">
+                  <div className="eventReminderOpt">
+                    <span>Send me event quest reminders</span>
+                    <HalloweenSwitch
+                      checked={enabled}
+                      label="Send me event quest reminders"
+                      onChange={() => setEnabled((v) => !v)}
+                    />
+                  </div>
+                  <div className="opsRow">
+                    <label>
+                      Frequency
+                      <select
+                        value={cadence}
+                        onChange={(e) => {
+                          setCadence(e.target.value);
+                          setTimes(e.target.value === "twice" ? "09:00, 18:00" : "09:00");
+                        }}
+                      >
+                        <option value="once">Once a day</option>
+                        <option value="twice">Twice a day</option>
+                        <option value="interval">Custom interval</option>
+                      </select>
+                    </label>
+                    {cadence === "interval" ? (
+                      <label>
+                        Every X hours
+                        <input
+                          type="number"
+                          min="0.5"
+                          max="168"
+                          step="0.5"
+                          value={hours}
+                          onChange={(e) => setHours(e.target.value)}
+                        />
+                      </label>
+                    ) : (
+                      <label>
+                        {cadence === "twice" ? "Two local times (HH:MM, HH:MM)" : "Local time (HH:MM)"}
+                        <input
+                          value={times}
+                          onChange={(e) => setTimes(e.target.value)}
+                          placeholder="09:00, 18:00"
+                        />
+                      </label>
+                    )}
+                    <p className="eventDetectedZone">
+                      Detected local timezone <b>{reminderZone}</b>
+                      <small>
+                        Reminder times use your device timezone. Save your subscription to apply this
+                        timezone.
+                      </small>
+                    </p>
+                  </div>
+                  <button
+                    className="primary"
+                    onClick={() =>
+                      void action(async () => {
+                        const selected = times
+                          .split(",")
+                          .map((s) => s.trim())
+                          .filter(Boolean);
+                        if (
+                          enabled &&
+                          cadence !== "interval" &&
+                          selected.length !== (cadence === "twice" ? 2 : 1)
+                        )
+                          throw Error("Enter the selected number of local reminder times.");
+                        await operationsApi("event-tool/reminders", {
+                          method: "PUT",
+                          body: JSON.stringify({
+                            campaignId: c.id,
+                            enabled,
+                            mode: cadence === "interval" ? "INTERVAL" : "TIMES",
+                            times: selected,
+                            intervalMinutes: Math.round(Number(hours) * 60),
+                            timezone: reminderZone,
+                          }),
+                        });
+                        await load();
+                        setNotice(enabled ? "DM reminder subscription saved." : "DM reminders stopped.");
+                      })
+                    }
+                  >
+                    Save Reminder Subscription
+                  </button>
+                </fieldset>
+                {data.reminders?.last_status && (
+                  <small>
+                    Last delivery status: {data.reminders.last_status}
+                    {data.reminders.error ? " · " + data.reminders.error : ""}
+                  </small>
+                )}
+              </section>
+            )}
+          </>
+        )}
+        {data?.canManage && view === "admiralty" && (
+          <>
+            <EventBrandingAssets />
+            <section className="opsCard">
+              <h2>Leadership · Daily Quest Overview</h2>
+              <p>
+                Only players who have saved checklist progress, a daily quest, or a reminder subscription
+                appear here. Blank cells mean no completion was reported.
+              </p>
+              <button
+                disabled={busy || !c}
+                onClick={() =>
+                  void action(async () => {
+                    setLeadership(await operationsApi("event-tool/leadership"));
+                  })
+                }
+              >
+                Load Current Roster
+              </button>
+              {leadership && (
+                <>
+                  <label>
+                    Show
+                    <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+                      <option value="missing">No completion reported today</option>
+                      <option value="all">Everyone</option>
+                    </select>
+                  </label>
+                  <div className="opsTableScroll">
+                    <table>
+                      <thead>
+                        <tr>
+                          <th>Player</th>
+                          <th>Items</th>
+                          {data.days.map((d: string) => (
+                            <th key={d}>{d.slice(5)}</th>
+                          ))}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {leadership.members
+                          .filter(
+                            (m: any) =>
+                              filter === "all" ||
+                              !m.quests.some((q: any) => q.quest_date === data.today && q.completed),
+                          )
+                          .map((m: any) => (
+                            <tr key={m.userId}>
+                              <td>
+                                {m.name}
+                                <small>{m.userId}</small>
+                                {m.announcementErrors.map((e: any) => (
+                                  <small key={e.item}>
+                                    {e.item}: {e.error}
+                                  </small>
+                                ))}
+                              </td>
+                              <td>
+                                {m.completedItems}/{items.length}
+                              </td>
+                              {data.days.map((d: string) => (
+                                <td key={d}>
+                                  {d > data.today
+                                    ? "Upcoming"
+                                    : m.quests.some((q: any) => q.quest_date === d && q.completed)
+                                      ? "✓"
+                                      : "—"}
+                                </td>
+                              ))}
+                            </tr>
+                          ))}
+                      </tbody>
+                    </table>
+                  </div>
+                  <small>
+                    Roster refreshed {new Date(leadership.refreshedAt).toLocaleString()}. Self-reported
+                    completion; this does not verify in-game activity.
+                  </small>
+                </>
+              )}
+            </section>
+            <section className="opsCard">
+              <a className="opsLink" href="/dashboard/admin/event-crafting">
+                Configure ship crafting costs
+              </a>
+              <h2>Event Setup</h2>
+              <p>
+                Choose a guild text channel for milestone cards, donation approval threads and the Components
+                v2 event leaderboard. The bot needs private-thread creation and thread-message permissions.
+                Progress posts settle after 30 seconds.
+              </p>
+              <label>
+                Event channel ID (congratulations + sticky leaderboard)
+                <input value={channel} onChange={(e) => setChannel(e.target.value)} />
+              </label>
+              {c && (
+                <button
+                  disabled={busy}
+                  onClick={() =>
+                    void action(async () => {
+                      await operationsApi("event-tool/campaign", {
+                        method: "PUT",
+                        body: JSON.stringify({ campaignId: c.id, announcementChannelId: channel }),
+                      });
+                      setNotice("Congratulations channel saved.");
+                      await load();
+                    })
+                  }
+                >
+                  Save Announcement Channel
+                </button>
+              )}
+              <details>
+                <summary>{c ? "Start a New Event" : "Create Two-Week Event"}</summary>
+                <p>
+                  A new event starts fresh checklists and subscriptions. Prior event records are retained
+                  separately.
+                </p>
+                <div className="opsRow">
+                  <label>
+                    Event name
+                    <input value={name} maxLength={100} onChange={(e) => setName(e.target.value)} />
+                  </label>
+                  <label>
+                    First quest day
+                    <input type="date" value={start} onChange={(e) => setStart(e.target.value)} />
+                  </label>
+                  <label>
+                    Event day timezone
+                    <input value={zone} onChange={(e) => setZone(e.target.value)} />
+                  </label>
+                </div>
+                <label>
+                  Participant role IDs (comma separated)
+                  <input
+                    value={roles}
+                    onChange={(e) => setRoles(e.target.value)}
+                    placeholder="Member / BoM 2 role IDs"
+                  />
+                </label>
+                <small>
+                  Leave empty for all dashboard-eligible guild and alliance members. The configured alliance
+                  dashboard role is also eligible.
+                </small>
+                <button
+                  disabled={busy || !start}
+                  onClick={() => {
+                    if (
+                      !c ||
+                      confirm("Archive the current event and start a new 14-day event with fresh progress?")
+                    )
+                      void action(async () => {
+                        await operationsApi("event-tool/campaign", {
+                          method: "POST",
+                          body: JSON.stringify({
+                            name,
+                            startDate: start,
+                            timezone: zone,
+                            announcementChannelId: channel,
+                            participantRoleIds: roles
+                              .split(",")
+                              .map((s) => s.trim())
+                              .filter(Boolean),
+                            replaceCampaignId: c?.id,
+                          }),
+                        });
+                        await load(true);
+                        setLeadership(null);
+                        setNotice("Event created.");
+                      });
+                  }}
+                >
+                  Create Event
+                </button>
+              </details>
+            </section>
+          </>
+        )}
+      </div>
+    </div>
+  );
 }

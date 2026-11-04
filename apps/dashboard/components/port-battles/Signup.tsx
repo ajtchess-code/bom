@@ -2,21 +2,16 @@
 import ScheduleMessagePreview from "../DiscordPayloadPreview";
 import SavedViewControl from "../SavedViewControl";
 import BattleCoordination from "../BattleCoordination";
-import BattleHourButtons from '../BattleHourButtons';
+import BattleHourButtons from "../BattleHourButtons";
 import CancelPortBattle from "../CancelPortBattle";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {createPortal} from "react-dom";
+import { createPortal } from "react-dom";
 import PortBattleInvitations from "../PortBattleInvitations";
 import TerritoryMap from "../TerritoryMap";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import {
-  emitInspector,
-  emitRecent,
-  emitToast,
-  usePersistedState,
-} from "@/lib/dashboardQoL";
-import {rateLabel} from "./helpers";
+import { emitInspector, emitRecent, emitToast, usePersistedState } from "@/lib/dashboardQoL";
+import { rateLabel } from "./helpers";
 
 export function DetailedSignup({
   battle,
@@ -34,22 +29,14 @@ export function DetailedSignup({
   onSave: (v: any) => void;
 }) {
   const saved = profile?.rates?.[String(battle.rate)] ?? {};
-  const [picked, setPicked] = useState<string[]>(
-    current?.ships ?? saved.ships ?? [],
-  );
-  const [preferred, setPreferred] = useState<string[]>(
-    current?.preferred_ships ?? saved.preferred ?? [],
-  );
-  const [horn, setHorn] = useState<boolean>(
-    current?.horn_capable ?? profile?.horn_capable ?? false,
-  );
+  const [picked, setPicked] = useState<string[]>(current?.ships ?? saved.ships ?? []);
+  const [preferred, setPreferred] = useState<string[]>(current?.preferred_ships ?? saved.preferred ?? []);
+  const [horn, setHorn] = useState<boolean>(current?.horn_capable ?? profile?.horn_capable ?? false);
   const [hornPreferred, setHornPreferred] = useState<boolean>(
     current?.horn_preferred ?? profile?.horn_preferred ?? false,
   );
   const [flareCaps, setFlareCaps] = useState<string[]>(
-    Array.isArray(current?.flare_capabilities)
-      ? current.flare_capabilities
-      : [],
+    Array.isArray(current?.flare_capabilities) ? current.flare_capabilities : [],
   );
   const [status, setStatus] = useState(current?.signup_status ?? "ATTENDING");
   const [late, setLate] = useState(Number(current?.late_minutes ?? 0));
@@ -108,9 +95,7 @@ export function DetailedSignup({
                   type="checkbox"
                   checked={picked.includes(s)}
                   onChange={() => {
-                    setPicked((p) =>
-                      p.includes(s) ? p.filter((x) => x !== s) : [...p, s],
-                    );
+                    setPicked((p) => (p.includes(s) ? p.filter((x) => x !== s) : [...p, s]));
                     setPreferred((p) => p.filter((x) => x !== s));
                   }}
                 />
@@ -129,11 +114,7 @@ export function DetailedSignup({
                   checked={preferred.includes(s)}
                   onChange={() =>
                     setPreferred((p) =>
-                      p.includes(s)
-                        ? p.filter((x) => x !== s)
-                        : p.length < 2
-                          ? [...p, s]
-                          : p,
+                      p.includes(s) ? p.filter((x) => x !== s) : p.length < 2 ? [...p, s] : p,
                     )
                   }
                 />
@@ -155,9 +136,8 @@ export function DetailedSignup({
             <span>
               <b>I Am Willing To / Can Play Horn</b>
               <small>
-                Horn players use Filling Ration in slot 2 (C), Horn in slot 3
-                (V), and maintain 300 of each. Configure full Horn eligibility
-                in Preferred Ships.
+                Horn players use Filling Ration in slot 2 (C), Horn in slot 3 (V), and maintain 300 of each.
+                Configure full Horn eligibility in Preferred Ships.
               </small>
             </span>
           </label>
@@ -170,10 +150,7 @@ export function DetailedSignup({
               />
               <span>
                 <b>I Generally Prefer Horn Duty</b>
-                <small>
-                  Leave this off when you can play Horn but would rather fill
-                  another duty.
-                </small>
+                <small>Leave this off when you can play Horn but would rather fill another duty.</small>
               </span>
             </label>
           )}
@@ -181,8 +158,8 @@ export function DetailedSignup({
         <fieldset className="pbFlareSignup">
           <legend>Signal Flare Duties · Volunteer</legend>
           <p>
-            Choose every signal flare color you can handle. Admiralty assigns a
-            single flare duty when confirming the fleet.
+            Choose every signal flare color you can handle. Admiralty assigns a single flare duty when
+            confirming the fleet.
           </p>
           <div className="pbFlareChoices">
             {["Red Flare", "Gold Flare", "Blue Flare"].map((color) => (
@@ -192,9 +169,7 @@ export function DetailedSignup({
                   checked={flareCaps.includes(color)}
                   onChange={() =>
                     setFlareCaps((xs) =>
-                      xs.includes(color)
-                        ? xs.filter((x) => x !== color)
-                        : [...xs, color],
+                      xs.includes(color) ? xs.filter((x) => x !== color) : [...xs, color],
                     )
                   }
                 />
@@ -236,7 +211,8 @@ export function TargetsButton({
   const [open, setOpen] = useState(false),
     [values, setValues] = useState<Record<string, number>>({ ...current }),
     [templates, setTemplates] = useState<any[]>([]);
-  const [saving,setSaving]=useState(false),[error,setError]=useState('');
+  const [saving, setSaving] = useState(false),
+    [error, setError] = useState("");
   const key = `bom:pb-target-templates:${rate}:${teamSize}`;
   useEffect(() => {
     if (!open) return;
@@ -247,15 +223,12 @@ export function TargetsButton({
     }
   }, [open, key]);
   function saveTemplate() {
-    const name = prompt(
-      "Template name",
-      `${rateLabel(rate)} ${teamSize}v${teamSize}`,
-    )?.trim();
+    const name = prompt("Template name", `${rateLabel(rate)} ${teamSize}v${teamSize}`)?.trim();
     if (!name) return;
-    const next = [
-      { name, values: { ...values } },
-      ...templates.filter((x: any) => x.name !== name),
-    ].slice(0, 8);
+    const next = [{ name, values: { ...values } }, ...templates.filter((x: any) => x.name !== name)].slice(
+      0,
+      8,
+    );
     setTemplates(next);
     localStorage.setItem(key, JSON.stringify(next));
   }
@@ -266,120 +239,119 @@ export function TargetsButton({
   }
   return (
     <>
-      <button className="outlineButton" onClick={() => {setValues({...current});setError('');setOpen(true);}}>
+      <button
+        className="outlineButton"
+        onClick={() => {
+          setValues({ ...current });
+          setError("");
+          setOpen(true);
+        }}
+      >
         Ship Targets
       </button>
-      {open && createPortal(
-        <div className="modalBackdrop">
-          <form
-            className="panel pbModal"
-            onSubmit={async(e) => {
-              e.preventDefault();if(saving)return;setSaving(true);setError('');
-              try{await onSave(values);setOpen(false);}catch(e:any){setError(e.message||'Could not save targets.');}finally{setSaving(false);}
-            }}
-          >
-            {error&&<p role="alert">{error}</p>}
-            <fieldset disabled={saving} className="uiBareFieldset">
-            <div className="panelHead">
-              <div>
-                <h2>Ship Targets</h2>
-                <span>
-                  Total{" "}
-                  {Object.values(values).reduce<number>(
-                    (a, b) => a + Number(b || 0),
-                    0,
-                  )}
-                  /{teamSize}
-                </span>
-              </div>
-              <button type="button" onClick={() => setOpen(false)}>
-                ×
-              </button>
-            </div>
-            {templates.length > 0 && (
-              <div className="pbTargetTemplates">
-                <span>Saved templates</span>
-                {templates.map((t: any) => (
-                  <div key={t.name}>
-                    <button
-                      type="button"
-                      onClick={() => setValues({ ...t.values })}
-                    >
-                      {t.name}
-                    </button>
-                    <button
-                      type="button"
-                      aria-label={`Delete ${t.name}`}
-                      onClick={() => removeTemplate(t.name)}
-                    >
-                      ×
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
-            <div className="controlRow pbTargetQuick">
-              <button
-                type="button"
-                className="tinyButton"
-                onClick={saveTemplate}
-              >
-                Save current as template
-              </button>
-              <button
-                type="button"
-                className="tinyButton"
-                onClick={() => setValues({})}
-              >
-                Clear targets
-              </button>
-            </div>
-            <div className="pbTargetGrid">
-              {ships.map((s) => (
-                <label key={s}>
-                  <span>{s}</span>
-                  <span className="pbTargetStepper">
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setValues((v) => ({
-                          ...v,
-                          [s]: Math.max(0, Number(v[s] ?? 0) - 1),
-                        }))
-                      }
-                    >
-                      −1
-                    </button>
-                    <output>{values[s] ?? 0}</output>
-                    <button
-                      type="button"
-                      onClick={() =>
-                        setValues((v) => ({
-                          ...v,
-                          [s]: Math.min(teamSize, Number(v[s] ?? 0) + 1),
-                        }))
-                      }
-                    >
-                      +1
-                    </button>
-                  </span>
-                </label>
-              ))}
-            </div>
-            <button
-              className="goldButton"
-              disabled={
-                Object.values(values).reduce<number>(
-                  (a, b) => a + Number(b || 0),
-                  0,
-                ) > teamSize
-              }
+      {open &&
+        createPortal(
+          <div className="modalBackdrop">
+            <form
+              className="panel pbModal"
+              onSubmit={async (e) => {
+                e.preventDefault();
+                if (saving) return;
+                setSaving(true);
+                setError("");
+                try {
+                  await onSave(values);
+                  setOpen(false);
+                } catch (e: any) {
+                  setError(e.message || "Could not save targets.");
+                } finally {
+                  setSaving(false);
+                }
+              }}
             >
-              Save Targets
-            </button>
-          </fieldset></form>
-        </div>,document.body
-      )}
+              {error && <p role="alert">{error}</p>}
+              <fieldset disabled={saving} className="uiBareFieldset">
+                <div className="panelHead">
+                  <div>
+                    <h2>Ship Targets</h2>
+                    <span>
+                      Total {Object.values(values).reduce<number>((a, b) => a + Number(b || 0), 0)}/{teamSize}
+                    </span>
+                  </div>
+                  <button type="button" onClick={() => setOpen(false)}>
+                    ×
+                  </button>
+                </div>
+                {templates.length > 0 && (
+                  <div className="pbTargetTemplates">
+                    <span>Saved templates</span>
+                    {templates.map((t: any) => (
+                      <div key={t.name}>
+                        <button type="button" onClick={() => setValues({ ...t.values })}>
+                          {t.name}
+                        </button>
+                        <button
+                          type="button"
+                          aria-label={`Delete ${t.name}`}
+                          onClick={() => removeTemplate(t.name)}
+                        >
+                          ×
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                )}
+                <div className="controlRow pbTargetQuick">
+                  <button type="button" className="tinyButton" onClick={saveTemplate}>
+                    Save current as template
+                  </button>
+                  <button type="button" className="tinyButton" onClick={() => setValues({})}>
+                    Clear targets
+                  </button>
+                </div>
+                <div className="pbTargetGrid">
+                  {ships.map((s) => (
+                    <label key={s}>
+                      <span>{s}</span>
+                      <span className="pbTargetStepper">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setValues((v) => ({
+                              ...v,
+                              [s]: Math.max(0, Number(v[s] ?? 0) - 1),
+                            }))
+                          }
+                        >
+                          −1
+                        </button>
+                        <output>{values[s] ?? 0}</output>
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setValues((v) => ({
+                              ...v,
+                              [s]: Math.min(teamSize, Number(v[s] ?? 0) + 1),
+                            }))
+                          }
+                        >
+                          +1
+                        </button>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+                <button
+                  className="goldButton"
+                  disabled={Object.values(values).reduce<number>((a, b) => a + Number(b || 0), 0) > teamSize}
+                >
+                  Save Targets
+                </button>
+              </fieldset>
+            </form>
+          </div>,
+          document.body,
+        )}
     </>
   );
 }
@@ -417,8 +389,7 @@ export function PreferredShipsModal({
       .filter(
         (s: any) =>
           Number(s.rate ?? s.level) === rate &&
-          (!Array.isArray(allowed?.[String(rate)]) ||
-            allowed[String(rate)].includes(s.name)),
+          (!Array.isArray(allowed?.[String(rate)]) || allowed[String(rate)].includes(s.name)),
       )
       .sort((a: any, b: any) => a.name.localeCompare(b.name)),
     entry = draft.rates[String(rate)] ?? { ships: [], preferred: [] };
@@ -426,12 +397,8 @@ export function PreferredShipsModal({
     setDraft((d: any) => {
       const e = d.rates[String(rate)] ?? { ships: [], preferred: [] },
         has = e.ships.includes(name),
-        nextShips = has
-          ? e.ships.filter((x: string) => x !== name)
-          : [...e.ships, name],
-        nextPreferred = e.preferred.filter((x: string) =>
-          nextShips.includes(x),
-        );
+        nextShips = has ? e.ships.filter((x: string) => x !== name) : [...e.ships, name],
+        nextPreferred = e.preferred.filter((x: string) => nextShips.includes(x));
       return {
         ...d,
         rates: {
@@ -469,10 +436,7 @@ export function PreferredShipsModal({
           <div>
             <span className="cardKicker">PLAYER PROFILE</span>
             <h2>Preferred Ships</h2>
-            <span>
-              Save your playable fleet once and reuse it in quick Port Battle
-              signups.
-            </span>
+            <span>Save your playable fleet once and reuse it in quick Port Battle signups.</span>
           </div>
           <button type="button" className="dangerGhost pbDismiss" aria-label="Close" onClick={onClose}>
             ×
@@ -480,12 +444,7 @@ export function PreferredShipsModal({
         </div>
         <div className="buildTabs">
           {rates.map((r) => (
-            <button
-              type="button"
-              key={r}
-              className={rate === r ? "active" : ""}
-              onClick={() => setRate(r)}
-            >
+            <button type="button" key={r} className={rate === r ? "active" : ""} onClick={() => setRate(r)}>
               {rateLabel(r)}
             </button>
           ))}
@@ -494,10 +453,7 @@ export function PreferredShipsModal({
           <legend>Ships you can play</legend>
           <div className="pbShipChecklist pbVisualShipChecklist">
             {options.map((ship: any) => (
-              <label
-                key={ship.name}
-                className={entry.ships.includes(ship.name) ? "selected" : ""}
-              >
+              <label key={ship.name} className={entry.ships.includes(ship.name) ? "selected" : ""}>
                 <input
                   type="checkbox"
                   checked={entry.ships.includes(ship.name)}
@@ -518,10 +474,7 @@ export function PreferredShipsModal({
             {entry.ships.map((name: string) => {
               const ship = ships.find((x: any) => x.name === name);
               return (
-                <label
-                  key={name}
-                  className={entry.preferred.includes(name) ? "selected" : ""}
-                >
+                <label key={name} className={entry.preferred.includes(name) ? "selected" : ""}>
                   <input
                     type="checkbox"
                     checked={entry.preferred.includes(name)}
@@ -530,18 +483,12 @@ export function PreferredShipsModal({
                   {ship?.image && <img src={ship.image} alt="" />}
                   <span>
                     <b>{name}</b>
-                    <small>
-                      {entry.preferred.includes(name)
-                        ? "★ Preferred"
-                        : "Mark preferred"}
-                    </small>
+                    <small>{entry.preferred.includes(name) ? "★ Preferred" : "Mark preferred"}</small>
                   </span>
                 </label>
               );
             })}
-            {!entry.ships.length && (
-              <p className="muted">Choose playable ships above first.</p>
-            )}
+            {!entry.ships.length && <p className="muted">Choose playable ships above first.</p>}
           </div>
         </fieldset>
         <div className="pbHornRequirements">
@@ -554,28 +501,23 @@ export function PreferredShipsModal({
                   ...d,
                   horn_capable: e.target.checked,
                   horn_preferred: e.target.checked ? d.horn_preferred : false,
-                  horn_requirements_ack: e.target.checked
-                    ? d.horn_requirements_ack
-                    : false,
+                  horn_requirements_ack: e.target.checked ? d.horn_requirements_ack : false,
                 }))
               }
             />
             <span>
               <b>I Am Willing To / Can Play Horn</b>
               <small>
-                Horn duty requires the Captain Skill that unlocks the additional
-                consumable slot (<b>F</b>).
+                Horn duty requires the Captain Skill that unlocks the additional consumable slot (<b>F</b>).
               </small>
             </span>
           </label>
           {draft.horn_capable && (
             <>
               <p>
-                <strong>Required Horn loadout:</strong> Filling Ration in
-                consumable slot 2 (<b>C</b>) and Horn in consumable slot 3 (
-                <b>V</b>). Maintain at least <strong>300 Horns</strong> and{" "}
-                <strong>300 Filling Rations</strong>. BOM reimburses the supply
-                cost of running Horn.
+                <strong>Required Horn loadout:</strong> Filling Ration in consumable slot 2 (<b>C</b>) and
+                Horn in consumable slot 3 (<b>V</b>). Maintain at least <strong>300 Horns</strong> and{" "}
+                <strong>300 Filling Rations</strong>. BOM reimburses the supply cost of running Horn.
               </p>
               <label className="checkLine">
                 <input
@@ -590,10 +532,7 @@ export function PreferredShipsModal({
                 />
                 <span>
                   <b>I Meet The Horn Requirements</b>
-                  <small>
-                    I have the additional consumable slot and will maintain the
-                    required stock.
-                  </small>
+                  <small>I have the additional consumable slot and will maintain the required stock.</small>
                 </span>
               </label>
               <label className="checkLine">
@@ -609,10 +548,7 @@ export function PreferredShipsModal({
                 />
                 <span>
                   <b>I Generally Prefer Horn Duty</b>
-                  <small>
-                    Leave this off if you can play Horn but generally prefer not
-                    to.
-                  </small>
+                  <small>Leave this off if you can play Horn but generally prefer not to.</small>
                 </span>
               </label>
             </>
@@ -622,10 +558,7 @@ export function PreferredShipsModal({
           <button type="button" className="outlineButton" onClick={onClose}>
             Cancel
           </button>
-          <button
-            className="goldButton"
-            disabled={draft.horn_capable && !draft.horn_requirements_ack}
-          >
+          <button className="goldButton" disabled={draft.horn_capable && !draft.horn_requirements_ack}>
             Save Preferred Ships
           </button>
         </div>
@@ -687,13 +620,7 @@ export function GuestSignupModal({
           </label>
           <label>
             Minutes late
-            <input
-              name="late"
-              type="number"
-              min={0}
-              max={60}
-              defaultValue={0}
-            />
+            <input name="late" type="number" min={0} max={60} defaultValue={0} />
           </label>
         </div>
         <fieldset>
@@ -705,11 +632,7 @@ export function GuestSignupModal({
                   type="checkbox"
                   checked={picked.includes(name)}
                   onChange={() => {
-                    setPicked((p) =>
-                      p.includes(name)
-                        ? p.filter((x) => x !== name)
-                        : [...p, name],
-                    );
+                    setPicked((p) => (p.includes(name) ? p.filter((x) => x !== name) : [...p, name]));
                     setPreferred((p) => p.filter((x) => x !== name));
                   }}
                 />
@@ -728,11 +651,7 @@ export function GuestSignupModal({
                   checked={preferred.includes(name)}
                   onChange={() =>
                     setPreferred((p) =>
-                      p.includes(name)
-                        ? p.filter((x) => x !== name)
-                        : p.length < 2
-                          ? [...p, name]
-                          : p,
+                      p.includes(name) ? p.filter((x) => x !== name) : p.length < 2 ? [...p, name] : p,
                     )
                   }
                 />
@@ -753,11 +672,7 @@ export function GuestSignupModal({
                   type="checkbox"
                   checked={flares.includes(color)}
                   onChange={() =>
-                    setFlares((v) =>
-                      v.includes(color)
-                        ? v.filter((x) => x !== color)
-                        : [...v, color],
-                    )
+                    setFlares((v) => (v.includes(color) ? v.filter((x) => x !== color) : [...v, color]))
                   }
                 />
                 <img

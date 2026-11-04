@@ -1,2 +1,4 @@
-import MultiBattleBoard from '@/components/MultiBattleBoard';
-export default function Page(){return <MultiBattleBoard/>}
+import MultiBattleBoard from "@/components/MultiBattleBoard";
+export default function Page() {
+  return <MultiBattleBoard />;
+}

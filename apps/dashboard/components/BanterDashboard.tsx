@@ -1,55 +1,446 @@
-'use client';
-import {useEffect,useState} from 'react';
+"use client";
+import { useEffect, useState } from "react";
 
-type Options={id:string;name:string}[];
-type Settings={enabled:boolean;spontaneous_enabled:boolean;roast_enabled:boolean;aggression:number;spontaneity:number;channel_cooldown_minutes:number;spontaneous_user_cooldown_seconds:number;minimum_participants:number;daily_spontaneous_limit:number;daily_total_limit:number;context_messages:number;spontaneous_channels:string[];excluded_channels:string[];excluded_role_ids:string[];custom_instructions:string};
-type Props={initial:{settings:Settings;channels:Options;roles:Options;activity:{trigger_kind:string;count:number}[];configured:boolean;aiBudget:{daily:number;minute:number};availability:{available:boolean;reason:string}}};
-async function call(path:string,method='GET',body?:any){const r=await fetch('/api/internal/banter'+path,{method,headers:{'content-type':'application/json'},body:body?JSON.stringify(body):undefined,cache:'no-store'});const x=await r.json();if(!r.ok)throw new Error(String(x.error??'Request failed'));return x;}
-function SetPicker({title,description,selected,options,onChange}:{title:string;description:string;selected:string[];options:Options;onChange:(x:string[])=>void}){
-  const [q,setQ]=useState('');
-  const matches=options.filter(x=>!selected.includes(x.id)&&x.name.toLowerCase().includes(q.toLowerCase())).slice(0,15);
-  return <section className="banterPicker"><div><b>{title}</b><p>{description}</p></div><div className="banterChips">{selected.map(id=><span key={id}>{options.find(x=>x.id===id)?.name??`Unavailable · ${id}`}<button type="button" onClick={()=>onChange(selected.filter(x=>x!==id))} aria-label={`Remove ${id}`}>×</button></span>)}</div><div className="banterPickerSelect"><input aria-label={`Search ${title}`} placeholder="Search for a channel or role…" value={q} onChange={e=>setQ(e.target.value)}/><select aria-label={`Add ${title}`} value="" onChange={e=>{if(e.target.value)onChange([...selected,e.target.value]);setQ('')}}><option value="">Add {title.toLowerCase()}…</option>{matches.map(x=><option key={x.id} value={x.id}>{x.name}</option>)}</select></div></section>;
+type Options = { id: string; name: string }[];
+type Settings = {
+  enabled: boolean;
+  spontaneous_enabled: boolean;
+  roast_enabled: boolean;
+  aggression: number;
+  spontaneity: number;
+  channel_cooldown_minutes: number;
+  spontaneous_user_cooldown_seconds: number;
+  minimum_participants: number;
+  daily_spontaneous_limit: number;
+  daily_total_limit: number;
+  context_messages: number;
+  spontaneous_channels: string[];
+  excluded_channels: string[];
+  excluded_role_ids: string[];
+  custom_instructions: string;
+};
+type Props = {
+  initial: {
+    settings: Settings;
+    channels: Options;
+    roles: Options;
+    activity: { trigger_kind: string; count: number }[];
+    configured: boolean;
+    aiBudget: { daily: number; minute: number };
+    availability: { available: boolean; reason: string };
+  };
+};
+async function call(path: string, method = "GET", body?: any) {
+  const r = await fetch("/api/internal/banter" + path, {
+    method,
+    headers: { "content-type": "application/json" },
+    body: body ? JSON.stringify(body) : undefined,
+    cache: "no-store",
+  });
+  const x = await r.json();
+  if (!r.ok) throw new Error(String(x.error ?? "Request failed"));
+  return x;
 }
-function Toggle({label,description,checked,onChange}:{label:string;description:string;checked:boolean;onChange:(v:boolean)=>void}){return <label className="banterToggle"><span><b>{label}</b><small>{description}</small></span><input type="checkbox" checked={checked} onChange={e=>onChange(e.target.checked)}/><span className={`banterToggleVisual ${checked?'on':'off'}`}>{checked?'ON':'OFF'}</span></label>}
-function editable(s:Settings):Settings{return {enabled:s.enabled,spontaneous_enabled:s.spontaneous_enabled,roast_enabled:s.roast_enabled,aggression:s.aggression,spontaneity:s.spontaneity,channel_cooldown_minutes:s.channel_cooldown_minutes,spontaneous_user_cooldown_seconds:s.spontaneous_user_cooldown_seconds,minimum_participants:s.minimum_participants,daily_spontaneous_limit:s.daily_spontaneous_limit,daily_total_limit:s.daily_total_limit,context_messages:s.context_messages,spontaneous_channels:s.spontaneous_channels,excluded_channels:s.excluded_channels,excluded_role_ids:s.excluded_role_ids,custom_instructions:s.custom_instructions};}
-export default function BanterDashboard({initial}:Props){
-  const [s,setS]=useState<Settings>({...initial.settings,spontaneous_user_cooldown_seconds:initial.settings.spontaneous_user_cooldown_seconds??30,minimum_participants:initial.settings.minimum_participants??1,spontaneous_channels:initial.settings.spontaneous_channels??[],excluded_channels:initial.settings.excluded_channels??[],excluded_role_ids:initial.settings.excluded_role_ids??[]});
-  const [busy,setBusy]=useState(false),[notice,setNotice]=useState(''),[test,setTest]=useState('I just brought a Victory to a 6th-rate fight.'),[testResult,setTestResult]=useState(''),[testing,setTesting]=useState(false);
-  const [saved,setSaved]=useState(()=>JSON.stringify(editable(s)));
-  const dirty=JSON.stringify(editable(s))!==saved;
-  useEffect(()=>{window.dispatchEvent(new CustomEvent('bom:dirty',{detail:{dirty}}));return()=>{window.dispatchEvent(new CustomEvent('bom:dirty',{detail:{dirty:false}}));};},[dirty]);
-  const change=<K extends keyof Settings>(key:K,value:Settings[K])=>setS(x=>({...x,[key]:value}));
-  async function save(){setBusy(true);setNotice('');try{const clean=editable(s);await call('/settings','PUT',clean);setSaved(JSON.stringify(clean));setNotice('Banter settings saved. Changes reach Discord within 20 seconds.')}catch(e:any){setNotice(e.message)}finally{setBusy(false)}}
-  async function preview(){setTesting(true);setTestResult('');try{const x=await call('/preview','POST',{prompt:test,aggression:s.aggression,custom_instructions:s.custom_instructions});setTestResult(x.text)}catch(e:any){setTestResult(`Test unavailable: ${e.message}`)}finally{setTesting(false)}}
-  const controls:[keyof Settings,string,number,number,number][]=[['aggression','Roast intensity',1,10,1],['spontaneity','Chance per eligible message (%)',0,100,1],['channel_cooldown_minutes','Channel cooldown (minutes; 0 disables)',0,240,1],['spontaneous_user_cooldown_seconds','Same-member cooldown (seconds; 0 disables)',0,300,5],['minimum_participants','Minimum active participants',1,5,1],['daily_spontaneous_limit','Spontaneous posts per day',0,1000,1],['daily_total_limit','All Banter replies per day',1,1000,1],['context_messages','Recent messages of context',3,20,1]];
-  return <div className="banterExperience">
-    <header className="experienceHero banterHero"><div><span className="eyebrow">THE MOST JUDGMENTAL PIRATE IN THE ARCHIPELAGO</span><h1>BOM Banter</h1><p>Dry observations, sharp one-liners and the occasional unsolicited opinion. Banter responds when addressed, but only interrupts conversations you've selected.</p><div className="heroPills"><span>Dry wit & guild history</span><span>Opt-in Roast Mode</span><span>Guild-controlled limits</span></div></div></header>
-    {dirty&&<div className="notice" role="status">Unsaved changes — Discord is still using your last saved settings. Click Save Banter Settings to apply this draft.</div>}
-    {!initial.configured&&<div className="notice">No AI provider key is configured or enabled for Banter. Configure Groq and Gemini under Administration → AI Providers.</div>}
-    {notice&&<div className="notice" role="status">{notice}</div>}
-    <div className="banterLayout">
-      <section className="panel banterSection"><div className="panelHead"><div><span className="cardKicker">BEHAVIOR</span><h2>Personality & activity</h2></div></div>
-        <Toggle label="BOM Banter enabled" description="Master switch. Off means no replies, mentions, or roasts." checked={s.enabled} onChange={v=>change('enabled',v)}/>
-        <Toggle label="Spontaneous commentary" description="Only in the specific channels selected below; off by default." checked={s.spontaneous_enabled} onChange={v=>change('spontaneous_enabled',v)}/>
-        <Toggle label="Roast Mode" description="Members may roast themselves using /roast. Does not target uninvolved members." checked={s.roast_enabled} onChange={v=>change('roast_enabled',v)}/>
-        <div className="heroPills">{[{name:'Lively',chance:40,minutes:1,seconds:15,daily:150},{name:'Frequent',chance:70,minutes:0,seconds:10,daily:250}].map(p=><button key={p.name} type="button" className="outlineButton" onClick={()=>setS(x=>({...x,spontaneous_enabled:true,spontaneity:p.chance,channel_cooldown_minutes:p.minutes,spontaneous_user_cooldown_seconds:p.seconds,minimum_participants:1,daily_spontaneous_limit:p.daily,daily_total_limit:Math.max(x.daily_total_limit,p.daily)}))}>{p.name}</button>)}</div>
-        <p className="muted">Presets update the sliders; save to apply. Select spontaneous channels below. A chance roll applies to each eligible message; the AI can still skip weak opportunities.</p>
-        <p className="muted">AI Gateway budget: {initial.aiBudget?.daily??80} attempts/day and {initial.aiBudget?.minute??8}/minute, including previews and failed provider attempts. Raise it in Administration → AI Providers if you want more replies than that budget allows.</p>
-        {s.daily_total_limit>(initial.aiBudget?.daily??80)&&<div className="notice">Your Banter reply limit exceeds the AI Gateway attempt budget. The gateway budget may stop replies first.</div>}
-        {!initial.availability?.available&&<div className="notice">AI route needs attention: {initial.availability?.reason??'unknown'}. Check Administration → AI Providers.</div>}
-        <div className="banterSliders">{controls.map(([key,title,min,max,step])=><label key={key}><span><b>{title}</b><strong>{s[key] as number}</strong></span><input type="range" min={min} max={max} step={step} value={s[key] as number} onChange={e=>change(key,Number(e.target.value) as any)}/></label>)}</div>
-      </section>
-      <section className="panel banterSection"><div className="panelHead"><div><span className="cardKicker">DISCORD SCOPE</span><h2>Where Banter can talk</h2></div></div>
-        <SetPicker title="Spontaneous channels" description="Only these channels get unsolicited remarks. If none are selected, Banter never interrupts." options={initial.channels} selected={s.spontaneous_channels} onChange={v=>change('spontaneous_channels',v)}/>
-        <SetPicker title="Muted channels" description="No mentions, replies or spontaneous remarks in these channels." options={initial.channels} selected={s.excluded_channels} onChange={v=>change('excluded_channels',v)}/>
-        <SetPicker title="Excluded roles" description="Members with these roles won't trigger Banter or be included in its recent context." options={initial.roles} selected={s.excluded_role_ids} onChange={v=>change('excluded_role_ids',v)}/>
-        <label className="banterNotes"><b>Guild-specific lore and style notes</b><small>Optional instructions for recurring jokes and local slang. Never include private information.</small><textarea maxLength={1200} rows={5} value={s.custom_instructions} onChange={e=>change('custom_instructions',e.target.value)} placeholder="e.g. Mock sinking at Aruba, keep the insults about ship choices, talk like an arrogant pirate."/></label>
-      </section>
-    </div>
-    <section className="panel banterSection"><div className="panelHead"><div><span className="cardKicker">LIVE TEST</span><h2>Test a comeback</h2></div><span>Admiralty only</span></div><div className="banterTest"><textarea disabled={testing} aria-label="Message to test" value={test} maxLength={300} rows={3} onChange={e=>setTest(e.target.value)} placeholder="Something a captain might say…"/><button className="outlineButton" type="button" disabled={testing||!test.trim()} onClick={()=>void preview()}>{testing?'Thinking…':'Generate a reply'}</button></div>{testResult&&<blockquote className="banterTestResult" role="status">{testResult}</blockquote>}
-      <p className="muted">This preview uses your current unsaved intensity and lore. Testing consumes an AI Gateway request; it never posts in Discord.</p>
+function SetPicker({
+  title,
+  description,
+  selected,
+  options,
+  onChange,
+}: {
+  title: string;
+  description: string;
+  selected: string[];
+  options: Options;
+  onChange: (x: string[]) => void;
+}) {
+  const [q, setQ] = useState("");
+  const matches = options
+    .filter((x) => !selected.includes(x.id) && x.name.toLowerCase().includes(q.toLowerCase()))
+    .slice(0, 15);
+  return (
+    <section className="banterPicker">
+      <div>
+        <b>{title}</b>
+        <p>{description}</p>
+      </div>
+      <div className="banterChips">
+        {selected.map((id) => (
+          <span key={id}>
+            {options.find((x) => x.id === id)?.name ?? `Unavailable · ${id}`}
+            <button
+              type="button"
+              onClick={() => onChange(selected.filter((x) => x !== id))}
+              aria-label={`Remove ${id}`}
+            >
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+      <div className="banterPickerSelect">
+        <input
+          aria-label={`Search ${title}`}
+          placeholder="Search for a channel or role…"
+          value={q}
+          onChange={(e) => setQ(e.target.value)}
+        />
+        <select
+          aria-label={`Add ${title}`}
+          value=""
+          onChange={(e) => {
+            if (e.target.value) onChange([...selected, e.target.value]);
+            setQ("");
+          }}
+        >
+          <option value="">Add {title.toLowerCase()}…</option>
+          {matches.map((x) => (
+            <option key={x.id} value={x.id}>
+              {x.name}
+            </option>
+          ))}
+        </select>
+      </div>
     </section>
-    <section className="panel banterSection"><div className="panelHead"><div><span className="cardKicker">ACTIVITY</span><h2>Last seven days</h2></div></div><div className="banterCounters">{['mention','reply','spontaneous','roast'].map(k=><div key={k}><b>{initial.activity.find(x=>x.trigger_kind===k)?.count??0}</b><small>{k}</small></div>)}</div><p className="muted">Banter activity stores counts and event metadata. Action drafts and Wiki corrections are stored separately.</p></section>
-    <div className="banterSave"><span>Changes are server-wide and reviewed by Admiralty.</span><button className="goldButton" disabled={busy||!dirty} onClick={()=>void save()}>{busy?'Saving…':'Save Banter Settings'}</button></div>
-  </div>;
+  );
+}
+function Toggle({
+  label,
+  description,
+  checked,
+  onChange,
+}: {
+  label: string;
+  description: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="banterToggle">
+      <span>
+        <b>{label}</b>
+        <small>{description}</small>
+      </span>
+      <input type="checkbox" checked={checked} onChange={(e) => onChange(e.target.checked)} />
+      <span className={`banterToggleVisual ${checked ? "on" : "off"}`}>{checked ? "ON" : "OFF"}</span>
+    </label>
+  );
+}
+function editable(s: Settings): Settings {
+  return {
+    enabled: s.enabled,
+    spontaneous_enabled: s.spontaneous_enabled,
+    roast_enabled: s.roast_enabled,
+    aggression: s.aggression,
+    spontaneity: s.spontaneity,
+    channel_cooldown_minutes: s.channel_cooldown_minutes,
+    spontaneous_user_cooldown_seconds: s.spontaneous_user_cooldown_seconds,
+    minimum_participants: s.minimum_participants,
+    daily_spontaneous_limit: s.daily_spontaneous_limit,
+    daily_total_limit: s.daily_total_limit,
+    context_messages: s.context_messages,
+    spontaneous_channels: s.spontaneous_channels,
+    excluded_channels: s.excluded_channels,
+    excluded_role_ids: s.excluded_role_ids,
+    custom_instructions: s.custom_instructions,
+  };
+}
+export default function BanterDashboard({ initial }: Props) {
+  const [s, setS] = useState<Settings>({
+    ...initial.settings,
+    spontaneous_user_cooldown_seconds: initial.settings.spontaneous_user_cooldown_seconds ?? 30,
+    minimum_participants: initial.settings.minimum_participants ?? 1,
+    spontaneous_channels: initial.settings.spontaneous_channels ?? [],
+    excluded_channels: initial.settings.excluded_channels ?? [],
+    excluded_role_ids: initial.settings.excluded_role_ids ?? [],
+  });
+  const [busy, setBusy] = useState(false),
+    [notice, setNotice] = useState(""),
+    [test, setTest] = useState("I just brought a Victory to a 6th-rate fight."),
+    [testResult, setTestResult] = useState(""),
+    [testing, setTesting] = useState(false);
+  const [saved, setSaved] = useState(() => JSON.stringify(editable(s)));
+  const dirty = JSON.stringify(editable(s)) !== saved;
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("bom:dirty", { detail: { dirty } }));
+    return () => {
+      window.dispatchEvent(new CustomEvent("bom:dirty", { detail: { dirty: false } }));
+    };
+  }, [dirty]);
+  const change = <K extends keyof Settings>(key: K, value: Settings[K]) =>
+    setS((x) => ({ ...x, [key]: value }));
+  async function save() {
+    setBusy(true);
+    setNotice("");
+    try {
+      const clean = editable(s);
+      await call("/settings", "PUT", clean);
+      setSaved(JSON.stringify(clean));
+      setNotice("Banter settings saved. Changes reach Discord within 20 seconds.");
+    } catch (e: any) {
+      setNotice(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  async function preview() {
+    setTesting(true);
+    setTestResult("");
+    try {
+      const x = await call("/preview", "POST", {
+        prompt: test,
+        aggression: s.aggression,
+        custom_instructions: s.custom_instructions,
+      });
+      setTestResult(x.text);
+    } catch (e: any) {
+      setTestResult(`Test unavailable: ${e.message}`);
+    } finally {
+      setTesting(false);
+    }
+  }
+  const controls: [keyof Settings, string, number, number, number][] = [
+    ["aggression", "Roast intensity", 1, 10, 1],
+    ["spontaneity", "Chance per eligible message (%)", 0, 100, 1],
+    ["channel_cooldown_minutes", "Channel cooldown (minutes; 0 disables)", 0, 240, 1],
+    ["spontaneous_user_cooldown_seconds", "Same-member cooldown (seconds; 0 disables)", 0, 300, 5],
+    ["minimum_participants", "Minimum active participants", 1, 5, 1],
+    ["daily_spontaneous_limit", "Spontaneous posts per day", 0, 1000, 1],
+    ["daily_total_limit", "All Banter replies per day", 1, 1000, 1],
+    ["context_messages", "Recent messages of context", 3, 20, 1],
+  ];
+  return (
+    <div className="banterExperience">
+      <header className="experienceHero banterHero">
+        <div>
+          <span className="eyebrow">THE MOST JUDGMENTAL PIRATE IN THE ARCHIPELAGO</span>
+          <h1>BOM Banter</h1>
+          <p>
+            Dry observations, sharp one-liners and the occasional unsolicited opinion. Banter responds when
+            addressed, but only interrupts conversations you've selected.
+          </p>
+          <div className="heroPills">
+            <span>Dry wit & guild history</span>
+            <span>Opt-in Roast Mode</span>
+            <span>Guild-controlled limits</span>
+          </div>
+        </div>
+      </header>
+      {dirty && (
+        <div className="notice" role="status">
+          Unsaved changes — Discord is still using your last saved settings. Click Save Banter Settings to
+          apply this draft.
+        </div>
+      )}
+      {!initial.configured && (
+        <div className="notice">
+          No AI provider key is configured or enabled for Banter. Configure Groq and Gemini under
+          Administration → AI Providers.
+        </div>
+      )}
+      {notice && (
+        <div className="notice" role="status">
+          {notice}
+        </div>
+      )}
+      <div className="banterLayout">
+        <section className="panel banterSection">
+          <div className="panelHead">
+            <div>
+              <span className="cardKicker">BEHAVIOR</span>
+              <h2>Personality & activity</h2>
+            </div>
+          </div>
+          <Toggle
+            label="BOM Banter enabled"
+            description="Master switch. Off means no replies, mentions, or roasts."
+            checked={s.enabled}
+            onChange={(v) => change("enabled", v)}
+          />
+          <Toggle
+            label="Spontaneous commentary"
+            description="Only in the specific channels selected below; off by default."
+            checked={s.spontaneous_enabled}
+            onChange={(v) => change("spontaneous_enabled", v)}
+          />
+          <Toggle
+            label="Roast Mode"
+            description="Members may roast themselves using /roast. Does not target uninvolved members."
+            checked={s.roast_enabled}
+            onChange={(v) => change("roast_enabled", v)}
+          />
+          <div className="heroPills">
+            {[
+              { name: "Lively", chance: 40, minutes: 1, seconds: 15, daily: 150 },
+              { name: "Frequent", chance: 70, minutes: 0, seconds: 10, daily: 250 },
+            ].map((p) => (
+              <button
+                key={p.name}
+                type="button"
+                className="outlineButton"
+                onClick={() =>
+                  setS((x) => ({
+                    ...x,
+                    spontaneous_enabled: true,
+                    spontaneity: p.chance,
+                    channel_cooldown_minutes: p.minutes,
+                    spontaneous_user_cooldown_seconds: p.seconds,
+                    minimum_participants: 1,
+                    daily_spontaneous_limit: p.daily,
+                    daily_total_limit: Math.max(x.daily_total_limit, p.daily),
+                  }))
+                }
+              >
+                {p.name}
+              </button>
+            ))}
+          </div>
+          <p className="muted">
+            Presets update the sliders; save to apply. Select spontaneous channels below. A chance roll
+            applies to each eligible message; the AI can still skip weak opportunities.
+          </p>
+          <p className="muted">
+            AI Gateway budget: {initial.aiBudget?.daily ?? 80} attempts/day and{" "}
+            {initial.aiBudget?.minute ?? 8}/minute, including previews and failed provider attempts. Raise it
+            in Administration → AI Providers if you want more replies than that budget allows.
+          </p>
+          {s.daily_total_limit > (initial.aiBudget?.daily ?? 80) && (
+            <div className="notice">
+              Your Banter reply limit exceeds the AI Gateway attempt budget. The gateway budget may stop
+              replies first.
+            </div>
+          )}
+          {!initial.availability?.available && (
+            <div className="notice">
+              AI route needs attention: {initial.availability?.reason ?? "unknown"}. Check Administration → AI
+              Providers.
+            </div>
+          )}
+          <div className="banterSliders">
+            {controls.map(([key, title, min, max, step]) => (
+              <label key={key}>
+                <span>
+                  <b>{title}</b>
+                  <strong>{s[key] as number}</strong>
+                </span>
+                <input
+                  type="range"
+                  min={min}
+                  max={max}
+                  step={step}
+                  value={s[key] as number}
+                  onChange={(e) => change(key, Number(e.target.value) as any)}
+                />
+              </label>
+            ))}
+          </div>
+        </section>
+        <section className="panel banterSection">
+          <div className="panelHead">
+            <div>
+              <span className="cardKicker">DISCORD SCOPE</span>
+              <h2>Where Banter can talk</h2>
+            </div>
+          </div>
+          <SetPicker
+            title="Spontaneous channels"
+            description="Only these channels get unsolicited remarks. If none are selected, Banter never interrupts."
+            options={initial.channels}
+            selected={s.spontaneous_channels}
+            onChange={(v) => change("spontaneous_channels", v)}
+          />
+          <SetPicker
+            title="Muted channels"
+            description="No mentions, replies or spontaneous remarks in these channels."
+            options={initial.channels}
+            selected={s.excluded_channels}
+            onChange={(v) => change("excluded_channels", v)}
+          />
+          <SetPicker
+            title="Excluded roles"
+            description="Members with these roles won't trigger Banter or be included in its recent context."
+            options={initial.roles}
+            selected={s.excluded_role_ids}
+            onChange={(v) => change("excluded_role_ids", v)}
+          />
+          <label className="banterNotes">
+            <b>Guild-specific lore and style notes</b>
+            <small>
+              Optional instructions for recurring jokes and local slang. Never include private information.
+            </small>
+            <textarea
+              maxLength={1200}
+              rows={5}
+              value={s.custom_instructions}
+              onChange={(e) => change("custom_instructions", e.target.value)}
+              placeholder="e.g. Mock sinking at Aruba, keep the insults about ship choices, talk like an arrogant pirate."
+            />
+          </label>
+        </section>
+      </div>
+      <section className="panel banterSection">
+        <div className="panelHead">
+          <div>
+            <span className="cardKicker">LIVE TEST</span>
+            <h2>Test a comeback</h2>
+          </div>
+          <span>Admiralty only</span>
+        </div>
+        <div className="banterTest">
+          <textarea
+            disabled={testing}
+            aria-label="Message to test"
+            value={test}
+            maxLength={300}
+            rows={3}
+            onChange={(e) => setTest(e.target.value)}
+            placeholder="Something a captain might say…"
+          />
+          <button
+            className="outlineButton"
+            type="button"
+            disabled={testing || !test.trim()}
+            onClick={() => void preview()}
+          >
+            {testing ? "Thinking…" : "Generate a reply"}
+          </button>
+        </div>
+        {testResult && (
+          <blockquote className="banterTestResult" role="status">
+            {testResult}
+          </blockquote>
+        )}
+        <p className="muted">
+          This preview uses your current unsaved intensity and lore. Testing consumes an AI Gateway request;
+          it never posts in Discord.
+        </p>
+      </section>
+      <section className="panel banterSection">
+        <div className="panelHead">
+          <div>
+            <span className="cardKicker">ACTIVITY</span>
+            <h2>Last seven days</h2>
+          </div>
+        </div>
+        <div className="banterCounters">
+          {["mention", "reply", "spontaneous", "roast"].map((k) => (
+            <div key={k}>
+              <b>{initial.activity.find((x) => x.trigger_kind === k)?.count ?? 0}</b>
+              <small>{k}</small>
+            </div>
+          ))}
+        </div>
+        <p className="muted">
+          Banter activity stores counts and event metadata. Action drafts and Wiki corrections are stored
+          separately.
+        </p>
+      </section>
+      <div className="banterSave">
+        <span>Changes are server-wide and reviewed by Admiralty.</span>
+        <button className="goldButton" disabled={busy || !dirty} onClick={() => void save()}>
+          {busy ? "Saving…" : "Save Banter Settings"}
+        </button>
+      </div>
+    </div>
+  );
 }

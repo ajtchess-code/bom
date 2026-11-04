@@ -48,7 +48,7 @@ test('PB edits perform revision-checked conditional updates',()=>{
  const s=src('apps/api/src/wosbWorkspace.ts');
  assert.match(s,/AND revision=\$12 AND status IN \('OPEN','CLOSED'\) RETURNING revision/);
  assert.match(s,/error:'stale_battle'/);
- assert.match(src('apps/dashboard/components/PortBattlesDashboard.tsx'),/revision:battle\.revision/);
+ assert.match(src('apps/dashboard/components/PortBattlesDashboard.tsx'),/revision:\s*battle\.revision/);
 });
 test('PB orphan cleanup does not mistake failed message deletes for success',()=>{
  const s=src('apps/controller/src/index.ts');

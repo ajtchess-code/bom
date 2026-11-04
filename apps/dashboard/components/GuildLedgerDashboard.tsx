@@ -1,19 +1,382 @@
-'use client';
-import {useEffect,useState} from 'react';
-import {operationsApi,displayDate,downloadCsv} from './operationsApi';
-import './CommunityOperations.css';
-export default function GuildLedgerDashboard(){
- const [data,setData]=useState<any>(null),[notice,setNotice]=useState(''),[busy,setBusy]=useState(false),[filter,setFilter]=useState('ALL');
- const [fort,setFort]=useState(''),[note,setNote]=useState(''),[lines,setLines]=useState<{key:string;quantity:string}[]>([{key:'',quantity:'1'}]),[donationKey,setDonationKey]=useState('');
- const [kind,setKind]=useState('OPENING'),[amount,setAmount]=useState(''),[reason,setReason]=useState(''),[treasuryKey,setTreasuryKey]=useState('');
- const [reviewNotes,setReviewNotes]=useState<Record<string,string>>({});
- async function load(){const d=await operationsApi('community/ledger');setData(d);if(d.treasury?.length)setKind(current=>current==='OPENING'?'DEPOSIT':current);}
- useEffect(()=>{setDonationKey(crypto.randomUUID());setTreasuryKey(crypto.randomUUID());void load().catch(e=>setNotice(e.message));},[]);
- async function perform(fn:()=>Promise<void>){setBusy(true);try{await fn();await load();}catch(e:any){setNotice(e.message);}finally{setBusy(false);}}
- const donations=(data?.donations??[]).filter((d:any)=>filter==='ALL'||d.status===filter);
- return <div className="opsPage"><header><div><h1>Guild Donations & Treasury</h1><p>Fort deposits, chests and gold transactions · Officer-verified records</p></div><button onClick={()=>void perform(load)} disabled={busy}>Refresh</button></header>{notice&&<p className="opsNotice" role="status">{notice}</p>}
- <div className="opsGrid"><section className="opsCard"><h2>Submit a Donation</h2><p className="opsHint">Deposit the items in-game first. This records your submission for verification; it does not transfer items.</p><label>Fort / port<input value={fort} maxLength={100} onChange={e=>setFort(e.target.value)} required/></label>{lines.map((line,i)=><div className="opsRow" key={i}><label>Resource, item or chest<select value={line.key} onChange={e=>setLines(lines.map((x,n)=>n===i?{...x,key:e.target.value}:x))}><option value="">Choose item</option>{data?.items?.map((item:any)=><option key={item.key} value={item.key}>{item.name}</option>)}</select></label><label>Quantity<input inputMode="numeric" type="number" min="1" step="1" max="1000000000000" value={line.quantity} onChange={e=>setLines(lines.map((x,n)=>n===i?{...x,quantity:e.target.value}:x))}/></label><button disabled={lines.length===1} onClick={()=>setLines(lines.filter((_,n)=>n!==i))}>Remove</button></div>)}<button disabled={lines.length>=30} onClick={()=>setLines([...lines,{key:'',quantity:'1'}])}>Add Item</button><label>Note / evidence reference (optional)<textarea value={note} maxLength={1000} onChange={e=>setNote(e.target.value)}/></label><button className="primary" disabled={busy||!fort.trim()||lines.some(l=>!l.key||!Number.isSafeInteger(Number(l.quantity))||Number(l.quantity)<1)} onClick={()=>void perform(async()=>{await operationsApi('community/donations',{method:'POST',body:JSON.stringify({requestKey:donationKey,fortName:fort,note,items:lines.map(l=>({key:l.key,quantity:Number(l.quantity)}))})});setDonationKey(crypto.randomUUID());setLines([{key:'',quantity:'1'}]);setNote('');setNotice('Donation submitted for verification.');})}>Submit Donation</button></section>
- <section className="opsCard"><h2>Guild Treasury</h2><div><span className="opsStat">{data?.balance?BigInt(data.balance).toLocaleString():'0'}</span> gold</div><p className="opsHint">Recorded balance. Set the initial balance once, then log deposits, withdrawals and corrections.</p>{data?.canManage&&<><label>Transaction<select value={kind} onChange={e=>setKind(e.target.value)}>{!data?.treasury?.length&&<option value="OPENING">Opening balance</option>}<option value="DEPOSIT">Deposit</option><option value="WITHDRAWAL">Withdrawal</option></select></label><label>Gold amount<input inputMode="numeric" value={amount} onChange={e=>setAmount(e.target.value)} maxLength={18}/></label><label>Reason (required)<textarea value={reason} onChange={e=>setReason(e.target.value)} maxLength={1000}/></label><button className="primary" disabled={busy||!reason.trim()||!/^[1-9]\d{0,17}$/.test(amount)} onClick={()=>{if(confirm(`Record ${kind.toLowerCase()} of ${amount} gold?`))void perform(async()=>{await operationsApi('community/treasury',{method:'POST',body:JSON.stringify({kind,amount,reason,requestKey:treasuryKey})});setTreasuryKey(crypto.randomUUID());setAmount('');setReason('');setKind('DEPOSIT');setNotice('Treasury entry recorded.');});}}>Record Transaction</button></>}</section></div>
- <section className="opsCard"><div className="opsToolbar"><h2>Donation Ledger</h2><label>Status<select value={filter} onChange={e=>setFilter(e.target.value)}>{['ALL','PENDING','VERIFIED','DECLINED'].map(v=><option key={v}>{v}</option>)}</select></label><button onClick={()=>downloadCsv('bom-donations.csv',[['Date','Member','Fort','Item','Quantity','Status','Reviewed by'],...donations.flatMap((d:any)=>d.items.map((i:any)=>[d.created_at,d.user_id,d.fort_name,i.name,i.quantity,d.status,d.reviewed_by]))])}>Export CSV</button></div><div className="opsTableScroll"><table><thead><tr><th>Date / Member</th><th>Fort & Items</th><th>Status</th><th>Review</th></tr></thead><tbody>{donations.map((d:any)=><tr key={d.id}><td>{displayDate(d.created_at)}<small>{d.user_id}</small></td><td><b>{d.fort_name}</b>{d.items.map((i:any)=><small key={i.key}>{i.name} × {Number(i.quantity).toLocaleString()}</small>)}{d.note&&<small>{d.note}</small>}</td><td><span className="opsTag">{d.status}</span></td><td>{data?.canManage&&d.status==='PENDING'?<><input aria-label="Review note" placeholder="Review note (optional)" value={reviewNotes[d.id]??''} onChange={e=>setReviewNotes({...reviewNotes,[d.id]:e.target.value})}/><div className="opsActions">{['VERIFIED','DECLINED'].map(status=><button key={status} disabled={busy} onClick={()=>void perform(async()=>{await operationsApi(`community/donations/${d.id}/review`,{method:'POST',body:JSON.stringify({status,note:reviewNotes[d.id]??''})});setNotice('Donation '+status.toLowerCase()+'.');})}>{status==='VERIFIED'?'Verify':'Decline'}</button>)}</div></>:<>{d.reviewed_by??'Awaiting verification'}<small>{d.review_note}</small></>}</td></tr>)}</tbody></table></div>{!donations.length&&<p className="uiEmpty">No donations in this view.</p>}</section>
- <section className="opsCard"><div className="opsToolbar"><h2>Treasury History</h2><button onClick={()=>downloadCsv('bom-treasury.csv',[['Date','Type','Amount','Reason','Officer','Reverses'],...(data?.treasury??[]).map((r:any)=>[r.created_at,r.kind,r.amount,r.reason,r.actor_id,r.reverses_id])])}>Export CSV</button></div><div className="opsTableScroll"><table><thead><tr><th>Date</th><th>Type</th><th>Gold</th><th>Reason</th><th>Officer</th>{data?.canManage&&<th>Correction</th>}</tr></thead><tbody>{data?.treasury?.map((r:any)=><tr key={r.id}><td>{displayDate(r.created_at)}</td><td>{r.kind}</td><td>{BigInt(r.amount).toLocaleString()}</td><td>{r.reason}{r.reverses_id&&<small>Reverses {r.reverses_id}</small>}</td><td>{r.actor_id}</td>{data.canManage&&<td>{r.kind!=='REVERSAL'&&!data.treasury.some((x:any)=>x.reverses_id===r.id)&&<button disabled={busy} onClick={()=>{const explanation=prompt('Reason for reversing this entry:');if(explanation?.trim())void perform(async()=>{await operationsApi('community/treasury',{method:'POST',body:JSON.stringify({kind:'REVERSAL',reversesId:r.id,reason:explanation,requestKey:crypto.randomUUID()})});setNotice('Correction recorded as a reversal.');});}}>Reverse</button>}</td>}</tr>)}</tbody></table></div></section></div>;
+"use client";
+import { useEffect, useState } from "react";
+import { operationsApi, displayDate, downloadCsv } from "./operationsApi";
+import "./CommunityOperations.css";
+export default function GuildLedgerDashboard() {
+  const [data, setData] = useState<any>(null),
+    [notice, setNotice] = useState(""),
+    [busy, setBusy] = useState(false),
+    [filter, setFilter] = useState("ALL");
+  const [fort, setFort] = useState(""),
+    [note, setNote] = useState(""),
+    [lines, setLines] = useState<{ key: string; quantity: string }[]>([{ key: "", quantity: "1" }]),
+    [donationKey, setDonationKey] = useState("");
+  const [kind, setKind] = useState("OPENING"),
+    [amount, setAmount] = useState(""),
+    [reason, setReason] = useState(""),
+    [treasuryKey, setTreasuryKey] = useState("");
+  const [reviewNotes, setReviewNotes] = useState<Record<string, string>>({});
+  async function load() {
+    const d = await operationsApi("community/ledger");
+    setData(d);
+    if (d.treasury?.length) setKind((current) => (current === "OPENING" ? "DEPOSIT" : current));
+  }
+  useEffect(() => {
+    setDonationKey(crypto.randomUUID());
+    setTreasuryKey(crypto.randomUUID());
+    void load().catch((e) => setNotice(e.message));
+  }, []);
+  async function perform(fn: () => Promise<void>) {
+    setBusy(true);
+    try {
+      await fn();
+      await load();
+    } catch (e: any) {
+      setNotice(e.message);
+    } finally {
+      setBusy(false);
+    }
+  }
+  const donations = (data?.donations ?? []).filter((d: any) => filter === "ALL" || d.status === filter);
+  return (
+    <div className="opsPage">
+      <header>
+        <div>
+          <h1>Guild Donations & Treasury</h1>
+          <p>Fort deposits, chests and gold transactions · Officer-verified records</p>
+        </div>
+        <button onClick={() => void perform(load)} disabled={busy}>
+          Refresh
+        </button>
+      </header>
+      {notice && (
+        <p className="opsNotice" role="status">
+          {notice}
+        </p>
+      )}
+      <div className="opsGrid">
+        <section className="opsCard">
+          <h2>Submit a Donation</h2>
+          <p className="opsHint">
+            Deposit the items in-game first. This records your submission for verification; it does not
+            transfer items.
+          </p>
+          <label>
+            Fort / port
+            <input value={fort} maxLength={100} onChange={(e) => setFort(e.target.value)} required />
+          </label>
+          {lines.map((line, i) => (
+            <div className="opsRow" key={i}>
+              <label>
+                Resource, item or chest
+                <select
+                  value={line.key}
+                  onChange={(e) =>
+                    setLines(lines.map((x, n) => (n === i ? { ...x, key: e.target.value } : x)))
+                  }
+                >
+                  <option value="">Choose item</option>
+                  {data?.items?.map((item: any) => (
+                    <option key={item.key} value={item.key}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                Quantity
+                <input
+                  inputMode="numeric"
+                  type="number"
+                  min="1"
+                  step="1"
+                  max="1000000000000"
+                  value={line.quantity}
+                  onChange={(e) =>
+                    setLines(lines.map((x, n) => (n === i ? { ...x, quantity: e.target.value } : x)))
+                  }
+                />
+              </label>
+              <button disabled={lines.length === 1} onClick={() => setLines(lines.filter((_, n) => n !== i))}>
+                Remove
+              </button>
+            </div>
+          ))}
+          <button
+            disabled={lines.length >= 30}
+            onClick={() => setLines([...lines, { key: "", quantity: "1" }])}
+          >
+            Add Item
+          </button>
+          <label>
+            Note / evidence reference (optional)
+            <textarea value={note} maxLength={1000} onChange={(e) => setNote(e.target.value)} />
+          </label>
+          <button
+            className="primary"
+            disabled={
+              busy ||
+              !fort.trim() ||
+              lines.some((l) => !l.key || !Number.isSafeInteger(Number(l.quantity)) || Number(l.quantity) < 1)
+            }
+            onClick={() =>
+              void perform(async () => {
+                await operationsApi("community/donations", {
+                  method: "POST",
+                  body: JSON.stringify({
+                    requestKey: donationKey,
+                    fortName: fort,
+                    note,
+                    items: lines.map((l) => ({ key: l.key, quantity: Number(l.quantity) })),
+                  }),
+                });
+                setDonationKey(crypto.randomUUID());
+                setLines([{ key: "", quantity: "1" }]);
+                setNote("");
+                setNotice("Donation submitted for verification.");
+              })
+            }
+          >
+            Submit Donation
+          </button>
+        </section>
+        <section className="opsCard">
+          <h2>Guild Treasury</h2>
+          <div>
+            <span className="opsStat">{data?.balance ? BigInt(data.balance).toLocaleString() : "0"}</span>{" "}
+            gold
+          </div>
+          <p className="opsHint">
+            Recorded balance. Set the initial balance once, then log deposits, withdrawals and corrections.
+          </p>
+          {data?.canManage && (
+            <>
+              <label>
+                Transaction
+                <select value={kind} onChange={(e) => setKind(e.target.value)}>
+                  {!data?.treasury?.length && <option value="OPENING">Opening balance</option>}
+                  <option value="DEPOSIT">Deposit</option>
+                  <option value="WITHDRAWAL">Withdrawal</option>
+                </select>
+              </label>
+              <label>
+                Gold amount
+                <input
+                  inputMode="numeric"
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  maxLength={18}
+                />
+              </label>
+              <label>
+                Reason (required)
+                <textarea value={reason} onChange={(e) => setReason(e.target.value)} maxLength={1000} />
+              </label>
+              <button
+                className="primary"
+                disabled={busy || !reason.trim() || !/^[1-9]\d{0,17}$/.test(amount)}
+                onClick={() => {
+                  if (confirm(`Record ${kind.toLowerCase()} of ${amount} gold?`))
+                    void perform(async () => {
+                      await operationsApi("community/treasury", {
+                        method: "POST",
+                        body: JSON.stringify({ kind, amount, reason, requestKey: treasuryKey }),
+                      });
+                      setTreasuryKey(crypto.randomUUID());
+                      setAmount("");
+                      setReason("");
+                      setKind("DEPOSIT");
+                      setNotice("Treasury entry recorded.");
+                    });
+                }}
+              >
+                Record Transaction
+              </button>
+            </>
+          )}
+        </section>
+      </div>
+      <section className="opsCard">
+        <div className="opsToolbar">
+          <h2>Donation Ledger</h2>
+          <label>
+            Status
+            <select value={filter} onChange={(e) => setFilter(e.target.value)}>
+              {["ALL", "PENDING", "VERIFIED", "DECLINED"].map((v) => (
+                <option key={v}>{v}</option>
+              ))}
+            </select>
+          </label>
+          <button
+            onClick={() =>
+              downloadCsv("bom-donations.csv", [
+                ["Date", "Member", "Fort", "Item", "Quantity", "Status", "Reviewed by"],
+                ...donations.flatMap((d: any) =>
+                  d.items.map((i: any) => [
+                    d.created_at,
+                    d.user_id,
+                    d.fort_name,
+                    i.name,
+                    i.quantity,
+                    d.status,
+                    d.reviewed_by,
+                  ]),
+                ),
+              ])
+            }
+          >
+            Export CSV
+          </button>
+        </div>
+        <div className="opsTableScroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Date / Member</th>
+                <th>Fort & Items</th>
+                <th>Status</th>
+                <th>Review</th>
+              </tr>
+            </thead>
+            <tbody>
+              {donations.map((d: any) => (
+                <tr key={d.id}>
+                  <td>
+                    {displayDate(d.created_at)}
+                    <small>{d.user_id}</small>
+                  </td>
+                  <td>
+                    <b>{d.fort_name}</b>
+                    {d.items.map((i: any) => (
+                      <small key={i.key}>
+                        {i.name} × {Number(i.quantity).toLocaleString()}
+                      </small>
+                    ))}
+                    {d.note && <small>{d.note}</small>}
+                  </td>
+                  <td>
+                    <span className="opsTag">{d.status}</span>
+                  </td>
+                  <td>
+                    {data?.canManage && d.status === "PENDING" ? (
+                      <>
+                        <input
+                          aria-label="Review note"
+                          placeholder="Review note (optional)"
+                          value={reviewNotes[d.id] ?? ""}
+                          onChange={(e) => setReviewNotes({ ...reviewNotes, [d.id]: e.target.value })}
+                        />
+                        <div className="opsActions">
+                          {["VERIFIED", "DECLINED"].map((status) => (
+                            <button
+                              key={status}
+                              disabled={busy}
+                              onClick={() =>
+                                void perform(async () => {
+                                  await operationsApi(`community/donations/${d.id}/review`, {
+                                    method: "POST",
+                                    body: JSON.stringify({ status, note: reviewNotes[d.id] ?? "" }),
+                                  });
+                                  setNotice("Donation " + status.toLowerCase() + ".");
+                                })
+                              }
+                            >
+                              {status === "VERIFIED" ? "Verify" : "Decline"}
+                            </button>
+                          ))}
+                        </div>
+                      </>
+                    ) : (
+                      <>
+                        {d.reviewed_by ?? "Awaiting verification"}
+                        <small>{d.review_note}</small>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {!donations.length && <p className="uiEmpty">No donations in this view.</p>}
+      </section>
+      <section className="opsCard">
+        <div className="opsToolbar">
+          <h2>Treasury History</h2>
+          <button
+            onClick={() =>
+              downloadCsv("bom-treasury.csv", [
+                ["Date", "Type", "Amount", "Reason", "Officer", "Reverses"],
+                ...(data?.treasury ?? []).map((r: any) => [
+                  r.created_at,
+                  r.kind,
+                  r.amount,
+                  r.reason,
+                  r.actor_id,
+                  r.reverses_id,
+                ]),
+              ])
+            }
+          >
+            Export CSV
+          </button>
+        </div>
+        <div className="opsTableScroll">
+          <table>
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Gold</th>
+                <th>Reason</th>
+                <th>Officer</th>
+                {data?.canManage && <th>Correction</th>}
+              </tr>
+            </thead>
+            <tbody>
+              {data?.treasury?.map((r: any) => (
+                <tr key={r.id}>
+                  <td>{displayDate(r.created_at)}</td>
+                  <td>{r.kind}</td>
+                  <td>{BigInt(r.amount).toLocaleString()}</td>
+                  <td>
+                    {r.reason}
+                    {r.reverses_id && <small>Reverses {r.reverses_id}</small>}
+                  </td>
+                  <td>{r.actor_id}</td>
+                  {data.canManage && (
+                    <td>
+                      {r.kind !== "REVERSAL" && !data.treasury.some((x: any) => x.reverses_id === r.id) && (
+                        <button
+                          disabled={busy}
+                          onClick={() => {
+                            const explanation = prompt("Reason for reversing this entry:");
+                            if (explanation?.trim())
+                              void perform(async () => {
+                                await operationsApi("community/treasury", {
+                                  method: "POST",
+                                  body: JSON.stringify({
+                                    kind: "REVERSAL",
+                                    reversesId: r.id,
+                                    reason: explanation,
+                                    requestKey: crypto.randomUUID(),
+                                  }),
+                                });
+                                setNotice("Correction recorded as a reversal.");
+                              });
+                          }}
+                        >
+                          Reverse
+                        </button>
+                      )}
+                    </td>
+                  )}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+  );
 }
