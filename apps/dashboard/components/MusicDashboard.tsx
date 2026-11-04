@@ -1,153 +1,90 @@
 "use client";
-import MusicSessionTools from "./MusicSessionTools";
-
-import { FormEvent, useEffect, useMemo, useRef, useState, type CSSProperties, type DragEvent } from "react";
-import { normalizeLocale, tr } from "@bom/shared";
+// Music: one clean screen. Now playing with controls, add a song, the queue,
+// and what played recently. Live updates come from the music event stream.
+import { type FormEvent, useEffect, useRef, useState } from "react";
+import CommandIcon from "./CommandIcon";
+import { EmptyState } from "./ui/State";
 
 type Summary = any;
-type MusicTab = "player" | "queue" | "history" | "audio";
-const tabs: [MusicTab, string, string][] = [
-  ["player", "Now Playing", "◉"],
-  ["queue", "Queue", "≡"],
-  ["history", "History", "◷"],
-  ["audio", "Volume & Sound", "≋"],
-];
-const workerColors: Record<string, string> = {
-  "1": "#9B4DFF",
-  "2": "#ED4245",
-  "3": "#F47B20",
-  "4": "#F1C40F",
-  "5": "#57F287",
-  "6": "#3498DB",
-  "7": "#F2F3F5",
-  "8": "#232428",
-};
+
 const fmt = (ms: number = 0) => {
-  const safe = Number.isFinite(Number(ms)) ? Number(ms) : 0,
-    s = Math.floor(safe / 1000);
-  return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
+  const s = Math.max(0, Math.floor((Number.isFinite(Number(ms)) ? Number(ms) : 0) / 1000));
+  const h = Math.floor(s / 3600),
+    m = Math.floor((s % 3600) / 60),
+    sec = String(s % 60).padStart(2, "0");
+  return h ? `${h}:${String(m).padStart(2, "0")}:${sec}` : `${m}:${sec}`;
+};
+const ago = (v: any) => {
+  const m = Math.floor((Date.now() - +new Date(v)) / 60000);
+  if (!Number.isFinite(m) || m < 1) return "just now";
+  if (m < 60) return `${m}m ago`;
+  const h = Math.floor(m / 60);
+  return h < 24 ? `${h}h ago` : new Date(v).toLocaleDateString([], { month: "short", day: "numeric" });
 };
 async function api(path: string, init: RequestInit = {}) {
   const headers = new Headers(init.headers);
   if (init.body && !headers.has("content-type")) headers.set("content-type", "application/json");
-  return fetch(path, { ...init, headers });
+  return fetch(path, { ...init, headers, cache: "no-store" });
 }
-
-function lyricLines(raw: any) {
-  const lines = raw?.lines ?? raw?.data?.lines ?? raw?.lyrics?.lines ?? [];
-  return Array.isArray(lines)
-    ? lines
-        .map((x: any) => ({
-          time: Number(x.timestamp ?? x.time ?? x.startTime ?? 0),
-          text: String(x.line ?? x.text ?? x.content ?? ""),
-        }))
-        .filter((x: any) => x.text)
-    : [];
+// Artwork with an icon fallback when the image is missing or fails to load.
+function Art({ src, size }: { src?: string | null; size: number }) {
+  const [failed, setFailed] = useState(false);
+  return src && !failed ? (
+    <img src={src} alt="" onError={() => setFailed(true)} />
+  ) : (
+    <CommandIcon name="music" size={size} />
+  );
 }
-function currentLyric(lines: any[], position: number) {
-  let idx = -1;
-  for (let i = 0; i < lines.length; i++) {
-    if (lines[i].time <= position) idx = i;
-    else break;
-  }
-  return idx;
-}
+const requesterName = (q: any) =>
+  q?.requester?.name ??
+  (q?.requesterId === "autoplay" ? "Autoplay" : q?.requesterId === "BOM Radio" ? "BOM Radio" : "Listener");
 
 export default function MusicDashboard({ initial }: { initial: Summary }) {
-  const [data, setData] = useState(initial),
-    [tab, setTab] = useState<MusicTab>("player"),
-    [filters, setFilters] = useState<any[]>([]),
-    [recommendations, setRecommendations] = useState<any[]>([]),
-    [community, setCommunity] = useState<any>({}),
-    [stats, setStats] = useState<any>({}),
-    [query, setQuery] = useState(""),
-    [notice, setNotice] = useState(""),
-    [historyQ, setHistoryQ] = useState(""),
-    [history, setHistory] = useState<any[]>(initial.history ?? []),
-    [locale, setLocale] = useState(
-      normalizeLocale(initial.preferences?.language ?? initial.settings?.default_language ?? "en-US"),
-    ),
-    [fullscreen, setFullscreen] = useState(false),
-    [displayPosition, setDisplayPosition] = useState(Number(initial.activeRoom?.state?.position ?? 0)),
-    [theme, setTheme] = useState(workerColors[String(initial.activeRoom?.state?.workerId ?? 1)]),
-    [dragIndex, setDragIndex] = useState<number | null>(null),
-    [profileDraft, setProfileDraft] = useState<any>({
-      displayMode: initial.profile?.display_mode ?? "PUBLIC",
-      preferredMood: initial.profile?.preferred_mood ?? "",
-      discoveryLevel: initial.profile?.discovery_level ?? "BALANCED",
-      favoriteGenres: Array.isArray(initial.profile?.favorite_genres)
-        ? initial.profile.favorite_genres.join(", ")
-        : "",
-    });
-  const heroRef = useRef<HTMLDivElement | null>(null);
-  const room = data.activeRoom,
-    voice = data.voiceContext,
-    track = room?.state?.track,
-    meta = room?.metadata,
-    features = data.features ?? {},
-    profile = data.profile ?? {},
-    userMetrics = data.metrics ?? {},
-    achievements = data.achievements ?? [],
-    feedback = data.feedback ?? [],
-    favorites = data.favorites ?? [];
-  const can = (p: string) => Boolean(data.capabilities?.[p]);
-  const online = data.workers?.filter((w: any) => !w.offline).length ?? 0;
-  const isPlaying = room?.state?.status === "PLAYING";
-  const currentFeedback = track
-    ? feedback.find((x: any) => x.identifier === track.identifier && x.source_name === track.sourceName)
-    : null;
-  const isFavorite = track
-    ? favorites.some((x: any) => x.identifier === track.identifier && x.source_name === track.sourceName)
-    : false;
-  const lines = useMemo(() => lyricLines(room?.lyrics), [room?.lyrics]);
-  const lyricIndex = currentLyric(lines, Number(room?.state?.position ?? 0));
+  const [data, setData] = useState<Summary>(initial);
+  const [history, setHistory] = useState<any[]>(initial.history ?? []);
+  const [query, setQuery] = useState("");
+  const [notice, setNotice] = useState<{ text: string; tone: "ok" | "error" } | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [position, setPosition] = useState(Number(initial.activeRoom?.state?.position ?? 0));
+  const [volume, setVolume] = useState(100);
+  const [dragIndex, setDragIndex] = useState<number | null>(null);
+  const volumeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const noticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
+  const room = data.activeRoom;
+  const state = room?.state ?? {};
+  const track = state.track;
+  const queue: any[] = room?.queue ?? [];
+  const voice = data.voiceContext;
+  const can = (p: string) => Boolean(data.capabilities?.[p]);
+  const paused = state.status === "PAUSED";
+  const playing = state.status === "PLAYING";
+  const active = Boolean(track) && !["IDLE", "STOPPED", "ERROR"].includes(String(state.status));
+  const botsOnline = (data.workers ?? []).filter((w: any) => !w.offline).length;
+  const botsTotal = (data.workers ?? []).length || 8;
+
+  function say(text: string, tone: "ok" | "error" = "ok") {
+    setNotice({ text, tone });
+    if (noticeTimer.current) clearTimeout(noticeTimer.current);
+    noticeTimer.current = setTimeout(() => setNotice(null), 4000);
+  }
   async function refresh() {
-    const r = await api("/api/internal/music/summary", { cache: "no-store" });
-    if (r.ok) {
-      const j = await r.json();
-      setData(j);
-      setHistory(j.history ?? []);
-    }
+    const r = await api("/api/internal/music/summary");
+    if (!r.ok) return;
+    const j = await r.json();
+    setData(j);
+    setHistory(j.history ?? []);
   }
   async function refreshRoom(roomId: string) {
-    const r = await api(`/api/internal/music/room/${encodeURIComponent(roomId)}/live`, { cache: "no-store" });
-    if (!r.ok) return;
+    const r = await api(`/api/internal/music/room/${encodeURIComponent(roomId)}/live`);
+    if (!r.ok) return void refresh();
     const live = await r.json();
-    setData((d: any) => ({
-      ...d,
-      rooms: (d.rooms ?? []).map((x: any) => (x.id === roomId ? live : x)),
-      activeRoom: d.activeRoom?.id === roomId ? live : d.activeRoom,
-    }));
+    setData((d: any) => ({ ...d, activeRoom: d.activeRoom?.id === roomId ? live : d.activeRoom }));
   }
-  async function loadAux() {
-    await Promise.all([
-      api("/api/internal/filters")
-        .then(async (r) => {
-          if (r.ok) setFilters(await r.json());
-        })
-        .catch(() => {}),
-      api("/api/internal/music/recommendations")
-        .then(async (r) => {
-          if (r.ok) setRecommendations(await r.json());
-        })
-        .catch(() => {}),
-      api("/api/internal/music/community")
-        .then(async (r) => {
-          if (r.ok) setCommunity(await r.json());
-        })
-        .catch(() => {}),
-      api("/api/internal/music/stats")
-        .then(async (r) => {
-          if (r.ok) setStats(await r.json());
-        })
-        .catch(() => {}),
-    ]);
-  }
+
+  // Live updates; fall back to polling if the stream drops.
   useEffect(() => {
-    void loadAux();
-    let stopped = false,
-      fallback: ReturnType<typeof setInterval> | undefined;
+    let fallback: ReturnType<typeof setInterval> | undefined;
     const es = new EventSource("/api/internal/music/events");
     es.onmessage = (ev) => {
       try {
@@ -159,499 +96,273 @@ export default function MusicDashboard({ initial }: { initial: Summary }) {
       }
     };
     es.addEventListener("ready", () => {
-      if (fallback) {
-        clearInterval(fallback);
-        fallback = undefined;
-      }
+      if (fallback) clearInterval(fallback);
+      fallback = undefined;
     });
     es.onerror = () => {
-      if (!stopped && !fallback) fallback = setInterval(() => void refresh(), 20_000);
+      if (!fallback) fallback = setInterval(() => void refresh(), 15_000);
     };
     return () => {
-      stopped = true;
       es.close();
       if (fallback) clearInterval(fallback);
     };
   }, []);
-  useEffect(() => {
-    setTheme(workerColors[String(room?.state?.workerId ?? 1)] ?? "#9B4DFF");
-  }, [room?.state?.workerId, track?.identifier]);
-  useEffect(() => {
-    setDisplayPosition(Number(room?.state?.position ?? 0));
-    if (room?.state?.status !== "PLAYING") return;
-    const base = Number(room?.state?.position ?? 0),
-      started = Date.now(),
-      timer = setInterval(
-        () => setDisplayPosition(Math.min(Number(track?.length ?? Infinity), base + (Date.now() - started))),
-        250,
-      );
-    return () => clearInterval(timer);
-  }, [room?.state?.position, room?.state?.status, track?.identifier, track?.length]);
 
-  async function action(type: string, extra: any = {}) {
-    const r = await api("/api/internal/music/actions", {
-      method: "POST",
-      body: JSON.stringify({ type, ...extra }),
-    });
-    const body = await r.json().catch(() => null);
-    if (!r.ok) {
-      setNotice(
-        body?.message ??
-          (r.status === 409 ? "Join a Discord voice channel first." : `Command failed (${r.status})`),
-      );
-      return false;
-    }
-    setNotice(
-      type === "QUEUE"
-        ? `Sent to ${body?.voiceChannelName ?? "your voice channel"}.`
-        : tr(locale, "commandSent"),
+  // Smooth progress between server updates.
+  useEffect(() => {
+    setPosition(Number(state.position ?? 0));
+    if (!playing) return;
+    const base = Number(state.position ?? 0),
+      started = Date.now();
+    const t = setInterval(
+      () => setPosition(Math.min(Number(track?.length ?? Infinity), base + (Date.now() - started))),
+      500,
     );
-    setTimeout(() => void refresh(), 150);
-    return true;
-  }
-  async function addTrack(e: FormEvent) {
-    e.preventDefault();
-    if (!query.trim()) return;
-    if (await action("QUEUE", { query: query.trim() })) setQuery("");
-  }
-  async function saveLanguage(language: string) {
-    setLocale(normalizeLocale(language));
-    const r = await api("/api/internal/music/preferences", {
-      method: "PUT",
-      body: JSON.stringify({ language }),
-    });
-    if (r.ok) {
-      setData((d: any) => ({ ...d, preferences: { ...d.preferences, language } }));
-      setNotice(tr(language, "languageSaved"));
-    }
-  }
-  async function roomSetting(patch: any) {
-    if (!room?.id) return;
-    const r = await api("/api/internal/music/room-settings", {
-      method: "PUT",
-      body: JSON.stringify({ roomId: room.id, ...patch }),
-    });
-    if (r.ok) {
-      setNotice("Session settings updated.");
-      await refresh();
-    } else {
-      const reason = await r.json().catch(() => null);
-      setNotice(`Music settings failed: ${reason?.message ?? reason?.error ?? r.status}`);
-    }
-  }
-  async function saveProfile() {
-    const body = {
-      displayMode: profileDraft.displayMode,
-      preferredMood: profileDraft.preferredMood || null,
-      discoveryLevel: profileDraft.discoveryLevel,
-      favoriteGenres: String(profileDraft.favoriteGenres ?? "")
-        .split(",")
-        .map((x: string) => x.trim())
-        .filter(Boolean)
-        .slice(0, 20),
-    };
-    const r = await api("/api/internal/music/profile", { method: "PUT", body: JSON.stringify(body) });
-    setNotice(r.ok ? "Music profile saved." : `Profile save failed (${r.status})`);
-    if (r.ok) await refresh();
-  }
-  async function react(rating: -1 | 0 | 1) {
-    if (!track) return;
-    await api("/api/internal/music/feedback", {
-      method: "POST",
-      body: JSON.stringify({
-        track: {
-          identifier: track.identifier,
-          sourceName: track.sourceName,
-          title: track.title,
-          author: track.author,
-          artworkUrl: track.artworkUrl ?? null,
-        },
-        rating,
-      }),
-    });
-    await refresh();
-    void loadAux();
-  }
-  async function favorite() {
-    if (!track) return;
-    if (isFavorite)
-      await api(
-        `/api/internal/music/favorites/${encodeURIComponent(track.sourceName)}/${encodeURIComponent(track.identifier)}`,
-        { method: "DELETE" },
-      );
-    else
-      await api("/api/internal/music/favorites", {
+    return () => clearInterval(t);
+  }, [state.position, state.status, track?.identifier, track?.length]);
+
+  async function action(type: string, extra: any = {}, optimistic?: (d: any) => any) {
+    setBusy(type);
+    const before = data;
+    if (optimistic) setData((d: any) => optimistic(d));
+    try {
+      const r = await api("/api/internal/music/actions", {
         method: "POST",
-        body: JSON.stringify({
-          identifier: track.identifier,
-          sourceName: track.sourceName,
-          title: track.title,
-          author: track.author,
-          uri: track.uri ?? null,
-          artworkUrl: track.artworkUrl ?? null,
-        }),
+        body: JSON.stringify({ type, ...extra }),
       });
-    await refresh();
+      const body = await r.json().catch(() => null);
+      if (!r.ok) {
+        if (optimistic) setData(before);
+        say(
+          r.status === 409
+            ? "Join a Discord voice channel first."
+            : r.status === 403
+              ? "You don't have permission to do that."
+              : r.status === 429
+                ? "Slow down a little."
+                : (body?.message ?? `That didn't work (${r.status}).`),
+          "error",
+        );
+        return false;
+      }
+      if (type === "QUEUE") say(`Added to ${body?.voiceChannelName ?? "your voice channel"}.`);
+      setTimeout(() => void refresh(), 400);
+      return true;
+    } finally {
+      setBusy(null);
+    }
   }
-  async function searchHistory(e: FormEvent) {
+  const patchState = (patch: any) => (d: any) =>
+    d.activeRoom ? { ...d, activeRoom: { ...d.activeRoom, state: { ...d.activeRoom.state, ...patch } } } : d;
+  const togglePause = () =>
+    action(paused ? "RESUME" : "PAUSE", {}, patchState({ status: paused ? "PLAYING" : "PAUSED" }));
+  const skip = () =>
+    can("FORCE_SKIP") ? action("SKIP") : action("VOTE_SKIP").then((ok) => ok && say("Skip vote counted."));
+  const stop = () => {
+    if (window.confirm("Stop the music and clear the queue?"))
+      void action("STOP", {}, patchState({ status: "IDLE", track: null }));
+  };
+  function changeVolume(v: number) {
+    setVolume(v);
+    if (volumeTimer.current) clearTimeout(volumeTimer.current);
+    volumeTimer.current = setTimeout(() => void action("VOLUME", { volume: v }), 250);
+  }
+  async function add(e: FormEvent) {
     e.preventDefault();
-    const r = await api(`/api/internal/music/history/search?q=${encodeURIComponent(historyQ)}&limit=100`, {
-      cache: "no-store",
-    });
-    if (r.ok) setHistory(await r.json());
+    const q = query.trim();
+    if (!q) return;
+    if (await action("QUEUE", { query: q })) setQuery("");
   }
   async function reorder(from: number, to: number) {
-    if (!room?.id) return false;
-    if (from === to) return true;
+    if (!room?.id || from === to) return;
+    setData((d: any) => {
+      const q = [...(d.activeRoom?.queue ?? [])];
+      const [moved] = q.splice(from, 1);
+      q.splice(to, 0, moved);
+      return { ...d, activeRoom: { ...d.activeRoom, queue: q } };
+    });
     const r = await api("/api/internal/music/queue/reorder", {
       method: "POST",
       body: JSON.stringify({ roomId: room.id, from, to }),
     });
-    if (r.ok) {
-      await refresh();
-      return true;
+    if (!r.ok) {
+      say("Couldn't reorder the queue.", "error");
+      void refresh();
     }
-    setNotice(`Queue reorder failed (${r.status})`);
-    return false;
   }
-  function onArtworkLoad(e: any) {
-    try {
-      const img = e.currentTarget as HTMLImageElement,
-        c = document.createElement("canvas");
-      c.width = c.height = 16;
-      const x = c.getContext("2d");
-      if (!x) return;
-      x.drawImage(img, 0, 0, 16, 16);
-      const d = x.getImageData(0, 0, 16, 16).data;
-      let r = 0,
-        g = 0,
-        b = 0,
-        n = 0;
-      for (let i = 0; i < d.length; i += 16) {
-        r += d[i];
-        g += d[i + 1];
-        b += d[i + 2];
-        n++;
-      }
-      setTheme(`rgb(${Math.round(r / n)},${Math.round(g / n)},${Math.round(b / n)})`);
-    } catch {}
-  }
-  async function enterFullscreen() {
-    if (!heroRef.current) return;
-    if (!document.fullscreenElement) {
-      await heroRef.current.requestFullscreen?.();
-      setFullscreen(true);
-    } else {
-      await document.exitFullscreen?.();
-      setFullscreen(false);
-    }
+  const removeAt = (i: number) =>
+    action("QUEUE_REMOVE", { index: i }, (d: any) => ({
+      ...d,
+      activeRoom: {
+        ...d.activeRoom,
+        queue: (d.activeRoom?.queue ?? []).filter((_: any, k: number) => k !== i),
+      },
+    }));
+
+  const pct = track?.length ? Math.min(100, (position / Number(track.length)) * 100) : 0;
+  function seek(e: React.MouseEvent<HTMLDivElement>) {
+    if (!can("MANAGE_MUSIC") || !track?.length || track.isStream) return;
+    const rect = e.currentTarget.getBoundingClientRect();
+    const ms = Math.round(((e.clientX - rect.left) / rect.width) * Number(track.length));
+    setPosition(ms);
+    void action("SEEK", { positionMs: ms });
   }
 
-  const shellStyle = {
-    "--music-accent": theme,
-    "--album-bg": track?.artworkUrl ? `url("${track.artworkUrl}")` : "none",
-  } as CSSProperties;
   return (
-    <div className="musicExperience" style={shellStyle}>
-      <header className="top musicTop">
+    <div className="mp">
+      <header className="mpHeader">
         <div>
-          <span className="eyebrow">BOM MUSIC</span>
-          <h2>Music</h2>
+          <h1>Music</h1>
+          <p>
+            {voice?.connected ? (
+              <>
+                Playing to <b>{voice.name}</b>. Playback stops when the queue ends.
+              </>
+            ) : (
+              "Join a Discord voice channel and a free music bot will join you."
+            )}
+          </p>
         </div>
-        <div className="topTools">
-          <div className="statusPill">
-            <i /> {online > 0 ? "Music online" : "Music unavailable"}
-          </div>
-        </div>
+        <span className={`mpChip ${botsOnline ? "" : "off"}`}>
+          <i /> {botsOnline}/{botsTotal} bots online
+        </span>
       </header>
+
       {notice && (
-        <div className="notice" onClick={() => setNotice("")}>
-          {notice}
+        <div className={`mpNotice ${notice.tone}`} role="status">
+          {notice.text}
         </div>
       )}
-      <div className="voiceContextBar musicVoice">
-        <div>
-          <span className="eyebrow">LIVE DESTINATION</span>
-          <b>{voice?.connected ? `🔊 ${voice.name}` : "Join a Discord voice channel"}</b>
-          <small>
-            {voice?.connected
-              ? "Music is automatically routed here; queues are collaborative by default."
-              : "No music room setup is required."}
-          </small>
-        </div>
-        {voice?.connected && <span className="statusPill">{room?.state?.status ?? "READY"}</span>}
-      </div>
-      <div className="musicSpotifyShell">
-        <aside className="musicLibraryRail">
-          <div className="musicLibraryHead">
-            <span className="musicLibraryIcon">♫</span>
-            <div>
-              <b>Your Music</b>
-              <small>BOM listening room</small>
-            </div>
-          </div>
-          <nav className="musicLibraryNav" aria-label="Music sections">
-            {tabs.map(([id, label, icon]) => (
-              <button key={id} className={tab === id ? "active" : ""} onClick={() => setTab(id)}>
-                <i>{icon}</i>
-                {label}
-              </button>
-            ))}
-          </nav>
-        </aside>
-        <main className="musicSpotifyMain">
-          {tab === "player" && (
-            <section className="musicHero" ref={heroRef}>
-              <div className="albumBackdrop" />
-              <div className="heroAlbum">
-                {track?.artworkUrl ? (
-                  <img
-                    crossOrigin="anonymous"
-                    onLoad={onArtworkLoad}
-                    src={track.artworkUrl}
-                    alt="Album artwork"
-                  />
-                ) : (
-                  <div className="musicArtworkFallback">♫</div>
-                )}
-                <MiniSpectrum active={isPlaying} />
-              </div>
-              <div className="heroInfo">
-                <span className="eyebrow">
-                  {room?.state?.status ?? "IDLE"}
-                  {room?.state?.origin ? ` · ${room.state.origin}` : ""}
-                  {track?.resolution?.provider ? ` · ${String(track.resolution.provider).toUpperCase()}` : ""}
-                </span>
-                <h1>{track?.title ?? "The deck is quiet."}</h1>
-                <h3>{track?.author ?? "Pick a song to wake the crew."}</h3>
-                {track && (
-                  <>
-                    <div className="progress">
-                      <span
-                        style={{
-                          width: `${track.length ? Math.min(100, (displayPosition / track.length) * 100) : 0}%`,
-                        }}
-                      />
-                    </div>
-                    <div className="time">
-                      <span>{fmt(displayPosition)}</span>
-                      <span>{fmt(track.length)}</span>
-                    </div>
-                    <div className="visualizerDeck">
-                      <DecorativeVisualizer
-                        position={displayPosition}
-                        duration={Number(track?.length ?? 0)}
-                        accent={theme}
-                        active={isPlaying}
-                        onSeek={
-                          can("MANAGE_MUSIC") ? (ms) => void action("SEEK", { positionMs: ms }) : undefined
-                        }
-                      />
-                      <small>Playback progress</small>
-                    </div>
-                  </>
-                )}
-                <div className="playbackButtons heroButtons">
-                  {room?.state?.workerId && can("MANAGE_MUSIC") && (
-                    <button onClick={() => void action(room.state.status === "PAUSED" ? "RESUME" : "PAUSE")}>
-                      {room.state.status === "PAUSED" ? "▶" : "Ⅱ"}
-                    </button>
-                  )}
-                  {room?.state?.workerId && can("USE_MUSIC") && (
-                    <button
-                      aria-label="Skip track"
-                      disabled={!can("USE_MUSIC")}
-                      onClick={() => void action(can("FORCE_SKIP") ? "SKIP" : "VOTE_SKIP")}
-                    >
-                      ▶▶
-                    </button>
-                  )}
-                  {room?.state?.workerId && can("MANAGE_MUSIC") && (
-                    <button onClick={() => void action("STOP")}>■</button>
-                  )}
-                  <button
-                    className={currentFeedback?.rating === 1 ? "selected" : ""}
-                    disabled={!track}
-                    onClick={() => void react(currentFeedback?.rating === 1 ? 0 : 1)}
-                  >
-                    ♥
-                  </button>
-                  <button
-                    className={currentFeedback?.rating === -1 ? "selected dislike" : ""}
-                    disabled={!track}
-                    onClick={() => void react(currentFeedback?.rating === -1 ? 0 : -1)}
-                  >
-                    ×
-                  </button>
-                  <button
-                    className={isFavorite ? "selected" : ""}
-                    disabled={!track}
-                    onClick={() => void favorite()}
-                  >
-                    ★
-                  </button>
-                </div>
-                {can("USE_MUSIC") && (
-                  <form className="quickAdd cinematicAdd" onSubmit={addTrack}>
-                    <input
-                      disabled={!voice?.connected}
-                      value={query}
-                      onChange={(e) => setQuery(e.target.value)}
-                      placeholder={
-                        voice?.connected
-                          ? "Song, artist, playlist, station, stream or URL…"
-                          : "Join voice first"
-                      }
-                    />
-                    <button disabled={!voice?.connected}>Queue</button>
-                  </form>
-                )}
-                <div className="sessionControls">
-                  <span className="musicQueuePolicy">Playback stops when the queue ends.</span>
-                  <label className="toggleLine">
-                    <input
-                      type="checkbox"
-                      checked={room?.musicSettings?.avoid_recently_played !== false}
-                      disabled={!room?.id || !can("USE_MUSIC")}
-                      onChange={(e) => void roomSetting({ avoidRecentlyPlayed: e.target.checked })}
-                    />
-                    Avoid recently played songs
-                  </label>
-                  <label className="toggleLine">
-                    <input
-                      type="checkbox"
-                      checked={room?.musicSettings?.recover_queue !== false}
-                      disabled={!room?.id || !can("USE_MUSIC")}
-                      onChange={(e) => void roomSetting({ recoverQueue: e.target.checked })}
-                    />
-                    Resume queue after reconnect
-                  </label>
-                  <label>
-                    Mood
-                    <select
-                      value={
-                        room?.musicSettings?.mood ?? profile.preferred_mood ?? features.default_mood ?? ""
-                      }
-                      onChange={(e) => roomSetting({ mood: e.target.value || null })}
-                    >
-                      <option value="">Automatic</option>
-                      {[
-                        "ENERGETIC",
-                        "RELAXED",
-                        "SAD",
-                        "FOCUSED",
-                        "PARTY",
-                        "NOSTALGIC",
-                        "CHILL",
-                        "HEAVY",
-                        "HAPPY",
-                        "DARK",
-                      ].map((x) => (
-                        <option key={x}>{x}</option>
-                      ))}
-                    </select>
-                  </label>
-                  <button onClick={() => void enterFullscreen()}>
-                    {fullscreen ? "Exit fullscreen" : "Fullscreen"}
-                  </button>
-                </div>
-                {room?.autoplayDiagnostics && (
-                  <div className="muted" role="status">
-                    Autoplay:{" "}
-                    {String(room.autoplayDiagnostics.status ?? "unknown")
-                      .replaceAll("_", " ")
-                      .toLowerCase()}
-                    {room.autoplayDiagnostics.detail ? ` · ${room.autoplayDiagnostics.detail}` : ""}
-                  </div>
-                )}
-                <details className="musicWorkerPool">
-                  <summary>
-                    Music workers · {online}/{data.workers?.length ?? 0} online
-                  </summary>
-                  <div>
-                    {(data.workers ?? []).map((w: any) => (
-                      <p key={w.workerId}>
-                        <b>Bot {w.workerId}</b> ·{" "}
-                        {w.offline ? "Offline" : w.roomId ? "Assigned to a session" : "Online"}
-                        {w.eventLoopLagMs != null
-                          ? ` · ${Math.round(w.eventLoopLagMs)}ms event loop lag`
-                          : ""}
-                      </p>
-                    ))}
-                  </div>
-                </details>
-                {room?.playbackHealth && (
-                  <details className="musicRecoveryPanel">
-                    <summary>Playback & Queue Recovery</summary>
-                    <p>
-                      {room.playbackHealth.connected
-                        ? "Playback connection available"
-                        : "Playback connection idle or unavailable"}{" "}
-                      · {room.playbackHealth.queueCount} queued tracks · {room.playbackHealth.snapshotCount}{" "}
-                      tracks in the last saved queue
-                    </p>
-                    <p>
-                      Last queue save:{" "}
-                      {room.playbackHealth.snapshotAt
-                        ? new Date(room.playbackHealth.snapshotAt).toLocaleString()
-                        : "No saved queue yet"}
-                    </p>
-                    <p>After a full bot restart, send a new music request to resume your saved queue.</p>
-                    {room.playbackTimeline?.length > 0 && (
-                      <ol>
-                        {room.playbackTimeline.map((event: any, i: number) => (
-                          <li key={i}>
-                            <b>{String(event.stage).replaceAll("_", " ")}</b> ·{" "}
-                            {new Date(event.at).toLocaleTimeString()}
-                            {event.durationMs != null ? ` · ${Math.round(event.durationMs)} ms` : ""}
-                            {event.detail ? ` · ${event.detail}` : ""}
-                          </li>
-                        ))}
-                      </ol>
-                    )}
-                  </details>
-                )}
-                <div className="trackDetailGrid">
-                  <Info label="Album" value={meta?.album} />
-                  <Info label="Released" value={meta?.releaseDate} />
-                  <Info label="Source" value={track?.sourceName} />
-                  <Info label="Queue" value={room?.queue?.length ?? 0} />
-                  <Info
-                    label="Transition"
-                    value={(
-                      room?.musicSettings?.transition_mode ??
-                      features.transition_mode ??
-                      "GAPLESS"
-                    ).replaceAll("_", " ")}
-                  />
-                  <Info label="Radio" value={features.radio_mode ? "BOM Radio active" : "Off"} />
-                </div>
-                {meta?.fact && (
-                  <div className="fact">
-                    <b>💡 Did you know?</b>
-                    <p>{meta.fact}</p>
-                  </div>
-                )}
-              </div>
-            </section>
-          )}
 
-          {tab === "queue" && (
-            <section className="panel musicPanel">
-              <div className="panelHead">
-                <div>
-                  <h3>Collaborative Queue</h3>
-                  <span>Drag tracks to reorder · requester ownership shown</span>
-                </div>
-                {can("MANAGE_QUEUE") && room?.queue?.length > 0 && (
-                  <button onClick={() => void action("QUEUE_CLEAR")}>Clear queue</button>
+      <div className="mpGrid">
+        <div className="mpMain">
+          <section className={`mpNow ${active ? "" : "idle"}`} aria-label="Now playing">
+            <div className="mpArt">
+              <Art key={track?.identifier ?? "none"} src={track?.artworkUrl} size={34} />
+            </div>
+            <div className="mpNowBody">
+              <span className="mpLabel">
+                {active ? (paused ? "Paused" : "Now playing") : "Nothing playing"}
+              </span>
+              <h2>{active ? track.title : "Queue something up"}</h2>
+              <p>
+                {active ? (
+                  <>
+                    {track.author}
+                    {state.requesterId && (
+                      <> · requested by {state.requester?.name ?? requesterName(state)}</>
+                    )}
+                  </>
+                ) : (
+                  "Add a song below, or use /play in Discord."
                 )}
-              </div>
-              <MusicSessionTools canManage={can("MANAGE_QUEUE")} />
-              <div className="queueList richQueue">
-                {room?.queue?.map((q: any, i: number) => (
+              </p>
+              {active && !track.isStream && (
+                <div className="mpProgress">
+                  <span>{fmt(position)}</span>
                   <div
-                    key={q.requestId}
+                    className={`mpBar ${can("MANAGE_MUSIC") ? "seekable" : ""}`}
+                    onClick={seek}
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={Number(track.length)}
+                    aria-valuenow={position}
+                  >
+                    <i style={{ width: `${pct}%` }} />
+                  </div>
+                  <span>{fmt(track.length)}</span>
+                </div>
+              )}
+              {active && track.isStream && <span className="mpLive">● Live</span>}
+              {active && (
+                <div className="mpControls">
+                  <button
+                    type="button"
+                    className="mpPlay"
+                    onClick={() => void togglePause()}
+                    disabled={!can("MANAGE_MUSIC") || busy === "PAUSE" || busy === "RESUME"}
+                    aria-label={paused ? "Resume" : "Pause"}
+                    title={can("MANAGE_MUSIC") ? undefined : "Needs a DJ role"}
+                  >
+                    {paused ? "▶" : "❚❚"}
+                  </button>
+                  <button
+                    type="button"
+                    className="mpBtn"
+                    onClick={() => void skip()}
+                    disabled={busy === "SKIP" || busy === "VOTE_SKIP"}
+                  >
+                    ⏭ {can("FORCE_SKIP") ? "Skip" : "Vote skip"}
+                  </button>
+                  {can("MANAGE_MUSIC") && (
+                    <button type="button" className="mpBtn danger" onClick={stop} disabled={busy === "STOP"}>
+                      ■ Stop
+                    </button>
+                  )}
+                  {can("MANAGE_MUSIC") && (
+                    <label className="mpVolume">
+                      <span aria-hidden="true">🔊</span>
+                      <input
+                        type="range"
+                        min={0}
+                        max={150}
+                        value={volume}
+                        onChange={(e) => changeVolume(Number(e.target.value))}
+                        aria-label="Volume"
+                      />
+                      <small>{volume}</small>
+                    </label>
+                  )}
+                </div>
+              )}
+            </div>
+          </section>
+
+          <form className="mpAdd" onSubmit={add}>
+            <CommandIcon name="search" size={18} />
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder={voice?.connected ? "Song, artist or link…" : "Join a voice channel to add songs"}
+              aria-label="Add a song"
+              maxLength={1000}
+            />
+            <button
+              type="submit"
+              className="goldButton"
+              disabled={!query.trim() || busy === "QUEUE" || !can("USE_MUSIC")}
+            >
+              {busy === "QUEUE" ? "Adding…" : "Add"}
+            </button>
+          </form>
+
+          <section className="mpCard" aria-label="Queue">
+            <header>
+              <h2>
+                Up next{" "}
+                <small>{queue.length ? `${queue.length} song${queue.length === 1 ? "" : "s"}` : ""}</small>
+              </h2>
+              {can("MANAGE_QUEUE") && queue.length > 0 && (
+                <button
+                  type="button"
+                  className="textButton"
+                  onClick={() => {
+                    if (window.confirm("Clear the whole queue?"))
+                      void action("QUEUE_CLEAR", {}, (d: any) => ({
+                        ...d,
+                        activeRoom: { ...d.activeRoom, queue: [] },
+                      }));
+                  }}
+                >
+                  Clear
+                </button>
+              )}
+            </header>
+            {queue.length ? (
+              <ol className="mpQueue">
+                {queue.map((q, i) => (
+                  <li
+                    key={q.requestId ?? i}
                     draggable={can("MANAGE_QUEUE")}
                     onDragStart={() => setDragIndex(i)}
                     onDragOver={(e) => e.preventDefault()}
@@ -661,273 +372,110 @@ export default function MusicDashboard({ initial }: { initial: Summary }) {
                     }}
                     className={dragIndex === i ? "dragging" : ""}
                   >
-                    <b>{String(i + 1).padStart(2, "0")}</b>
-                    <span className="queueArt">
-                      {q.trackInfo?.artworkUrl ? <img src={q.trackInfo.artworkUrl} alt="" /> : "♫"}
+                    <span className="mpIndex">{i + 1}</span>
+                    <span className="mpThumb">
+                      <Art src={q.trackInfo?.artworkUrl} size={16} />
                     </span>
-                    <span className="queueTrack">
-                      <strong>{q.trackInfo?.title ?? q.display ?? q.query}</strong>
-                      <small>{q.trackInfo?.author ?? "Queued request"}</small>
-                    </span>
-                    <span className="requester">
-                      {q.requester?.avatar ? <img src={q.requester.avatar} alt="" /> : <i />}
+                    <span className="mpTrack">
+                      <b>{q.trackInfo?.title ?? q.display ?? q.query}</b>
                       <small>
-                        {q.requester?.name ??
-                          (q.requesterId === "autoplay"
-                            ? "Autoplay"
-                            : q.requesterId === "BOM Radio"
-                              ? "BOM Radio"
-                              : "Listener")}
+                        {q.trackInfo?.author ? `${q.trackInfo.author} · ` : ""}
+                        {requesterName(q)}
+                        {q.trackInfo?.length ? ` · ${fmt(q.trackInfo.length)}` : ""}
                       </small>
                     </span>
-                    {can("MANAGE_QUEUE") && can("FORCE_SKIP") && room?.state?.requestId && q.requestId && (
-                      <button
-                        onClick={() =>
-                          void action("SKIP_TO", {
-                            requestId: q.requestId,
-                            currentRequestId: room.state.requestId,
-                          })
-                        }
-                      >
-                        Play now
-                      </button>
-                    )}
-                    {can("MANAGE_QUEUE") && (
-                      <button
-                        aria-label="Remove queued track"
-                        className="iconCloseButton queueRemove"
-                        onClick={() => void action("QUEUE_REMOVE", { index: i })}
-                      >
-                        ×
-                      </button>
-                    )}
-                  </div>
+                    <span className="mpRowActions">
+                      {can("MANAGE_QUEUE") && can("FORCE_SKIP") && state.requestId && q.requestId && (
+                        <button
+                          type="button"
+                          className="tinyButton"
+                          onClick={() =>
+                            void action("SKIP_TO", {
+                              requestId: q.requestId,
+                              currentRequestId: state.requestId,
+                            })
+                          }
+                        >
+                          Play now
+                        </button>
+                      )}
+                      {can("MANAGE_QUEUE") && (
+                        <button
+                          type="button"
+                          className="mpIcon"
+                          aria-label="Remove from queue"
+                          onClick={() => void removeAt(i)}
+                        >
+                          ×
+                        </button>
+                      )}
+                    </span>
+                  </li>
                 ))}
-                {!room?.queue?.length && (
-                  <Empty
-                    title="No cargo in the queue"
-                    text="Add a track and the crew will take it from here."
-                  />
-                )}
-              </div>
-            </section>
-          )}
+              </ol>
+            ) : (
+              <EmptyState title="The queue is empty" icon="music">
+                Songs you add will line up here
+                {can("MANAGE_QUEUE") ? ", and you can drag to reorder them" : ""}.
+              </EmptyState>
+            )}
+          </section>
+        </div>
 
-          {tab === "history" && (
-            <section className="panel musicPanel">
-              <div className="panelHead">
-                <div>
-                  <h3>Listening History</h3>
-                  <span>Searchable guild archive</span>
-                </div>
-                <form className="historySearch" onSubmit={searchHistory}>
-                  <input
-                    value={historyQ}
-                    onChange={(e) => setHistoryQ(e.target.value)}
-                    placeholder="Search song or artist"
-                  />
-                  <button>Search</button>
-                </form>
-              </div>
-              <div className="history richHistory">
-                {history.map((h: any) => (
-                  <div key={h.id}>
-                    <span>{h.artwork_url ? <img src={h.artwork_url} alt="" /> : "♪"}</span>
-                    <div>
+        <aside className="mpSide">
+          <section className="mpCard" aria-label="Recently played">
+            <header>
+              <h2>Recently played</h2>
+            </header>
+            {history.length ? (
+              <ul className="mpRecent">
+                {history.slice(0, 12).map((h: any) => (
+                  <li key={h.id}>
+                    <span className="mpThumb">
+                      <Art src={h.artwork_url} size={16} />
+                    </span>
+                    <span className="mpTrack">
                       <b>{h.title}</b>
                       <small>
-                        {h.author} · {h.source_name}
+                        {h.author} · {ago(h.started_at)}
                       </small>
-                    </div>
-                    <small>{new Date(h.started_at).toLocaleString()}</small>
-                  </div>
+                    </span>
+                    {can("USE_MUSIC") && voice?.connected && (
+                      <button
+                        type="button"
+                        className="mpIcon"
+                        aria-label={`Play ${h.title} again`}
+                        title="Add again"
+                        onClick={() => void action("QUEUE", { query: `${h.author} ${h.title}` })}
+                      >
+                        +
+                      </button>
+                    )}
+                  </li>
                 ))}
-                {!history.length && (
-                  <Empty title="No tracks in the logbook" text="Played music will be recorded here." />
-                )}
-              </div>
-            </section>
-          )}
-
-          {tab === "audio" && (
-            <section className="panel musicPanel">
-              <div className="panelHead">
-                <div>
-                  <h3>Audio Studio</h3>
-                  <span>{filters.length} filters · room memory · transition profiles</span>
-                </div>
-              </div>
-              <div className="audioToolbar">
-                <label>
-                  Volume
-                  <input
-                    type="range"
-                    min="0"
-                    max="200"
-                    defaultValue="100"
-                    onChange={(e) => void action("VOLUME", { volume: Number(e.target.value) })}
-                  />
-                </label>
-                <label>
-                  Transition
-                  <select
-                    value={room?.musicSettings?.transition_mode ?? features.transition_mode ?? "GAPLESS"}
-                    onChange={(e) => roomSetting({ transitionMode: e.target.value })}
-                  >
-                    {["OFF", "GAPLESS", "FADE_2S", "FADE_5S", "SMOOTH_DJ", "RADIO"].map((x) => (
-                      <option key={x}>{x.replaceAll("_", " ")}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <div className="filterGrid richFilters">
-                {filters.slice(0, 50).map((f: any) => (
-                  <button
-                    disabled={!room?.state?.workerId || !can("MANAGE_FILTERS")}
-                    key={f.id}
-                    onClick={() => void action("FILTER", { preset: f.id })}
-                  >
-                    <i>≋</i>
-                    {f.id.replaceAll("_", " ")}
-                  </button>
-                ))}
-              </div>
-            </section>
-          )}
-        </main>
-        <aside className="musicNowRail" aria-label="Now playing details">
-          <div className="musicNowRailHead">
-            <b>Up next</b>
-            <button onClick={() => setTab("queue")}>Manage queue</button>
-          </div>
-          <div className="musicNextUp">
+              </ul>
+            ) : (
+              <p className="uiEmpty">Nothing has played yet.</p>
+            )}
+          </section>
+          <section className="mpCard mpTips">
             <header>
-              <b>Next in queue</b>
-              <button onClick={() => setTab("queue")}>Open queue</button>
+              <h2>In Discord</h2>
             </header>
-            {room?.queue?.slice(0, 3).map((q: any, i: number) => (
-              <div key={q.requestId ?? i}>
-                <span>{q.trackInfo?.artworkUrl ? <img src={q.trackInfo.artworkUrl} alt="" /> : "♫"}</span>
-                <div>
-                  <b>{q.trackInfo?.title ?? q.display ?? q.query}</b>
-                  <small>{q.trackInfo?.author ?? q.requester?.name ?? "Queued"}</small>
-                </div>
-              </div>
-            ))}
-            {!room?.queue?.length && <small className="muted">The queue is empty.</small>}
-          </div>
+            <ul>
+              <li>
+                <code>/play song</code> adds a song
+              </li>
+              <li>
+                <code>/music skip</code>, <code>pause</code>, <code>stop</code>, <code>queue</code>
+              </li>
+              <li>
+                Type <code>play song</code> or paste a link in voice chat
+              </li>
+            </ul>
+          </section>
         </aside>
       </div>
-      {track && (
-        <div className="compactPlayer spotifyPlayerBar" role="region" aria-label="Playback controls">
-          <div className="compactArt">{track.artworkUrl ? <img src={track.artworkUrl} alt="" /> : "♫"}</div>
-          <div className="compactTrackCopy">
-            <b>{track.title}</b>
-            <small>{track.author}</small>
-          </div>
-          <button className={isFavorite ? "selected" : ""} onClick={() => void favorite()}>
-            ♡
-          </button>
-          <div className="compactProgress">
-            <span
-              style={{
-                width: `${track.length ? Math.min(100, (displayPosition / track.length) * 100) : 0}%`,
-              }}
-            />
-          </div>
-          <button
-            aria-label={isPlaying ? "Pause" : "Resume"}
-            disabled={!can("MANAGE_MUSIC")}
-            onClick={() => void action(room?.state?.status === "PAUSED" ? "RESUME" : "PAUSE")}
-          >
-            {room?.state?.status === "PAUSED" ? "▶" : "Ⅱ"}
-          </button>
-          <button
-            aria-label="Skip track"
-            disabled={!can("USE_MUSIC")}
-            onClick={() => void action(can("FORCE_SKIP") ? "SKIP" : "VOTE_SKIP")}
-          >
-            ▶▶
-          </button>
-        </div>
-      )}
-    </div>
-  );
-}
-
-const visualHeights = [
-  18, 28, 44, 35, 58, 74, 52, 38, 63, 82, 68, 46, 31, 57, 76, 91, 70, 49, 36, 61, 84, 72, 53, 39, 66, 88, 79,
-  58, 42, 69, 93, 81, 60, 45, 72, 86, 67, 50, 34, 59, 78, 64, 47, 30, 55, 73, 89, 71, 51, 37, 62, 83, 69, 48,
-  33, 56, 75, 87, 65, 43, 29, 52, 70, 60, 41, 27, 49, 66, 54, 36, 24, 45, 61, 51, 34, 22, 40, 56, 47, 31, 20,
-  37, 52, 44, 29, 18, 34, 48, 41, 27, 17, 31, 45, 38, 25, 16,
-];
-
-function DecorativeVisualizer({
-  position,
-  duration,
-  accent,
-  active,
-  onSeek,
-}: {
-  position: number;
-  duration: number;
-  accent: string;
-  active: boolean;
-  onSeek?: (ms: number) => void;
-}) {
-  const progress = Math.max(0, Math.min(1, position / Math.max(1, duration)));
-  return (
-    <div
-      className={active ? "decorativeWave active seekable" : "decorativeWave seekable"}
-      title={onSeek ? "Click to seek" : "Decorative music visualizer"}
-      onClick={(e) => {
-        if (!onSeek) return;
-        const r = e.currentTarget.getBoundingClientRect();
-        onSeek(Math.round(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * duration));
-      }}
-    >
-      {visualHeights.map((h, i) => (
-        <i
-          key={i}
-          style={{
-            height: `${h}%`,
-            background: i / visualHeights.length <= progress ? accent : "#454b56",
-            animationDelay: `-${((i * 37) % 23) / 10}s`,
-            animationDuration: `${1.05 + ((i * 17) % 9) / 10}s`,
-          }}
-        />
-      ))}
-      <span className="visualizerPlayhead" style={{ left: `${progress * 100}%` }} />
-    </div>
-  );
-}
-function MiniSpectrum({ active }: { active: boolean }) {
-  return (
-    <div className={active ? "liveVisualizer active" : "liveVisualizer"}>
-      {Array.from({ length: 18 }, (_, i) => (
-        <i
-          key={i}
-          style={{ animationDelay: `-${(i % 7) * 0.08}s`, animationDuration: `${0.7 + (i % 5) * 0.11}s` }}
-        />
-      ))}
-    </div>
-  );
-}
-
-function Info({ label, value }: { label: string; value: any }) {
-  return (
-    <div>
-      <small>{label}</small>
-      <b>{value ?? "—"}</b>
-    </div>
-  );
-}
-function Empty({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="pirateEmpty">
-      <i>⚓</i>
-      <b>{title}</b>
-      <span>{text}</span>
     </div>
   );
 }
