@@ -583,6 +583,28 @@ export default function AdminDashboard({ initial, section = "music" }: { initial
                 {online}/{data.workers?.length ?? 8} available
               </span>
             </div>
+            {(() => {
+              const ws: any[] = health?.workers ?? data.workers ?? [];
+              const h = ws.find((w) => w.frameLossPct != null) ?? ws.find((w) => w.lavalinkCpuPct != null);
+              if (!h) return null;
+              const loss = h.frameLossPct as number | null;
+              const bad = (loss ?? 0) >= 2 || (h.systemCpuPct ?? 0) >= 85;
+              return (
+                <p className={bad ? "audioHealth bad" : "audioHealth"} role="status">
+                  {loss == null
+                    ? "Audio server idle"
+                    : bad
+                      ? `Audio is stuttering: ${loss}% of frames dropped in the last minute`
+                      : `Audio is smooth: ${loss}% of frames dropped in the last minute`}
+                  {h.lavalinkCpuPct != null && (
+                    <small>
+                      Lavalink CPU {h.lavalinkCpuPct}% · host CPU {h.systemCpuPct ?? "?"}% · ping{" "}
+                      {h.lavalinkPingMs ?? "?"} ms
+                    </small>
+                  )}
+                </p>
+              );
+            })()}
             <div className="workers">
               {(health?.workers ?? data.workers ?? []).map((w: any) => (
                 <div key={w.workerId} className={w.offline ? "worker offline" : "worker"}>

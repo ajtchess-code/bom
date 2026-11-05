@@ -113,7 +113,7 @@ const commands=[
     .addSubcommand(sc=>sc.setName("skip").setDescription("Skip the current song (or vote to skip)"))
     .addSubcommand(sc=>sc.setName("pause").setDescription("Pause or resume"))
     .addSubcommand(sc=>sc.setName("stop").setDescription("Stop music, clear the queue and disconnect the bot"))
-    .addSubcommand(sc=>sc.setName("volume").setDescription("Set the volume").addIntegerOption(o=>o.setName("level").setDescription("0-150 (100 is normal)").setRequired(true).setMinValue(0).setMaxValue(150))),
+    .addSubcommand(sc=>sc.setName("volume").setDescription("Set the volume").addIntegerOption(o=>o.setName("level").setDescription("0-100 (100 is full quality)").setRequired(true).setMinValue(0).setMaxValue(100))),
   new SlashCommandBuilder().setName("music-admin").setDescription("Open music administration"),
   ...feedbackCommands,
   ...membershipCommands,
@@ -796,7 +796,7 @@ async function handleMusicCommand(interaction:any){
     return void await ephem(interaction,simpleEphemeral("Music","Stopped and cleared the queue."));
   }
   if(sub==="volume"){
-    const level=Math.max(0,Math.min(150,Number(interaction.options.getInteger("level",true))));
+    const level=Math.max(0,Math.min(100,Number(interaction.options.getInteger("level",true))));
     await publishWorkerCommand(state.workerId,{type:"VOLUME",roomId:room.id,guildId:guildId!,volume:level});
     return void await ephem(interaction,simpleEphemeral("Volume",`Volume set to ${level}.`));
   }

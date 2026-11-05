@@ -305,7 +305,7 @@ export default function MusicDashboard({ initial }: { initial: Summary }) {
                       <input
                         type="range"
                         min={0}
-                        max={150}
+                        max={100}
                         value={volume}
                         onChange={(e) => changeVolume(Number(e.target.value))}
                         aria-label="Volume"

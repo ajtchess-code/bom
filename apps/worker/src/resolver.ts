@@ -15,6 +15,11 @@ function scoreTrack(t:any,query:string,preferredSource:string|null,rejectVariant
   for(const term of variantTerms){if((title.includes(term)||author.includes(term))&&!q.includes(term))score-=rejectVariants?26:8;}
   const length=Number(i.length??0);if(length>60*60*1000&&!/hour|mix|set|playlist/.test(q))score-=18;
   if(i.isStream)score-=8;
+  // Prefer full-length YouTube audio. SoundCloud streams are often low-bitrate
+  // MP3s, and Go+ tracks only give a 30-second preview.
+  const provider=providerOf(t);
+  if(provider.includes("youtube"))score+=6;
+  else if(provider.includes("soundcloud")){score-=10;if(length>=29000&&length<=31000)score-=60;}
   return Math.round(score*100)/100;
 }
 function tracksFromResult(result:any):any[]{if(!result)return[];if(result.loadType==="track")return result.data?[result.data]:[];if(result.loadType==="search")return Array.isArray(result.data)?result.data:[];if(result.loadType==="playlist")return result.data?.tracks??[];return[];}

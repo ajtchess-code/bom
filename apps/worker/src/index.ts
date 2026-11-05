@@ -93,6 +93,29 @@ type Runtime={roomId:string;guildId:string;requesterId:string;requestId:string;t
 let runtime:Runtime|null=null;
 let connectedVoiceChannelId:string|null=null;
 let reconnects=0,recentFailures=0,nodeReady=false,lastNodePing=0;
+// Lavalink reports, once a minute, how many 20 ms audio frames it sent to Discord
+// versus how many it should have. Missing frames are what listeners hear as
+// stutter or robotic audio, so we track the loss and Lavalink's CPU load.
+let audioHealth:{frameLossPct:number|null;lavalinkCpuPct:number|null;systemCpuPct:number|null;playingPlayers:number|null}={frameLossPct:null,lavalinkCpuPct:null,systemCpuPct:null,playingPlayers:null};
+let lastStatsUptime=-1;
+// Volume is per voice channel and carries over to the next song. Lavalink plays
+// the source's own Opus untouched only at exactly 100; above 100 it amplifies
+// and clips loud songs, so 100 is the ceiling.
+const MAX_VOLUME=100;
+const roomVolume=new Map<string,number>();
+function readAudioHealth(){
+  const node:any=(runtime?.player as any)?.node??[...((shoukaku as any).nodes?.values?.()??[])][0];
+  const st=node?.stats;if(!st)return;
+  const f=st.frameStats,cpu=st.cpu??{};
+  const expected=f?Number(f.sent??0)+Number(f.nulled??0)+Number(f.deficit??0):0;
+  const loss=f&&expected>0?Math.max(0,Math.round((Number(f.nulled??0)+Number(f.deficit??0))/expected*1000)/10):null;
+  audioHealth={frameLossPct:Number(st.playingPlayers??0)>0?loss:null,lavalinkCpuPct:Number.isFinite(cpu.lavalinkLoad)?Math.round(cpu.lavalinkLoad*1000)/10:null,systemCpuPct:Number.isFinite(cpu.systemLoad)?Math.round(cpu.systemLoad*1000)/10:null,playingPlayers:Number(st.playingPlayers??0)};
+  // Only the worker that is playing logs, once per Lavalink stats update.
+  if(runtime&&st.uptime!==lastStatsUptime){lastStatsUptime=st.uptime;
+    if(audioHealth.frameLossPct!==null&&audioHealth.frameLossPct>=2)diagWarn("audio-health","Lavalink is dropping audio frames; listeners will hear stutter",{roomId:runtime.roomId,...audioHealth,frameStats:f,lavalinkPingMs:lastNodePing});
+    else if((audioHealth.systemCpuPct??0)>=85)diagWarn("audio-health","Lavalink host CPU is very high",{roomId:runtime.roomId,...audioHealth});
+  }
+}
 let lastHeartbeatPayload="";
 let eventLoopLagMs=0;let eventLoopExpected=Date.now()+1000;
 setInterval(()=>{const now=Date.now();eventLoopLagMs=Math.max(0,now-eventLoopExpected);eventLoopExpected=now+1000;},1000).unref();
@@ -189,7 +212,7 @@ async function play(cmd:Extract<WorkerCommand,{type:"PLAY"}>){
     const workerVoice=client.guilds.cache.get(guildId)?.members.me?.voice;
     diag("voice","Discord worker voice state",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,channelId:workerVoice?.channelId??null,selfMute:Boolean(workerVoice?.selfMute),serverMute:Boolean(workerVoice?.serverMute),selfDeaf:Boolean(workerVoice?.selfDeaf),serverDeaf:Boolean(workerVoice?.serverDeaf),suppress:Boolean(workerVoice?.suppress)});
     const resolvedOrigin=(resolved as any).resolution?.strategy==="direct-playlist"?"PLAYLIST":(cmd as any).origin;
-    runtime={roomId:cmd.roomId,guildId,requesterId:cmd.requesterId,requestId:cmd.requestId,traceId:cmd.traceId,player,transitionMode:cmd.transitionMode,transitionMs:cmd.transitionMs,fallbackTracks:(resolved as any).fallbacks??[],fallbackAttempts:0,origin:resolvedOrigin,surface:(cmd as any).surface,originalQuery:(cmd as any).originalQuery??cmd.query,voiceChannelId:cmd.voiceChannelId,baseVolume:100,ducked:false};
+    runtime={roomId:cmd.roomId,guildId,requesterId:cmd.requesterId,requestId:cmd.requestId,traceId:cmd.traceId,player,transitionMode:cmd.transitionMode,transitionMs:cmd.transitionMs,fallbackTracks:(resolved as any).fallbacks??[],fallbackAttempts:0,origin:resolvedOrigin,surface:(cmd as any).surface,originalQuery:(cmd as any).originalQuery??cmd.query,voiceChannelId:cmd.voiceChannelId,baseVolume:roomVolume.get(cmd.roomId)??100,ducked:false};
     wirePlayer(player);
     const selected=resolved.selected;
     if(resolved.remainder.length){
@@ -307,14 +330,14 @@ async function handle(raw:string){
   if(cmd.type==="PAUSE"){ await active.player.setPaused?.(true).catch?.(()=>{}); if(!active.player.setPaused)await active.player.update({paused:true}); await publishEvent({type:"STATE",workerId,roomId:active.roomId,guildId:active.guildId,status:"PAUSED"}); return; }
   if(cmd.type==="RESUME"){ await active.player.setPaused?.(false).catch?.(()=>{}); if(!active.player.setPaused)await active.player.update({paused:false}); await publishEvent({type:"STATE",workerId,roomId:active.roomId,guildId:active.guildId,status:"PLAYING"}); return; }
   if(cmd.type==="SKIP"){ if(cmd.expectedRequestId && active.requestId!==cmd.expectedRequestId)return; skippedEndPlayers.add(active.player); await active.player.stopTrack(); return; }
-  if(cmd.type==="STOP"){ ignoredEndPlayers.add(active.player); runtime=null; if(active.transitionTimer)clearTimeout(active.transitionTimer); await active.player.stopTrack?.().catch(()=>{}); await shoukaku.leaveVoiceChannel(guildId).catch(()=>{}); connectedVoiceChannelId=null; await setPresence(); await publishEvent({type:"TRACK_END",workerId,roomId:active.roomId,guildId:active.guildId,requestId:active.requestId,traceId:active.traceId,reason:"STOPPED"}); return; }
+  if(cmd.type==="STOP"){ roomVolume.delete(active.roomId); ignoredEndPlayers.add(active.player); runtime=null; if(active.transitionTimer)clearTimeout(active.transitionTimer); await active.player.stopTrack?.().catch(()=>{}); await shoukaku.leaveVoiceChannel(guildId).catch(()=>{}); connectedVoiceChannelId=null; await setPresence(); await publishEvent({type:"TRACK_END",workerId,roomId:active.roomId,guildId:active.guildId,requestId:active.requestId,traceId:active.traceId,reason:"STOPPED"}); return; }
   if(cmd.type==="SEEK"){ await active.player.seekTo(cmd.positionMs); return; }
   if(cmd.type==="FILTER"){
     const preset=(FILTER_PRESETS as any)[cmd.preset]??{};
     await active.player.setFilters(preset);
     return;
   }
-  if(cmd.type==="VOLUME"){active.baseVolume=cmd.volume;const applied=active.ducked?Math.max(0,Math.round(cmd.volume*.35)):cmd.volume;try{await active.player.setGlobalVolume?.(applied);diag("audio-volume","manual volume applied",{roomId:active.roomId,targetVolume:applied,reportedVolume:Number(active.player.volume??applied),ducked:Boolean(active.ducked)});}catch{}return;}
+  if(cmd.type==="VOLUME"){const level=Math.max(0,Math.min(MAX_VOLUME,Math.round(Number(cmd.volume))));active.baseVolume=level;roomVolume.set(active.roomId,level);const applied=active.ducked?Math.max(0,Math.round(level*.35)):level;try{await active.player.setGlobalVolume?.(applied);diag("audio-volume","manual volume applied",{roomId:active.roomId,targetVolume:applied,reportedVolume:Number(active.player.volume??applied),ducked:Boolean(active.ducked)});}catch{}return;}
   if(cmd.type==="LYRICS"){
     const target=runtime;
     if(!target||target.roomId!==cmd.roomId||lyricsPending||Date.now()<lyricsRetryAfter)return;
@@ -351,7 +374,8 @@ async function commandLoop(){
 
 setInterval(async()=>{
   const playerPing=Number((runtime?.player as any)?.ping??0);if(Number.isFinite(playerPing)&&playerPing>=0)lastNodePing=playerPing;
-  const signature=JSON.stringify({workerId,userId:client.user?.id??null,tag:client.user?.tag??null,roomId:runtime?.roomId??null,nodeReady,lavalinkPingMs:lastNodePing,eventLoopLagMs,reconnects,recentFailures});
+  try{readAudioHealth();}catch{}
+  const signature=JSON.stringify({workerId,userId:client.user?.id??null,tag:client.user?.tag??null,roomId:runtime?.roomId??null,nodeReady,lavalinkPingMs:lastNodePing,eventLoopLagMs,reconnects,recentFailures,...audioHealth});
   const payload=JSON.stringify({...JSON.parse(signature),at:Date.now()});
   // Avoid redundant persistence churn while still refreshing the TTL often enough for health scoring.
   if(signature!==lastHeartbeatPayload||runtime){await redis.set(keys.workerHeartbeat(workerId),payload,"EX",30);lastHeartbeatPayload=signature;}

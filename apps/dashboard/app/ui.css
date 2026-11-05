@@ -703,3 +703,8 @@ body:before { display: none !important; }
 .prWorkspaceFullscreen .tcWorkspace { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
 .prWorkspaceFullscreen .tcPanel { grid-template-columns: 1fr; max-height: calc(100dvh - 200px); overflow: auto; }
 
+
+/* Admin overview: Lavalink audio health */
+.audioHealth { display: grid; gap: 2px; margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid color-mix(in srgb, #53b96e 40%, var(--cc-border)); background: color-mix(in srgb, #53b96e 10%, transparent); color: var(--cc-text); font-size: 0.8rem; font-weight: 600; }
+.audioHealth.bad { border-color: color-mix(in srgb, #dc4b45 45%, var(--cc-border)); background: color-mix(in srgb, #dc4b45 12%, transparent); }
+.audioHealth small { color: var(--cc-muted); font-weight: 400; font-size: 0.72rem; }
