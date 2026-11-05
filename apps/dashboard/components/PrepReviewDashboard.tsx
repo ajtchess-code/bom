@@ -5,6 +5,15 @@ import { useSearchParams } from "next/navigation";
 import { PointerEvent as ReactPointerEvent, useEffect, useMemo, useRef, useState } from "react";
 import CommandIcon from "./CommandIcon";
 import { useWorkspaceFullscreen, requestWorkspaceFullscreen } from "./useWorkspaceFullscreen";
+import {
+  TacticsLayer,
+  placeObject,
+  readTactics,
+  type Selection,
+  type TacticTool,
+  type Tactics,
+} from "./prep/Tactics";
+import TacticsPanel from "./prep/TacticsPanel";
 
 type Kind = "PREP" | "REVIEW";
 type Tool = "arrow" | "line" | "dots" | "ship" | "eraser";
@@ -316,7 +325,16 @@ function AnnotationSurface({
   tools,
   hiddenLayers,
   className = "",
+  tactics,
 }: {
+  tactics?: {
+    data: Tactics;
+    onChange: (t: Tactics) => void;
+    active: boolean;
+    tool: TacticTool;
+    selected: Selection;
+    onSelect: (s: Selection) => void;
+  };
   background?: string | null;
   missing?: string;
   shapes: Shape[];
@@ -341,6 +359,16 @@ function AnnotationSurface({
   const down = (e: ReactPointerEvent<SVGSVGElement>) => {
     if (e.button !== 0) return;
     const p = point(e);
+    if (tactics?.active) {
+      // Ships and objects stop propagation when grabbed, so this is a click on open water.
+      if (tactics.tool === "select") tactics.onSelect(null);
+      else {
+        const r = placeObject(tactics.data, tactics.tool, p[0], p[1]);
+        tactics.onChange(r.tactics);
+        tactics.onSelect(r.selected);
+      }
+      return;
+    }
     if (tools.tool === "eraser") {
       let best = -1,
         dist = 42;
@@ -429,6 +457,7 @@ function AnnotationSurface({
             viewBox={`0 0 ${W} ${H}`}
             role="img"
             aria-label="Tactical drawing surface"
+            className={tactics?.active ? `tcSurface tcTool-${tactics.tool}` : undefined}
             onPointerDown={down}
             onPointerMove={move}
             onPointerUp={up}
@@ -473,6 +502,16 @@ function AnnotationSurface({
             )}
             <ShapeMarks shapes={shapes} hiddenLayers={hiddenLayers} />
             <ShapeMarks shapes={preview} hiddenLayers={new Set()} />
+            {tactics && (
+              <TacticsLayer
+                tactics={tactics.data}
+                onTactics={tactics.onChange}
+                selected={tactics.selected}
+                onSelect={tactics.onSelect}
+                svgRef={svgRef}
+                interactive={tactics.active && tactics.tool === "select"}
+              />
+            )}
           </svg>
         </div>
       </div>
@@ -697,7 +736,11 @@ export default function PrepReviewDashboard({ initialPorts, initialSessions, ini
     [busy, setBusy] = useState(false),
     [newPort, setNewPort] = useState(initialPorts[0]?.name ?? "Aruba"),
     [newTitle, setNewTitle] = useState(""),
-    [videoDraft, setVideoDraft] = useState("");
+    [videoDraft, setVideoDraft] = useState(""),
+    [prepMode, setPrepMode] = useState<"draw" | "tactics">("draw"),
+    [tacticTool, setTacticTool] = useState<TacticTool>("select"),
+    [tacticSel, setTacticSel] = useState<Selection>(null),
+    [activeSquadron, setActiveSquadron] = useState<string | null>(null);
   const routeParams = useSearchParams();
   const visibleSessions = useMemo(() => sessions.filter((s) => s.kind === kind), [sessions, kind]);
   const port =
@@ -739,6 +782,8 @@ export default function PrepReviewDashboard({ initialPorts, initialSessions, ini
     try {
       const r: Session = await api(`/sessions/${id}`);
       setSession(r);
+      setTacticSel(null);
+      setActiveSquadron(null);
       setSelectedId(id);
       setKind(r.kind);
       setVideoDraft(r.video_url ?? "");
@@ -805,6 +850,9 @@ export default function PrepReviewDashboard({ initialPorts, initialSessions, ini
     setSession((s) => (s ? { ...s, ...patch } : s));
   }
   const mapUrl = port?.mapUrl ?? null;
+  const tactics = useMemo(() => readTactics(session?.view_state?.tactics), [session?.view_state]);
+  const setTactics = (t: Tactics) =>
+    setSession((s) => (s ? { ...s, view_state: { ...s.view_state, tactics: t } } : s));
   return (
     <div
       ref={workspace.ref}
@@ -951,22 +999,66 @@ export default function PrepReviewDashboard({ initialPorts, initialSessions, ini
               </section>
               {session.kind === "PREP" ? (
                 <section className="panel prToolPanel">
-                  <DrawingToolbar
-                    state={tools}
-                    onState={setTools}
-                    shapes={session.drawing}
-                    onShapes={(v) => updateSession({ drawing: v })}
-                    hiddenLayers={hiddenLayers}
-                    onHiddenLayers={setHiddenLayers}
-                  />
-                  <AnnotationSurface
-                    background={mapUrl}
-                    missing={port?.name}
-                    shapes={session.drawing}
-                    onShapes={(v) => updateSession({ drawing: v })}
-                    tools={tools}
-                    hiddenLayers={hiddenLayers}
-                  />
+                  <div className="tcModes" role="tablist" aria-label="Planning mode">
+                    {(
+                      [
+                        ["draw", "Draw", "Arrows, lines and markers"],
+                        ["tactics", "Tactics", "Wind, squadrons and objectives"],
+                      ] as const
+                    ).map(([m, label, hint]) => (
+                      <button
+                        key={m}
+                        type="button"
+                        role="tab"
+                        aria-selected={prepMode === m}
+                        className={prepMode === m ? "active" : ""}
+                        onClick={() => setPrepMode(m)}
+                      >
+                        <b>{label}</b>
+                        <small>{hint}</small>
+                      </button>
+                    ))}
+                  </div>
+                  {prepMode === "draw" && (
+                    <DrawingToolbar
+                      state={tools}
+                      onState={setTools}
+                      shapes={session.drawing}
+                      onShapes={(v) => updateSession({ drawing: v })}
+                      hiddenLayers={hiddenLayers}
+                      onHiddenLayers={setHiddenLayers}
+                    />
+                  )}
+                  <div className={prepMode === "tactics" ? "tcWorkspace" : undefined}>
+                    <AnnotationSurface
+                      background={mapUrl}
+                      missing={port?.name}
+                      shapes={session.drawing}
+                      onShapes={(v) => updateSession({ drawing: v })}
+                      tools={tools}
+                      hiddenLayers={hiddenLayers}
+                      tactics={{
+                        data: tactics,
+                        onChange: setTactics,
+                        active: prepMode === "tactics",
+                        tool: tacticTool,
+                        selected: tacticSel,
+                        onSelect: setTacticSel,
+                      }}
+                    />
+                    {prepMode === "tactics" && (
+                      <TacticsPanel
+                        tactics={tactics}
+                        onTactics={setTactics}
+                        tool={tacticTool}
+                        onTool={setTacticTool}
+                        selected={tacticSel}
+                        onSelect={setTacticSel}
+                        activeSquadron={activeSquadron}
+                        onActiveSquadron={setActiveSquadron}
+                      />
+                    )}
+                  </div>
                   <div className="prMapFoot">
                     <span>{port?.name}</span>
                     <small>

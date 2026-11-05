@@ -653,3 +653,53 @@ body:before { display: none !important; }
 .adminSectionContent :is(table, pre) { display: block; max-width: 100%; overflow-x: auto; }
 .commandContent :is(.stackForm, .customAchievementForm, .featureSettingsGrid) { display: grid !important; grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr)) !important; gap: 12px !important; align-items: end; min-width: 0; }
 .commandContent :is(.stackForm, .customAchievementForm, .featureSettingsGrid) > * { min-width: 0; }
+
+/* Battle Prep: tactics layer (wind, squadrons, battlefield objects) */
+.tcModes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; margin-bottom: 10px; }
+.tcModes button { display: grid; gap: 2px; text-align: left; padding: 9px 12px; border: 1px solid var(--cc-border); border-radius: 9px; background: var(--cc-surface-2); color: var(--cc-text); cursor: pointer; }
+.tcModes button small { color: var(--cc-muted); font-size: 0.72rem; }
+.tcModes button.active { border-color: var(--cc-accent); background: var(--cc-accent-soft); box-shadow: inset 0 -2px 0 var(--cc-accent); }
+.tcModes button:focus-visible, .tcPanel button:focus-visible, .tcPanel :is(input, select):focus-visible { outline: 2px solid var(--cc-accent); outline-offset: 1px; }
+.tcWorkspace { display: grid; gap: 12px; }
+.tcSurface { cursor: default !important; }
+.tcSurface.tcTool-cone, .tcSurface.tcTool-zone, .tcSurface.tcTool-tower { cursor: crosshair !important; }
+.tcPanel { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap: 10px; align-items: start; min-width: 0; }
+.tcPanel > section { display: grid; gap: 8px; padding: 11px; border: 1px solid var(--cc-border); border-radius: 10px; background: var(--cc-surface-2); }
+.tcPanel h4 { margin: 0; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cc-muted); }
+.tcTools { width: 100%; }
+.tcTools button { flex: 1; min-width: 0; height: 44px !important; grid-template-rows: 20px 14px !important; }
+.tcTools button span { font-size: 0.6rem !important; text-transform: none !important; }
+.tcHint, .tcEmpty { margin: 0; color: var(--cc-muted); font-size: 0.74rem; line-height: 1.45; }
+.tcRange { display: grid; gap: 3px; font-size: 0.74rem; color: var(--cc-muted); }
+.tcRange span { display: flex; justify-content: space-between; gap: 8px; }
+.tcRange b { color: var(--cc-text); font-variant-numeric: tabular-nums; }
+.tcRange input { width: 100%; accent-color: var(--cc-accent); }
+.tcGauge { margin: 0; padding: 8px 10px; border-radius: 8px; font-size: 0.8rem; font-weight: 700; border: 1px solid var(--cc-border); color: var(--cc-muted); }
+.tcGauge.friendly { color: #3f9d58; border-color: color-mix(in srgb, #53b96e 45%, transparent); background: color-mix(in srgb, #53b96e 12%, transparent); }
+.tcGauge.enemy { color: #c8443e; border-color: color-mix(in srgb, #dc4b45 45%, transparent); background: color-mix(in srgb, #dc4b45 12%, transparent); }
+.tcLegend { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px 10px; font-size: 0.72rem; color: var(--cc-text); }
+.tcLegend li { display: flex; align-items: center; gap: 6px; }
+.tcLegend small { margin-left: auto; color: var(--cc-muted); font-variant-numeric: tabular-nums; }
+.tcLegend i, .tcList i, .tcSail i { width: 10px; height: 10px; border-radius: 50%; flex: none; display: inline-block; }
+.tcRow { display: flex; gap: 6px; flex-wrap: wrap; }
+.tcRow > * { flex: 1 1 0; min-width: 0; }
+.tcPanel button:not(.outlineButton):not(.dangerGhost):not(.tcTools button) { min-height: 32px; border: 1px solid var(--cc-border); border-radius: 8px; background: var(--cc-surface); color: var(--cc-text); font-size: 0.76rem; cursor: pointer; padding: 0 9px; }
+.tcPanel button:disabled { opacity: 0.45; cursor: not-allowed; }
+.tcPanel .outlineButton, .tcPanel .dangerGhost { min-height: 32px; font-size: 0.76rem; }
+.tcList { display: grid; gap: 4px; }
+.tcList button { display: flex !important; align-items: center; gap: 8px; text-align: left; }
+.tcList button span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tcList button small { color: var(--cc-muted); font-size: 0.7rem; }
+.tcList button.active { border-color: var(--cc-accent) !important; background: var(--cc-accent-soft) !important; }
+.tcEditor, .tcInspector { display: grid; gap: 8px; }
+.tcEditor { padding-top: 8px; border-top: 1px solid var(--cc-border); }
+.tcPanel label:not(.tcRange) { display: grid; gap: 3px; font-size: 0.72rem; color: var(--cc-muted); }
+.tcPanel label :is(input, select) { width: 100%; min-height: 32px; border: 1px solid var(--cc-border); border-radius: 8px; background: var(--cc-surface); color: var(--cc-text); padding: 5px 8px; font: inherit; font-size: 0.8rem; }
+.tcSwatches { display: flex; flex-wrap: wrap; gap: 5px; }
+.tcSwatches button { width: 24px !important; min-height: 24px !important; height: 24px; padding: 0 !important; border-radius: 6px !important; border: 2px solid var(--cc-surface) !important; box-shadow: 0 0 0 1px var(--cc-border); }
+.tcSwatches button.active { box-shadow: 0 0 0 2px var(--cc-accent); }
+.tcSail { margin: 0; display: flex; align-items: center; gap: 6px; font-size: 0.78rem; font-weight: 600; color: var(--cc-text); }
+.tcClear { justify-self: start; align-self: end; }
+.prWorkspaceFullscreen .tcWorkspace { grid-template-columns: minmax(0, 1fr) 300px; align-items: start; }
+.prWorkspaceFullscreen .tcPanel { grid-template-columns: 1fr; max-height: calc(100dvh - 200px); overflow: auto; }
+
