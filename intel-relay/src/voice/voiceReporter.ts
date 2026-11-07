@@ -19,7 +19,7 @@ export class VoiceReporter{
  public health={lastSampleAt:null as string|null,lastDeliveryAt:null as string|null,stale:false,error:null as string|null,pages:0};
  public constructor(private readonly client:Client,private readonly config:AppConfig,private readonly db:RelayDatabase,private readonly webhook:ManagedWebhook|null,private readonly logger:Logger,private readonly relayLabel='Intel Relay'){}
  public schedule(){if(!this.webhook||this.stopped)return;if(this.timer)clearTimeout(this.timer);this.timer=setTimeout(()=>{this.timer=null;void this.sync()},this.config.voiceDebounceMs??10000);this.timer.unref?.();}
- public sync(force=false):Promise<void>{if(this.stopped||routeIsPaused(this.config))return Promise.resolve();const next=this.tail.then(()=>this.performSync(force));this.tail=next.catch(()=>{this.health.error='Voice delivery failed. Check destination access.';this.logger.error('Voice refresh failed; will retry.');});return this.tail;}
+ public sync(force=false):Promise<void>{if(this.stopped||routeIsPaused(this.config))return Promise.resolve();const next=this.tail.then(()=>this.performSync(force));this.tail=next.catch((e:any)=>{const reason=String(e?.code==='ENOSPC'?'The server disk is full.':e?.message??e).slice(0,300);this.health.error=`Voice delivery failed: ${reason}`;this.logger.error('Voice refresh failed; will retry.',{reason,code:e?.code??null});});return this.tail;}
  private async performSync(force=false){
   if(!this.webhook||this.webhook.disabled)return;
   const policy=policyFor(this.config.policy),now=Date.now();
