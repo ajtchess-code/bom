@@ -18,9 +18,11 @@ export const MISFIT_PERSONA={
  banner:'thankful-misfit-banner.png',
  roleIcon:'thankful-misfit-role-icon.png',
  roleColor:0xd9741f,
- /** Server icon: animated when the server's boost level allows it, otherwise the still logo. */
- serverIconAnimated:'server-icon.gif',
+ /** Server icon: the seasonal logo. */
  serverIcon:'server-icon.png',
+ /** Server banner: the video with the logo overlay when animated banners are unlocked (boost level 3), otherwise a still frame (level 2). */
+ serverBannerAnimated:'server-banner.gif',
+ serverBanner:'server-banner.png',
 };
 
 const digest=(b:Buffer)=>createHash('sha256').update(b).digest('hex');
@@ -38,11 +40,17 @@ export async function applyMisfitBranding(client:any,guildId:string){
  const state=await oneOrNone<any>('SELECT * FROM bot_branding_state WHERE guild_id=$1',[guildId]);
  try{const avatar=await readFile(join(dir,P.avatar)),hash=digest(avatar);if(state?.avatar_sha!==hash||!client.user.avatar){await client.user.setAvatar(avatar);await db.query('INSERT INTO bot_branding_state(guild_id,avatar_sha) VALUES($1,$2) ON CONFLICT(guild_id) DO UPDATE SET avatar_sha=$2',[guildId,hash]);}}catch(e){warn('Avatar',e);}
  try{const banner=await readFile(join(dir,P.banner)),hash=digest(banner);if(state?.banner_sha!==hash||!client.user.banner){await client.user.setBanner(banner);await db.query('UPDATE bot_branding_state SET banner_sha=$2 WHERE guild_id=$1',[guildId,hash]);}}catch(e){warn('Banner',e);}
- // Server picture. Needs the bot's Manage Server permission.
+ // Server icon and banner. Both need the bot's Manage Server permission.
  try{
-  const animated=guild.features.includes('ANIMATED_ICON'),icon=await readFile(join(dir,animated?P.serverIconAnimated:P.serverIcon)),hash=digest(icon);
-  if(state?.guild_icon_sha!==hash){await guild.setIcon(icon,`${P.season} server picture`);await db.query('UPDATE bot_branding_state SET guild_icon_sha=$2 WHERE guild_id=$1',[guildId,hash]);console.info(`[misfit-branding] Server picture set to the ${P.season} ${animated?'animated':'still'} logo.`);}
- }catch(e){warn('Server picture',e);}
+  const icon=await readFile(join(dir,P.serverIcon)),hash=digest(icon);
+  if(state?.guild_icon_sha!==hash){await guild.setIcon(icon,`${P.season} server icon`);await db.query('UPDATE bot_branding_state SET guild_icon_sha=$2 WHERE guild_id=$1',[guildId,hash]);console.info(`[misfit-branding] Server icon set to the ${P.season} logo.`);}
+ }catch(e){warn('Server icon',e);}
+ try{
+  const animated=guild.features.includes('ANIMATED_BANNER');
+  if(!animated&&!guild.features.includes('BANNER'))console.info('[misfit-branding] Server banners need boost level 2 (animated: level 3); the banner is ready for when it unlocks.');
+  else{const banner=await readFile(join(dir,animated?P.serverBannerAnimated:P.serverBanner)),hash=digest(banner);
+   if(state?.guild_banner_sha!==hash){await guild.setBanner(banner,`${P.season} server banner`);await db.query('UPDATE bot_branding_state SET guild_banner_sha=$2 WHERE guild_id=$1',[guildId,hash]);console.info(`[misfit-branding] Server banner set to the ${P.season} ${animated?'animated video':'still'} banner.`);}}
+ }catch(e){warn('Server banner',e);}
  try{
   await guild.roles.fetch();
   const names=[P.name,...P.previousNames];
