@@ -33,6 +33,9 @@ const retiredFeaturePaths = [
   "packages/shared/src/clashToolkit.ts", "packages/shared/dist/clashToolkit.js", "packages/shared/dist/clashToolkit.d.ts", "packages/shared/dist/clashToolkit.js.map",
   "scripts/tests/clash-toolkit.test.mjs", "scripts/tests/game-hub-browser.mjs", "scripts/tests/game-hubs-lifecycle.test.mjs",
 ];
+// Next.js build cache: safe to delete (the next build just takes a little
+// longer) and often the largest folder on a small panel disk.
+retiredFeaturePaths.push("apps/dashboard/.next/cache");
 for (const path of [...retiredWaveformPaths, ...retiredFeaturePaths]) {
   try { rmSync(path, { recursive: true, force: true }); } catch {}
 }
