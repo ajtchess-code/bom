@@ -15,7 +15,6 @@ const categories = [
   "Map",
   "Wiki",
   "Music",
-  "Minecraft",
   "Prep & Review",
   "Sentinel",
   "Administration",

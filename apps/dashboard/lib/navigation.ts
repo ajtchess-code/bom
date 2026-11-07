@@ -81,15 +81,6 @@ export const NAV_SECTIONS: NavSection[] = [
     ],
   },
   {
-    key: "games",
-    label: "Games",
-    icon: "map",
-    tabs: [
-      { href: "/dashboard/minecraft", label: "Minecraft" },
-      { href: "/dashboard/clash", label: "Clash of Clans" },
-    ],
-  },
-  {
     key: "music",
     label: "Music",
     icon: "music",

@@ -10,7 +10,6 @@ const LABELS: Record<string, string> = {
   wiki: "Wiki",
   music: "Music",
   membership: "Membership",
-  minecraft: "Minecraft",
   publicTools: "Public Tools",
   activityFeed: "Activity Feed",
   notificationCenter: "Notification Center",

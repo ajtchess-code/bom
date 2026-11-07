@@ -9,6 +9,13 @@ const nextConfig: NextConfig = {
     // and the shared BOM workspaces during production builds.
     root: path.resolve(process.cwd(), "../.."),
   },
+  // Retired sections: send old bookmarks home instead of a 404.
+  async redirects() {
+    return ["/dashboard/minecraft", "/dashboard/clash"].flatMap((source) => [
+      { source, destination: "/dashboard", permanent: false },
+      { source: `${source}/:path*`, destination: "/dashboard", permanent: false },
+    ]);
+  },
 };
 
 export default nextConfig;

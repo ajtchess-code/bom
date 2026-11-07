@@ -62,10 +62,6 @@ async function experienceApi(path: string, init: RequestInit = {}) {
   return body;
 }
 function sectionFor(pathname: string) {
-  if (pathname.startsWith("/dashboard/minecraft"))
-    return { title: "BOMCraft", subtitle: "Minecraft community, worlds and projects" };
-  if (pathname.startsWith("/dashboard/clash"))
-    return { title: "Clash of Clans", subtitle: "Clan planning, wars and your villages" };
   if (pathname.startsWith("/dashboard/sentinel"))
     return { title: "Sentinel", subtitle: "Audit, recovery and server history" };
   if (pathname.startsWith("/dashboard/recruitment"))

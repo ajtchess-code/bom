@@ -10,9 +10,7 @@ export const DESK_DESTINATIONS=[
  {value:'alliances',label:'Guilds & Alliances',path:'/dashboard/diplomacy'},
  {value:'map',label:'Battle Map',path:'/dashboard/map'},
  {value:'recruitment',label:'Applications & Recruitment',path:'/dashboard/recruitment'},
- {value:'feedback',label:'Feedback & Bug Reports',path:'/dashboard/feedback'},
- {value:'minecraft',label:'Minecraft',path:'/dashboard/minecraft'},
- {value:'clash',label:'Clash of Clans',path:'/dashboard/clash'}
+ {value:'feedback',label:'Feedback & Bug Reports',path:'/dashboard/feedback'}
 ];
 const text=(content:string)=>({type:10,content});
 const button=(id:string,label:string,style=2)=>({type:2,style,custom_id:id,label});

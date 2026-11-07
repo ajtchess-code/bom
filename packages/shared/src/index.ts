@@ -3,13 +3,13 @@ import { z } from "zod";
 
 export const PLATFORM_CONFIG_VERSION = 4;
 export const PlatformFeatureFlag = z.enum([
-  "recruitment","portBattles","wiki","music","membership","minecraft","publicTools",
+  "recruitment","portBattles","wiki","music","membership","publicTools",
   "activityFeed","notificationCenter","supportCenter","experimentalUi"
 ]);
 export type PlatformFeatureFlag = z.infer<typeof PlatformFeatureFlag>;
 export const PlatformFeatureFlags = z.record(PlatformFeatureFlag,z.boolean()).default({});
 export const DEFAULT_PLATFORM_FEATURES:Record<PlatformFeatureFlag,boolean>={
-  recruitment:true,portBattles:true,wiki:true,music:true,membership:true,minecraft:true,publicTools:true,
+  recruitment:true,portBattles:true,wiki:true,music:true,membership:true,publicTools:true,
   activityFeed:true,notificationCenter:true,supportCenter:true,experimentalUi:false
 };
 export const PlatformSettingsSchema=z.object({
@@ -167,7 +167,6 @@ export function tr(locale:string|undefined|null,key:string){
 export {applyWikiOverrides,wikiGuideText,canonicalWikiShipKey} from './wikiKnowledge.js';
 
 export {mergeWikiRecordData,wikiRecordIsHistorical,wikiRecordPriority,wikiNumber,wikiKnownValue} from './wikiRecordMerge.js';
-export * from './clashToolkit.js';
 export * from './territory.js';
 
 export * from './guildCatalogue.js';

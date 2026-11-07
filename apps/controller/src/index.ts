@@ -7,7 +7,6 @@ import {handlePreferredShips,remindPreferredShips} from './preferredShips.js';
 import {musicTrace} from './musicDiagnostics.js';
 import {installDmMuteControls} from './dmDelivery.js';
 import {sendBotDm} from './dmDelivery.js';
-import {installGameHubNotifications} from './gameHubNotifications.js';
 import {deliverBattleCancellations} from './pbCancellation.js';
 import {selectDraftShips,detailedSignupBody} from './pbSignupDraft.js';
 import {buildSignupModal,parseSignupForm,type SignupDefaults} from './pbSignupForm.js';
@@ -15,6 +14,7 @@ import {installMisfitAssistant} from './misfitAssistant.js';
 import {correctionStatement,factualCorrection} from './assistantIntent.js';
 import {maintainDeskOrderForChannel,refreshMembershipSurfaces} from './membership.js';
 import {applyMisfitBranding} from './misfitBranding.js';
+import {applyChannelAccessLayout} from './channelAccessLayout.js';
 import {ensurePBEmojis} from './pbEmojis.js';
 import {legacyPanel,signupPanel,rosterPanel,indexPanel,schedulePanel,schedulePanels,pbRow,pbButton,pbLink,samePBPanel} from './pbPresentation.js';
 import {fetchPBMessage,upsertPBMessage,removeLegacyFleetPanels} from './pbMessages.js';
@@ -86,7 +86,6 @@ installPBInvitations(client,async(interaction,battleId)=>{
 });
 
 installRecruitment(client);
-installGameHubNotifications(client,guildId!);
 installBanter(client);
 installMisfitAssistant(client,wosbApi,()=>syncPortBattleDiscord(true));
 const commands=[
@@ -842,6 +841,7 @@ client.on("clientReady",async()=>{
   await ensureGuild();
   void ensureEventTrophyEmojis(client,guildId!);
   void applyMisfitBranding(client,guildId!).catch(error=>console.warn('[misfit-branding] Branding deferred',error));
+  void applyChannelAccessLayout(client,guildId!).catch(error=>console.warn('[channel-layout] Deferred',error));
   for(const g of client.guilds.cache.values())if(g.id!==guildId)await g.leave().catch(()=>{});
   const guild=client.guilds.cache.get(guildId!);
   const voiceQualityChannels=new Set<string>();
