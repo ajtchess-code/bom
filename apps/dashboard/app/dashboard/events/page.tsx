@@ -1,5 +1,5 @@
-import EventToolDashboard from "@/components/EventToolDashboard";
-export const metadata = { title: "WoSB Halloween Event 2026 · Band of Misfits" };
+import { redirect } from "next/navigation";
+// The Halloween 2026 event has ended and its page is retired.
 export default function Page() {
-  return <EventToolDashboard />;
+  redirect("/dashboard");
 }

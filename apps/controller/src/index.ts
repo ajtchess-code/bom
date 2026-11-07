@@ -841,7 +841,7 @@ client.on("clientReady",async()=>{
   console.log(`Controller logged in as ${client.user?.tag}`); await syncCommands(); startEphemeralJanitor(); startFeedbackAutomation(client,guildId!);
   await ensureGuild();
   void ensureEventTrophyEmojis(client,guildId!);
-  void applyMisfitBranding(client,guildId!).catch(error=>console.warn('[evil-misfit] Branding deferred',error));
+  void applyMisfitBranding(client,guildId!).catch(error=>console.warn('[misfit-branding] Branding deferred',error));
   for(const g of client.guilds.cache.values())if(g.id!==guildId)await g.leave().catch(()=>{});
   const guild=client.guilds.cache.get(guildId!);
   const voiceQualityChannels=new Set<string>();

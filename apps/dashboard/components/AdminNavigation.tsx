@@ -10,7 +10,7 @@ type Section = { key: string; title: string; description: string; group: string;
 export const ADMIN_GROUPS = [
   "Members & community",
   "Bot features",
-  "Port Battles & events",
+  "Port Battles",
   "Server & platform",
 ] as const;
 
@@ -127,15 +127,8 @@ export const ADMIN_SECTION_LIST: Section[] = [
     key: "port-battles",
     title: "Port Battles",
     description: "Officer access, signup roles, ships and fleet defaults",
-    group: "Port Battles & events",
+    group: "Port Battles",
     keywords: ["signup channel", "roster channel", "manager role", "ships", "fleet", "doctrine", "guilds"],
-  },
-  {
-    key: "event-crafting",
-    title: "Event Crafting Costs",
-    description: "Seasonal event ship resource requirements",
-    group: "Port Battles & events",
-    keywords: ["halloween", "event", "crafting", "resources"],
   },
   {
     key: "brand-kit",

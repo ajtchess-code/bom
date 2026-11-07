@@ -1,4 +1,4 @@
-import {BANTER_VOICE,gazetteContext} from './banterKnowledge.js';
+import {BANTER_VOICE,gazetteContext,seasonalVoice} from './banterKnowledge.js';
 import {MessageFlags,SlashCommandBuilder,PermissionFlagsBits,type Client,type Message,type ChatInputCommandInteraction} from 'discord.js';
 import {oneOrNone,db} from '@bom/db';
 import {redis,reserveCounters,refundCounters,releaseLease,type CounterLimit} from '@bom/redis';
@@ -39,7 +39,7 @@ async function settings():Promise<BanterSettings>{
   cache={until:Date.now()+20_000,value};return value;
 }
 function prompt(s:BanterSettings,kind:Trigger):string{
-  return `${BANTER_VOICE} Intensity: ${s.aggression}/10. ${kind==='roast'?'The requester volunteers to be roasted; be incisive rather than abusive.':''} ${kind==='spontaneous'?'Interrupt only when relevant; if there is no worthwhile observation return exactly SKIP.':''} Additional administrator style preferences: ${s.custom_instructions.slice(0,1200)}`;
+  return `${BANTER_VOICE}${seasonalVoice()} Intensity: ${s.aggression}/10. ${kind==='roast'?'The requester volunteers to be roasted; be incisive rather than abusive.':''} ${kind==='spontaneous'?'Interrupt only when relevant; if there is no worthwhile observation return exactly SKIP.':''} Additional administrator style preferences: ${s.custom_instructions.slice(0,1200)}`;
 }
 function cleanOutput(raw:string){
   const x=String(raw).trim().replace(/<@!?\d+>|<@&\d+>|@everyone|@here/gi,'captain').slice(0,550);

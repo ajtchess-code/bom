@@ -1,6 +1,5 @@
 export const DESK_DESTINATIONS=[
  {value:'home',label:'Dashboard',path:'/dashboard'},
- {value:'events',label:'Halloween Event',path:'/dashboard/events'},
  {value:'battles',label:'Port Battles · Signups & Schedule',path:'/dashboard/port-battles'},
  {value:'prep',label:'Battle Prep',path:'/dashboard/battle-prep'},
  {value:'review',label:'Battle Review · VODs',path:'/dashboard/battle-review'},

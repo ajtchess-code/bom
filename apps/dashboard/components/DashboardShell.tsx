@@ -338,10 +338,7 @@ export default function DashboardShell({
     void platformApi("/me")
       .then(setMemberMe)
       .catch(() => {});
-    void fetch("/api/internal/event-tool/status", { cache: "no-store" })
-      .then((r) => (r.ok ? r.json() : null))
-      .then(setEventStatus)
-      .catch(() => {});
+    // The seasonal Events section is retired until the next event.
     const id = window.setInterval(() => {
       if (document.visibilityState === "visible") {
         void refreshExperience();

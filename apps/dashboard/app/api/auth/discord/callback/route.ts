@@ -63,7 +63,7 @@ export async function GET(req: NextRequest) {
       access.guestOnly
         ? "/dashboard/recruitment"
         : access.allianceOnly
-          ? "/dashboard/events"
+          ? "/dashboard/port-battles"
           : access.pbOnly
             ? "/dashboard/port-battles"
             : "/dashboard",

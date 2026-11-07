@@ -1,4 +1,4 @@
-import {BANTER_VOICE,gazetteContext} from './banterKnowledge.js';
+import {BANTER_VOICE,gazetteContext,seasonalVoice} from './banterKnowledge.js';
 import type {FastifyInstance} from 'fastify';
 import {z} from 'zod';
 import {db,many,oneOrNone} from '@bom/db';
@@ -50,7 +50,7 @@ export function registerBanterRoutes(app:FastifyInstance,{guildId,requireAdmin,u
     const {prompt,aggression,custom_instructions}=payload.data;
     const claim=await redis.set(`banter:preview:${guildId}:${userId(req)}`,'1','EX',15,'NX');
     if(claim!=='OK')return reply.code(429).send({error:'preview_cooldown_15_seconds'});
-    const output=await generateAi({feature:'banter',sensitivity:'public',instructions:`${BANTER_VOICE} Intensity: ${aggression}/10. Additional administrator style preferences: ${custom_instructions??''}`,input:prompt+await gazetteContext(prompt),maxOutputTokens:130,timeoutMs:12_000});
+    const output=await generateAi({feature:'banter',sensitivity:'public',instructions:`${BANTER_VOICE}${seasonalVoice()} Intensity: ${aggression}/10. Additional administrator style preferences: ${custom_instructions??''}`,input:prompt+await gazetteContext(prompt),maxOutputTokens:130,timeoutMs:12_000});
     if(!output)return reply.code(503).send({error:'ai_gateway_unavailable_or_daily_limit_reached'});
     return {text:output.text.slice(0,600),provider:output.provider,model:output.model};
   });

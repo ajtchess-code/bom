@@ -96,13 +96,6 @@ export const NAV_SECTIONS: NavSection[] = [
     tabs: [{ href: "/dashboard/music", label: "Music", feature: "music" }],
   },
   {
-    key: "events",
-    label: "Events",
-    icon: "activity",
-    seasonal: true,
-    tabs: [{ href: "/dashboard/events", label: "Event" }],
-  },
-  {
     key: "admin",
     label: "Admin",
     icon: "admin",

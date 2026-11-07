@@ -1,5 +1,5 @@
-import EventCraftingAdmin from "@/components/EventCraftingAdmin";
-export const metadata = { title: "Event Crafting Costs · Band of Misfits" };
+import { redirect } from "next/navigation";
+// Event crafting costs were part of the retired Halloween 2026 event.
 export default function Page() {
-  return <EventCraftingAdmin />;
+  redirect("/dashboard/admin");
 }
