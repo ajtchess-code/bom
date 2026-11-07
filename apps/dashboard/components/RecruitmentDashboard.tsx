@@ -7,23 +7,12 @@ import RoleTagPicker from "./RoleTagPicker";
 import { useSearchParams } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
-type Tab = "overview" | "applications" | "interviews" | "trials" | "history" | "settings";
-const STAGES = [
-  "VERIFICATION",
-  "RECRUITER_REVIEW",
-  "WAITING_ON_APPLICANT",
-  "INTERVIEW",
-  "TRIAL",
-  "FINAL_REVIEW",
-];
+type Tab = "overview" | "applications" | "interviews" | "history" | "settings";
+// Recruitment runs Review -> Interview -> Decision. "Waiting on" says who acts next.
+const STAGES = ["RECRUITER_REVIEW", "INTERVIEW"];
 const LABELS: Record<string, string> = {
-  VERIFICATION: "Verification",
-  RECRUITER_REVIEW: "Recruiter Review",
-  WAITING_ON_APPLICANT: "Waiting on Applicant",
+  RECRUITER_REVIEW: "Review",
   INTERVIEW: "Interview",
-  TRIAL: "Trial",
-  FINAL_REVIEW: "Final Review",
-  ON_HOLD: "On Hold",
   ACCEPTED: "Accepted",
   DECLINED: "Declined",
   WITHDRAWN: "Withdrawn",
@@ -33,12 +22,11 @@ const WAITING: Record<string, string> = {
   APPLICANT: "Applicant",
   RECRUITER: "BOM Recruiter",
   INTERVIEW: "Interview",
-  TRIAL: "Trial",
   LEADERSHIP: "BOM Leadership",
   NONE: "No one",
 };
 const FINAL = new Set(["ACCEPTED", "DECLINED", "WITHDRAWN", "CLOSED"]);
-const MANUAL_STAGES = ["VERIFICATION", "RECRUITER_REVIEW", "WAITING_ON_APPLICANT", "INTERVIEW", "ON_HOLD"];
+const MANUAL_STAGES = STAGES;
 
 async function api(path: string, init: RequestInit = {}) {
   const h = new Headers(init.headers);
@@ -90,15 +78,14 @@ function display(a: any) {
   return a?.display_name ?? a?.profile?.display_name ?? a?.captain_name ?? "Applicant";
 }
 function nextText(a: any) {
-  if (a?.status === "VERIFICATION") return a.current_request || "Upload the requested verification material.";
-  if (a?.status === "WAITING_ON_APPLICANT")
-    return a.current_request || "A recruiter needs information from you.";
-  if (a?.status === "INTERVIEW") return a.current_request || "Your interview is being arranged.";
-  if (a?.status === "TRIAL") return "Participate normally and get to know the crew during your trial.";
-  if (a?.status === "FINAL_REVIEW")
-    return a?.waiting_on === "RECRUITER"
-      ? "Your trial period is complete and Admiralty reviewers are preparing their final recommendation."
-      : "Your trial is complete and leadership is reviewing it.";
+  if (a?.status === "RECRUITER_REVIEW")
+    return a?.waiting_on === "APPLICANT"
+      ? a.current_request || "A recruiter needs information from you."
+      : "Our recruitment team is reviewing your application.";
+  if (a?.status === "INTERVIEW")
+    return a?.waiting_on === "LEADERSHIP"
+      ? "Your interview is done and leadership is making the final decision."
+      : a.current_request || "Your interview is being arranged.";
   if (a?.status === "ACCEPTED") return "Welcome to Band of Misfits.";
   if (a?.status === "DECLINED") return "Your application has concluded.";
   return "Our recruitment team is reviewing your application.";
@@ -131,22 +118,8 @@ export default function RecruitmentDashboard({
     [responseId, setResponseId] = useState(""),
     [customResponse, setCustomResponse] = useState("");
   const [interview, setInterview] = useState({ scheduledAt: "", durationMinutes: 60, notes: "" });
-  const [trialDays, setTrialDays] = useState(Number(adminData?.default_trial_days ?? 7)),
-    [targetGuild, setTargetGuild] = useState<"BOM" | "BoM">("BOM");
-  const [midpoint, setMidpoint] = useState({
-    state: "ON_TRACK",
-    internalNote: "",
-    applicantMessage: "Your trial is progressing well. Keep doing what you're doing.",
-  });
-  const [trialFeedback, setTrialFeedback] = useState({
-    sentiment: "POSITIVE",
-    category: "TEAMWORK",
-    note: "",
-  });
-  const [recommendation, setRecommendation] = useState({ recommendation: "ACCEPT", note: "" });
-  const [vote, setVote] = useState({ vote: "ACCEPT", comment: "" });
-  const [finalize, setFinalize] = useState({ decision: "ACCEPT", reason: "", extensionDays: 7 });
-  const [pretrialDecision, setPretrialDecision] = useState({ decision: "DECLINE", reason: "" });
+  const [targetGuild, setTargetGuild] = useState<"BOM" | "BoM">("BOM");
+  const [decision, setDecision] = useState({ decision: "DECLINE", reason: "" });
   const [settings, setSettings] = useState<any>(adminData),
     [responses, setResponses] = useState<any[]>(
       initialResponses.length ? initialResponses : (adminData?.responses ?? []),
@@ -224,21 +197,15 @@ export default function RecruitmentDashboard({
       ticketCategoryId: settings.ticket_category_id || null,
       recruiterRoleIds: settings.recruiter_role_ids ?? [],
       applicantRoleId: settings.applicant_role_id || null,
-      trialRoleId: settings.trial_role_id || null,
       acceptedRoleId: settings.accepted_role_id || null,
       acceptedSecondGuildRoleId: settings.accepted_second_guild_role_id || null,
       interviewVoiceCategoryId: settings.interview_voice_category_id || null,
       communityFeedbackRoleId: settings.community_feedback_role_id || null,
-      trialVoterRoleIds: settings.trial_voter_role_ids ?? [],
       applicationReapplyDays: Number(settings.application_reapply_days ?? 7),
-      trialReapplyDays: Number(settings.trial_reapply_days ?? 30),
-      defaultTrialDays: Number(settings.default_trial_days ?? 7),
-      midpointDay: Number(settings.midpoint_day ?? 4),
       screenshotRequired: Boolean(settings.screenshot_required),
       autoCloseHours: Number(settings.auto_close_hours ?? 168),
       unclaimedReminderMinutes: Number(settings.unclaimed_reminder_minutes ?? 120),
       applicantReminderHours: Number(settings.applicant_reminder_hours ?? 24),
-      anonymousVotes: Boolean(settings.anonymous_votes),
     };
     setBusy(true);
     try {
@@ -349,13 +316,14 @@ export default function RecruitmentDashboard({
   const applications = summary.applications ?? [];
   const active = applications.filter((a: any) => !FINAL.has(a.status));
   const history = applications.filter((a: any) => FINAL.has(a.status));
-  const trials = applications.filter((a: any) => a.status === "TRIAL" || a.status === "FINAL_REVIEW");
+  const awaitingDecision = applications.filter(
+    (a: any) => a.status === "INTERVIEW" && a.waiting_on === "LEADERSHIP",
+  );
   const interviews = applications.filter((a: any) => a.status === "INTERVIEW");
   const tabItems: [Tab, string][] = [
     ["overview", "Overview"],
     ["applications", "Applications"],
     ["interviews", "Interviews"],
-    ["trials", "Trials"],
     ["history", "History"],
     ...(adminData ? [["settings", "Settings"] as [Tab, string]] : []),
   ];
@@ -366,7 +334,7 @@ export default function RecruitmentDashboard({
         <div>
           <span className="eyebrow">GUILD RECRUITMENT</span>
           <h1>Recruitment</h1>
-          <p>Applications, interviews, trials and final reviews in one pipeline.</p>
+          <p>Review, interview, decide.</p>
         </div>
         <div className="recruitmentHeroStats">
           <span>
@@ -374,12 +342,12 @@ export default function RecruitmentDashboard({
             <small>Active</small>
           </span>
           <span>
-            <b>{trials.length}</b>
-            <small>Trials</small>
+            <b>{interviews.length}</b>
+            <small>Interviews</small>
           </span>
           <span>
-            <b>{summary.counts?.FINAL_REVIEW ?? 0}</b>
-            <small>Final review</small>
+            <b>{awaitingDecision.length}</b>
+            <small>Awaiting decision</small>
           </span>
         </div>
       </header>
@@ -442,20 +410,22 @@ export default function RecruitmentDashboard({
         <section className="recruitmentOverview">
           <div className="pipelineSummary">
             {[
-              { key: "VERIFICATION", label: "Verification" },
-              { key: "RECRUITER_REVIEW", label: "Review" },
-              { key: "WAITING_ON_APPLICANT", label: "Waiting" },
-              { key: "INTERVIEW", label: "Interview" },
-              { key: "TRIAL", label: "Trial" },
-              { key: "FINAL_REVIEW", label: "Final Review" },
+              {
+                key: "review",
+                label: "Review",
+                count: summary.counts?.RECRUITER_REVIEW ?? 0,
+                tab: "applications",
+              },
+              {
+                key: "interview",
+                label: "Interview",
+                count: interviews.length - awaitingDecision.length,
+                tab: "interviews",
+              },
+              { key: "decision", label: "Decision", count: awaitingDecision.length, tab: "applications" },
             ].map((x) => (
-              <button
-                key={x.key}
-                onClick={() =>
-                  setTab(x.key === "TRIAL" ? "trials" : x.key === "INTERVIEW" ? "interviews" : "applications")
-                }
-              >
-                <b>{summary.counts?.[x.key] ?? 0}</b>
+              <button key={x.key} onClick={() => setTab(x.tab as Tab)}>
+                <b>{x.count}</b>
                 <span>{x.label}</span>
               </button>
             ))}
@@ -543,7 +513,7 @@ export default function RecruitmentDashboard({
       {tab === "applications" && (
         <section className="recruitmentSplit">
           <ApplicationList
-            apps={active.filter((a: any) => !["TRIAL", "FINAL_REVIEW"].includes(a.status))}
+            apps={active}
             selectedId={selectedId}
             recruiters={summary.recruiters ?? []}
             onOpen={(id) => void openApplication(id, false)}
@@ -565,8 +535,7 @@ export default function RecruitmentDashboard({
             setCustomResponse={setCustomResponse}
             interview={interview}
             setInterview={setInterview}
-            trialDays={trialDays}
-            setTrialDays={setTrialDays}
+            admin={Boolean(summary.admin)}
             onAssign={(rid: string) =>
               act(
                 `/applications/${selected.id}/assign`,
@@ -606,22 +575,23 @@ export default function RecruitmentDashboard({
                 "Interview scheduled.",
               )
             }
-            onTrial={() =>
-              act(
-                `/applications/${selected.id}/trial/start`,
-                { days: Number(trialDays), targetGuild },
-                `${targetGuild} trial started.`,
-              )
-            }
             targetGuild={targetGuild}
             setTargetGuild={setTargetGuild}
-            pretrialDecision={pretrialDecision}
-            setPretrialDecision={setPretrialDecision}
-            onPretrialDecision={() =>
+            decision={decision}
+            setDecision={setDecision}
+            onDecision={() =>
+              (decision.decision !== "ACCEPT" ||
+                confirm(
+                  `Accept ${selected.captain_name ?? "this applicant"} into ${targetGuild}? Their member role and prefix are applied and the ticket is archived.`,
+                )) &&
               act(
                 `/applications/${selected.id}/decision`,
-                pretrialDecision,
-                pretrialDecision.decision === "DECLINE" ? "Application declined." : "Application closed.",
+                decision.decision === "ACCEPT" ? { ...decision, targetGuild } : decision,
+                decision.decision === "ACCEPT"
+                  ? `Accepted into ${targetGuild}.`
+                  : decision.decision === "DECLINE"
+                    ? "Application declined."
+                    : "Application closed.",
               )
             }
           />
@@ -644,52 +614,6 @@ export default function RecruitmentDashboard({
           {!interviews.length && (
             <Empty title="No interviews scheduled" text="Applications moved to Interview will appear here." />
           )}
-        </section>
-      )}
-
-      {tab === "trials" && (
-        <section className="recruitmentSplit">
-          <ApplicationList
-            apps={trials}
-            selectedId={selectedId}
-            recruiters={summary.recruiters ?? []}
-            onOpen={(id) => void openApplication(id, false)}
-          />
-          <TrialDetail
-            app={selected}
-            busy={busy}
-            canVote={Boolean(summary.canVote)}
-            admin={Boolean(summary.admin)}
-            anonymousVotes={Boolean(summary.anonymousVotes)}
-            midpoint={midpoint}
-            setMidpoint={setMidpoint}
-            feedback={trialFeedback}
-            setFeedback={setTrialFeedback}
-            recommendation={recommendation}
-            setRecommendation={setRecommendation}
-            vote={vote}
-            setVote={setVote}
-            finalize={finalize}
-            setFinalize={setFinalize}
-            onMidpoint={() =>
-              act(`/trials/${selected.trial.id}/midpoint`, midpoint, "Midpoint review saved.")
-            }
-            onFeedback={() =>
-              act(`/trials/${selected.trial.id}/feedback`, trialFeedback, "Trial feedback added.")
-            }
-            onRecommend={() =>
-              act(`/trials/${selected.trial.id}/recommend`, recommendation, "Recommendation submitted.")
-            }
-            onVote={() => act(`/trials/${selected.trial.id}/vote`, vote, "Your trial vote was submitted.")}
-            onFinalize={() => act(`/trials/${selected.trial.id}/finalize`, finalize, "Final decision saved.")}
-            onScorecard={(category: string, score: number, note: string = "") =>
-              putAct(
-                `/trials/${selected.trial.id}/scorecard`,
-                { category, score, note },
-                "Trial scorecard saved.",
-              )
-            }
-          />
         </section>
       )}
 
@@ -750,7 +674,6 @@ function ApplicantView({ summary }: { summary: any }) {
       </div>
     );
   const events = a.events ?? [],
-    trial = a.trial,
     interview = (a.interviews ?? []).find((x: any) => x.status !== "CANCELLED");
   return (
     <div className="recruitmentPage applicantApplication">
@@ -781,16 +704,6 @@ function ApplicantView({ summary }: { summary: any }) {
           <small>Last update</small>
           <b>{ago(a.updated_at)}</b>
         </article>
-        {trial && (
-          <article>
-            <small>Trial</small>
-            <b>
-              {trial.status === "ACTIVE"
-                ? `Ends ${shortDate(trial.ends_at)}`
-                : (LABELS[trial.status] ?? trial.status)}
-            </b>
-          </article>
-        )}
       </section>
       {interview && (
         <article className="membershipPanel">
@@ -1182,77 +1095,61 @@ function ApplicationDetail(props: any) {
             Schedule Interview
           </button>
         </article>
-        <article className="membershipPanel">
-          <header>
-            <h3>Advance to Trial</h3>
-            <p>The applicant gets the Trial role and the dashboard begins the trial timeline.</p>
-          </header>
-          <label>
-            Trial length
-            <input
-              type="number"
-              min={1}
-              max={90}
-              value={props.trialDays}
-              onChange={(e) => props.setTrialDays(Number(e.target.value))}
-            />
-            <small>days</small>
-          </label>
-          <label>
-            Accept into
-            <select value={props.targetGuild} onChange={(e) => props.setTargetGuild(e.target.value)}>
-              <option value="BOM">BOM · Main Guild</option>
-              <option value="BoM">BoM · Second Guild</option>
-            </select>
-          </label>
-          <button
-            disabled={props.busy || ["TRIAL", "FINAL_REVIEW"].includes(a.status)}
-            className="primaryAction"
-            onClick={props.onTrial}
-          >
-            Accept into {props.targetGuild} Trial
-          </button>
-        </article>
       </div>
       <article className="membershipPanel applicationDecisionPanel">
         <header>
-          <span className="eyebrow">APPLICATION DECISION</span>
-          <h3>Close Pre-Trial Application</h3>
+          <span className="eyebrow">DECISION</span>
+          <h3>Decide this application</h3>
           <p>
-            Use this only before a trial begins. Decline applies the configured reapplication cooldown; Close
-            ends the record without a decline cooldown.
+            Usually after the interview. Accept gives the member role and closes the ticket; Decline applies
+            the reapplication cooldown; Close ends the record without a cooldown.
+            {!props.admin && " Only leadership can accept."}
           </p>
         </header>
         <div className="twoCol">
           <label>
             Decision
             <select
-              value={props.pretrialDecision.decision}
-              onChange={(e) =>
-                props.setPretrialDecision({ ...props.pretrialDecision, decision: e.target.value })
-              }
+              value={props.decision.decision}
+              onChange={(e) => props.setDecision({ ...props.decision, decision: e.target.value })}
             >
-              <option value="DECLINE">Decline Application</option>
-              <option value="CLOSE">Close Application</option>
+              {props.admin && <option value="ACCEPT">Accept</option>}
+              <option value="DECLINE">Decline</option>
+              <option value="CLOSE">Close without decision</option>
             </select>
           </label>
-          <label>
-            Applicant-facing reason
-            <textarea
-              value={props.pretrialDecision.reason}
-              onChange={(e) =>
-                props.setPretrialDecision({ ...props.pretrialDecision, reason: e.target.value })
-              }
-              placeholder="Explain the decision clearly and respectfully."
-            />
-          </label>
+          {props.decision.decision === "ACCEPT" && (
+            <label>
+              Accept into
+              <select value={props.targetGuild} onChange={(e) => props.setTargetGuild(e.target.value)}>
+                <option value="BOM">BOM · Main Guild</option>
+                <option value="BoM">BoM · Second Guild</option>
+              </select>
+            </label>
+          )}
         </div>
+        <label>
+          Message to the applicant
+          <textarea
+            value={props.decision.reason}
+            onChange={(e) => props.setDecision({ ...props.decision, reason: e.target.value })}
+            placeholder={
+              props.decision.decision === "ACCEPT"
+                ? "Welcome them aboard."
+                : "Explain the decision clearly and respectfully."
+            }
+          />
+        </label>
         <button
-          disabled={props.busy || !props.pretrialDecision.reason.trim()}
-          className="dangerAction"
-          onClick={props.onPretrialDecision}
+          disabled={props.busy || !props.decision.reason.trim()}
+          className={props.decision.decision === "ACCEPT" ? "primaryAction" : "dangerAction"}
+          onClick={props.onDecision}
         >
-          {props.pretrialDecision.decision === "DECLINE" ? "Decline Application" : "Close Application"}
+          {props.decision.decision === "ACCEPT"
+            ? `Accept into ${props.targetGuild}`
+            : props.decision.decision === "DECLINE"
+              ? "Decline Application"
+              : "Close Application"}
         </button>
       </article>
       <article className="membershipPanel">
@@ -1272,391 +1169,6 @@ function ApplicationDetail(props: any) {
               </span>
             </div>
           ))}
-        </div>
-      </article>
-    </section>
-  );
-}
-
-function TrialDetail(props: any) {
-  const a = props.app,
-    t = a?.trial;
-  if (!a || !t)
-    return <Empty title="Select a trial" text="Choose an active or final-review trial to inspect it." />;
-  const daysLeft = Math.max(0, Math.ceil((+new Date(t.ends_at) - Date.now()) / 86400000)),
-    periodComplete = t.status === "ACTIVE" && +new Date(t.ends_at) <= Date.now();
-  return (
-    <section className="applicationDossier">
-      <header className="dossierHead">
-        <div>
-          <span className="eyebrow">
-            {t.status === "FINAL_REVIEW"
-              ? "FINAL REVIEW"
-              : periodComplete
-                ? "RECOMMENDATION DUE"
-                : "TRIAL ACTIVE"}
-          </span>
-          <h2>{display(a)}</h2>
-          <p>
-            {t.status === "ACTIVE"
-              ? periodComplete
-                ? `Trial period complete · recruiter recommendation due`
-                : `${daysLeft} days remaining · Ends ${shortDate(t.ends_at)}`
-              : "Trial complete · leadership review in progress"}
-          </p>
-        </div>
-        <span className={`applicationState ${t.status === "ACTIVE" ? "trialActive" : "finalReview"}`}>
-          {t.status === "ACTIVE" && periodComplete ? "RECOMMENDATION DUE" : t.status.replace("_", " ")}
-        </span>
-      </header>
-      <div className="dossierFacts">
-        <span>
-          <small>Started</small>
-          <b>{shortDate(t.started_at)}</b>
-        </span>
-        <span>
-          <small>Ends</small>
-          <b>{shortDate(t.ends_at)}</b>
-        </span>
-        <span>
-          <small>Extensions</small>
-          <b>{t.extension_count ?? 0}</b>
-        </span>
-        <span>
-          <small>Votes submitted</small>
-          <b>{t.votesSubmitted ?? 0}</b>
-        </span>
-      </div>
-      <article className="membershipPanel trialMetricsPanel">
-        <header>
-          <h3>Participation Snapshot</h3>
-          <p>{t.metrics?.note ?? "Observed activity is context, not an automatic score."}</p>
-        </header>
-        <div className="trialMetricGrid">
-          <span>
-            <small>PB signups</small>
-            <b>{t.metrics?.portBattles?.signups ?? 0}</b>
-          </span>
-          <span>
-            <small>PB confirmations</small>
-            <b>{t.metrics?.portBattles?.confirmed ?? 0}</b>
-          </span>
-          <span>
-            <small>Late signups</small>
-            <b>{t.metrics?.portBattles?.late ?? 0}</b>
-          </span>
-          <span>
-            <small>Observed voice joins</small>
-            <b>{t.metrics?.observedActivity?.voiceJoins ?? 0}</b>
-          </span>
-          <span>
-            <small>Observed active days</small>
-            <b>{t.metrics?.observedActivity?.activeDays ?? 0}</b>
-          </span>
-        </div>
-      </article>
-      <article className={`membershipPanel trialAutoSummary ${t.overdue ? "warningPanel" : ""}`}>
-        <header>
-          <h3>{t.overdue ? "Trial overdue · action needed" : "Automatic trial summary"}</h3>
-          <p>
-            Generated from participation, Admiralty feedback and scorecards. It is advisory and never makes
-            the membership decision.
-          </p>
-        </header>
-        <p>{t.autoSummary?.summary ?? "No summary available yet."}</p>
-        {t.autoSummary?.signals?.length > 0 && (
-          <div className="summarySignals">
-            {t.autoSummary.signals.map((x: string) => (
-              <span key={x}>{x}</span>
-            ))}
-          </div>
-        )}
-      </article>
-      <article className="membershipPanel trialScorecard">
-        <header>
-          <h3>Structured Scorecard</h3>
-          <p>Use a 1–5 signal for consistent review; notes remain internal.</p>
-        </header>
-        <div className="scorecardGrid">
-          {["TEAMWORK", "COMMUNICATION", "RELIABILITY", "PORT_BATTLE_READINESS", "CULTURE"].map(
-            (category) => {
-              const own = (t.scorecards ?? []).find((x: any) => x.category === category);
-              return (
-                <label key={category}>
-                  <span>{category.replaceAll("_", " ")}</span>
-                  <select
-                    value={own?.score ?? ""}
-                    onChange={(e) => {
-                      const score = Number(e.target.value);
-                      if (score) props.onScorecard(category, score, own?.note ?? "");
-                    }}
-                  >
-                    <option value="">Not scored</option>
-                    {[1, 2, 3, 4, 5].map((n) => (
-                      <option key={n} value={n}>
-                        {n} / 5
-                      </option>
-                    ))}
-                  </select>
-                </label>
-              );
-            },
-          )}
-        </div>
-      </article>
-      {t.status === "ACTIVE" && (
-        <>
-          <div className="dossierColumns">
-            <article className="membershipPanel">
-              <header>
-                <h3>Midpoint Review</h3>
-              </header>
-              <label>
-                Assessment
-                <select
-                  value={props.midpoint.state}
-                  onChange={(e) => props.setMidpoint({ ...props.midpoint, state: e.target.value })}
-                >
-                  <option value="ON_TRACK">On Track</option>
-                  <option value="NEEDS_IMPROVEMENT">Needs Improvement</option>
-                  <option value="INSUFFICIENT_OBSERVATION">Insufficient Observation</option>
-                </select>
-              </label>
-              <label>
-                Internal note
-                <textarea
-                  value={props.midpoint.internalNote}
-                  onChange={(e) => props.setMidpoint({ ...props.midpoint, internalNote: e.target.value })}
-                />
-              </label>
-              <label>
-                Applicant-facing check-in
-                <textarea
-                  value={props.midpoint.applicantMessage}
-                  onChange={(e) => props.setMidpoint({ ...props.midpoint, applicantMessage: e.target.value })}
-                />
-              </label>
-              <button
-                disabled={props.busy || !props.midpoint.applicantMessage.trim()}
-                className="primaryAction"
-                onClick={props.onMidpoint}
-              >
-                Save Midpoint Review
-              </button>
-            </article>
-            <article className="membershipPanel">
-              <header>
-                <h3>Trial Feedback</h3>
-              </header>
-              <div className="twoCol">
-                <label>
-                  Signal
-                  <select
-                    value={props.feedback.sentiment}
-                    onChange={(e) => props.setFeedback({ ...props.feedback, sentiment: e.target.value })}
-                  >
-                    <option>POSITIVE</option>
-                    <option>NEUTRAL</option>
-                    <option>CONCERN</option>
-                  </select>
-                </label>
-                <label>
-                  Category
-                  <select
-                    value={props.feedback.category}
-                    onChange={(e) => props.setFeedback({ ...props.feedback, category: e.target.value })}
-                  >
-                    {[
-                      "TEAMWORK",
-                      "COMMUNICATION",
-                      "ATTITUDE",
-                      "RELIABILITY",
-                      "GAMEPLAY",
-                      "PORT_BATTLES",
-                      "COMMUNITY",
-                      "OTHER",
-                    ].map((x) => (
-                      <option key={x}>{x}</option>
-                    ))}
-                  </select>
-                </label>
-              </div>
-              <textarea
-                value={props.feedback.note}
-                onChange={(e) => props.setFeedback({ ...props.feedback, note: e.target.value })}
-                placeholder="Private Admiralty observation…"
-              />
-              <button disabled={props.busy} className="secondaryAction" onClick={props.onFeedback}>
-                Add Feedback
-              </button>
-            </article>
-          </div>
-          <article className="membershipPanel">
-            <header>
-              <h3>Recruiter Recommendation</h3>
-              <p>Submitting a recommendation moves the trial to Final Review.</p>
-            </header>
-            <div className="twoCol">
-              <label>
-                Recommendation
-                <select
-                  value={props.recommendation.recommendation}
-                  onChange={(e) =>
-                    props.setRecommendation({ ...props.recommendation, recommendation: e.target.value })
-                  }
-                >
-                  <option value="ACCEPT">Recommend Member</option>
-                  <option value="EXTEND">Recommend Extension</option>
-                  <option value="DECLINE">Recommend Decline</option>
-                </select>
-              </label>
-              <label>
-                Summary
-                <textarea
-                  value={props.recommendation.note}
-                  onChange={(e) => props.setRecommendation({ ...props.recommendation, note: e.target.value })}
-                />
-              </label>
-            </div>
-            <button
-              disabled={props.busy || !props.recommendation.note.trim()}
-              className="primaryAction"
-              onClick={props.onRecommend}
-            >
-              Submit Recommendation
-            </button>
-          </article>
-        </>
-      )}
-      {t.status === "FINAL_REVIEW" && (
-        <>
-          <div className="dossierColumns">
-            <article className="membershipPanel">
-              <header>
-                <h3>Recruiter Recommendation</h3>
-              </header>
-              <b>{t.recommendation ?? "No recommendation submitted"}</b>
-              <p>{t.recommendation_note || "—"}</p>
-            </article>
-            {props.canVote && t.recommendation && (
-              <article className="membershipPanel">
-                <header>
-                  <h3>Your Vote</h3>
-                  <p>
-                    {props.anonymousVotes
-                      ? "Anonymous voting is enabled. Running totals and reviewer identities stay hidden during voting."
-                      : "Running totals are intentionally hidden during voting."}
-                  </p>
-                </header>
-                <label>
-                  Vote
-                  <select
-                    value={props.vote.vote}
-                    onChange={(e) => props.setVote({ ...props.vote, vote: e.target.value })}
-                  >
-                    <option value="ACCEPT">Accept</option>
-                    <option value="EXTEND">Extend</option>
-                    <option value="DECLINE">Decline</option>
-                    <option value="DISCUSS">Needs Discussion</option>
-                  </select>
-                </label>
-                <textarea
-                  value={props.vote.comment}
-                  onChange={(e) => props.setVote({ ...props.vote, comment: e.target.value })}
-                  placeholder="Optional private comment"
-                />
-                <button className="primaryAction" disabled={props.busy} onClick={props.onVote}>
-                  {t.myVote ? "Update Vote" : "Submit Vote"}
-                </button>
-                {t.myVote && (
-                  <small>
-                    Your current vote: <b>{t.myVote.vote}</b>
-                  </small>
-                )}
-              </article>
-            )}
-          </div>
-          {props.admin && (
-            <article className="membershipPanel finalDecisionPanel">
-              <header>
-                <span className="eyebrow">LEADERSHIP</span>
-                <h3>Finalize Trial</h3>
-                <p>Votes are advisory. This action performs the actual membership decision.</p>
-              </header>
-              <div className="finalQuickActions">
-                <button onClick={() => props.setFinalize({ ...props.finalize, decision: "ACCEPT" })}>
-                  Pass
-                </button>
-                <button onClick={() => props.setFinalize({ ...props.finalize, decision: "EXTEND" })}>
-                  Extend
-                </button>
-                <button
-                  className="dangerText"
-                  onClick={() => props.setFinalize({ ...props.finalize, decision: "DECLINE" })}
-                >
-                  Fail
-                </button>
-              </div>
-              <div className="threeCol">
-                <label>
-                  Decision
-                  <select
-                    value={props.finalize.decision}
-                    onChange={(e) => props.setFinalize({ ...props.finalize, decision: e.target.value })}
-                  >
-                    <option value="ACCEPT">Finalize as Member</option>
-                    <option value="EXTEND">Extend Trial</option>
-                    <option value="DECLINE">Finalize as Declined</option>
-                  </select>
-                </label>
-                {props.finalize.decision === "EXTEND" && (
-                  <label>
-                    Extension days
-                    <input
-                      type="number"
-                      min={1}
-                      max={90}
-                      value={props.finalize.extensionDays}
-                      onChange={(e) =>
-                        props.setFinalize({ ...props.finalize, extensionDays: Number(e.target.value) })
-                      }
-                    />
-                  </label>
-                )}
-                <label>
-                  Decision note
-                  <textarea
-                    value={props.finalize.reason}
-                    onChange={(e) => props.setFinalize({ ...props.finalize, reason: e.target.value })}
-                  />
-                </label>
-              </div>
-              <button
-                disabled={props.busy}
-                className={props.finalize.decision === "DECLINE" ? "dangerAction" : "primaryAction"}
-                onClick={props.onFinalize}
-              >
-                Finalize Decision
-              </button>
-            </article>
-          )}
-        </>
-      )}
-      <article className="membershipPanel">
-        <header>
-          <h3>Admiralty Feedback</h3>
-        </header>
-        <div className="trialFeedbackList">
-          {(t.feedback ?? []).map((f: any) => (
-            <div key={f.id} className={`feedback-${String(f.sentiment).toLowerCase()}`}>
-              <b>
-                {f.sentiment} · {f.category}
-              </b>
-              <p>{f.note || "No note."}</p>
-              <small>{niceDate(f.created_at)}</small>
-            </div>
-          ))}
-          {!t.feedback?.length && <p className="uiEmpty">No trial feedback yet.</p>}
         </div>
       </article>
     </section>
@@ -1727,7 +1239,7 @@ function SettingsPanel({
       <article className="membershipPanel">
         <header>
           <span className="eyebrow">RECRUITMENT PIPELINE</span>
-          <h2>Application & Trial Settings</h2>
+          <h2>Application Settings</h2>
         </header>
         <div className="adminFormGrid">
           <label className="checkLine">
@@ -1780,22 +1292,6 @@ function SettingsPanel({
             </DiscordOptionsSelect>
           </label>
           <label>
-            Trial role
-            <DiscordOptionsSelect
-              onRefresh={() => void refreshDiscord()}
-              refreshing={refreshingDiscord}
-              value={settings.trial_role_id ?? ""}
-              onChange={(e) => setSettings({ ...settings, trial_role_id: e.target.value || null })}
-            >
-              <option value="">Choose Trial role</option>
-              {roles.map((r: any) => (
-                <option key={r.id} value={r.id}>
-                  {r.name}
-                </option>
-              ))}
-            </DiscordOptionsSelect>
-          </label>
-          <label>
             Accepted member role
             <DiscordOptionsSelect
               onRefresh={() => void refreshDiscord()}
@@ -1828,7 +1324,7 @@ function SettingsPanel({
                 </option>
               ))}
             </DiscordOptionsSelect>
-            <small>Assigned after a successful BoM trial; BOM uses the member role above.</small>
+            <small>Given when someone is accepted into BoM; BOM uses the member role above.</small>
           </label>
           <label>
             Interview voice category
@@ -1849,15 +1345,6 @@ function SettingsPanel({
             </DiscordOptionsSelect>
           </label>
           <label>
-            Trial voter roles
-            <RoleTagPicker
-              roles={roles}
-              value={settings.trial_voter_role_ids ?? []}
-              onChange={(ids) => setSettings({ ...settings, trial_voter_role_ids: ids })}
-              onRefresh={() => void refreshDiscord()}
-            />
-          </label>
-          <label>
             Community feedback role
             <DiscordOptionsSelect
               onRefresh={() => void refreshDiscord()}
@@ -1876,27 +1363,7 @@ function SettingsPanel({
             </DiscordOptionsSelect>
           </label>
           <label>
-            Default trial days
-            <input
-              type="number"
-              min={1}
-              max={90}
-              value={settings.default_trial_days ?? 7}
-              onChange={(e) => setSettings({ ...settings, default_trial_days: Number(e.target.value) })}
-            />
-          </label>
-          <label>
-            Midpoint day
-            <input
-              type="number"
-              min={1}
-              max={90}
-              value={settings.midpoint_day ?? 4}
-              onChange={(e) => setSettings({ ...settings, midpoint_day: Number(e.target.value) })}
-            />
-          </label>
-          <label>
-            Application reapply cooldown
+            Reapply cooldown after a decline
             <input
               type="number"
               min={0}
@@ -1904,27 +1371,6 @@ function SettingsPanel({
               onChange={(e) => setSettings({ ...settings, application_reapply_days: Number(e.target.value) })}
             />
             <small>days</small>
-          </label>
-          <label>
-            Trial reapply cooldown
-            <input
-              type="number"
-              min={0}
-              value={settings.trial_reapply_days ?? 30}
-              onChange={(e) => setSettings({ ...settings, trial_reapply_days: Number(e.target.value) })}
-            />
-            <small>days</small>
-          </label>
-          <label className="checkLine">
-            <input
-              type="checkbox"
-              checked={Boolean(settings.anonymous_votes)}
-              onChange={(e) => setSettings({ ...settings, anonymous_votes: e.target.checked })}
-            />
-            Anonymous final-review voting{" "}
-            <small>
-              Leadership still sees the final aggregate; reviewer identity is hidden in the voting surface.
-            </small>
           </label>
           <label className="checkLine">
             <input

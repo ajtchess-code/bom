@@ -32,8 +32,9 @@ export default function SavedViewControl({
     request()
       .then((x) => {
         if (!live) return;
-        setViews(x.views);
-        const last = x.views.find((v: any) => v.name === "__last");
+        const views = Array.isArray(x?.views) ? x.views : [];
+        setViews(views);
+        const last = views.find((v: any) => v.name === "__last");
         if (last) apply.current(last.state);
         setReady(true);
       })

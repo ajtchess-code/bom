@@ -41,7 +41,7 @@ export const ADMIN_SECTION_LIST: Section[] = [
     group: "Members & community",
     keywords: [
       "application",
-      "trial",
+      "decision",
       "recruiter roles",
       "ticket category",
       "interview",

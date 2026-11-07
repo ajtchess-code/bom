@@ -52,71 +52,15 @@ export default function RecruitmentLifecycleControls({
       setNotice(e.message);
     }
   }
+  // Decisions are made in the application's Decision panel; this shows what happened afterwards.
+  if (!terminal) return null;
   return (
     <article className="membershipPanel">
       <header>
-        <h3>Membership decision & ticket cleanup</h3>
+        <h3>After the decision: roles & ticket cleanup</h3>
         <p>Decisions remain in history after the private ticket is archived and removed.</p>
       </header>
       {notice && <p role="status">{notice}</p>}
-      {!terminal && (
-        <>
-          <div className="twoCol">
-            <label>
-              Membership guild
-              <select value={guild} onChange={(e) => setGuild(e.target.value)}>
-                <option value="BOM">BOM</option>
-                <option value="BoM">BoM 2</option>
-              </select>
-            </label>
-            <label>
-              Applicant-facing reason
-              <textarea value={reason} maxLength={3000} onChange={(e) => setReason(e.target.value)} />
-            </label>
-          </div>
-          {admin && (
-            <button
-              disabled={busy || !reason.trim()}
-              className="primaryAction"
-              onClick={() => setReview(true)}
-            >
-              Accept Without Trial
-            </button>
-          )}
-          <button
-            disabled={busy || !reason.trim()}
-            onClick={() => void act("decision", { decision: "CLOSE", reason })}
-          >
-            Close Application
-          </button>
-          {review && (
-            <div
-              role="dialog"
-              aria-modal="true"
-              aria-label="Review direct acceptance"
-              className="warningPanel"
-            >
-              <h4>
-                Accept {a.captain_name} into {guild === "BoM" ? "BoM 2" : "BOM"}?
-              </h4>
-              <p>
-                The trial is bypassed. Membership roles and prefix will be applied, trial reminders stopped,
-                and this ticket archived and deleted.
-              </p>
-              <blockquote>{reason}</blockquote>
-              <button
-                disabled={busy}
-                onClick={() => void act("decision", { decision: "ACCEPT", reason, targetGuild: guild })}
-              >
-                Confirm Acceptance
-              </button>
-              <button disabled={busy} onClick={() => setReview(false)}>
-                Back
-              </button>
-            </div>
-          )}
-        </>
-      )}
       {terminal && (
         <>
           <dl className="dossierFacts">
