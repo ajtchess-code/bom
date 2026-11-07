@@ -8,10 +8,13 @@ import {openAIResponse,aiGatewayStatus,aiFailureMessage} from './openai.js';
 
 const guildId=process.env.DISCORD_GUILD_ID??'';
 const model=process.env.BOM_BANTER_MODEL??process.env.OPENAI_MODEL??'gpt-4.1-mini';
-const roastCommand=new SlashCommandBuilder().setName('roast').setDescription('Invite BOM Banter to roast your World of Sea Battles decisions')
-  .addStringOption(o=>o.setName('topic').setDescription('What should Banter roast you about?').setRequired(false).setMaxLength(250));
-const statusCommand=new SlashCommandBuilder().setName('banter-status').setDescription('Check why BOM Banter is or is not responding in this channel').setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
-export const banterCommands=[roastCommand,statusCommand];
+const roastCommand=new SlashCommandBuilder().setName('roast').setDescription('Have Misfit roast you, or a crewmate who hasn\'t opted out')
+  .addStringOption(o=>o.setName('topic').setDescription('What should Misfit roast them about?').setRequired(false).setMaxLength(250))
+  .addUserOption(o=>o.setName('target').setDescription('A crewmate to roast instead of yourself').setRequired(false));
+const roastsCommand=new SlashCommandBuilder().setName('roasts').setDescription('Turn Misfit\'s unprompted roasts of you on or off')
+  .addStringOption(o=>o.setName('setting').setDescription('On or off').setRequired(true).addChoices({name:'On: Misfit may roast me in chat',value:'on'},{name:'Off: only when I ask with /roast',value:'off'}));
+const statusCommand=new SlashCommandBuilder().setName('banter-status').setDescription('Check why Misfit is or is not chatting in this channel').setDefaultMemberPermissions(PermissionFlagsBits.ManageGuild);
+export const banterCommands=[roastCommand,roastsCommand,statusCommand];
 
 type Trigger='mention'|'reply'|'spontaneous'|'roast';
 type BanterSettings={enabled:boolean;spontaneous_enabled:boolean;roast_enabled:boolean;aggression:number;spontaneity:number;channel_cooldown_minutes:number;spontaneous_user_cooldown_seconds:number;minimum_participants:number;daily_spontaneous_limit:number;daily_total_limit:number;context_messages:number;spontaneous_channels:string[];excluded_channels:string[];excluded_role_ids:string[];custom_instructions:string};
@@ -39,7 +42,7 @@ async function settings():Promise<BanterSettings>{
   cache={until:Date.now()+20_000,value};return value;
 }
 function prompt(s:BanterSettings,kind:Trigger):string{
-  return `${BANTER_VOICE}${seasonalVoice()} Intensity: ${s.aggression}/10. ${kind==='roast'?'The requester volunteers to be roasted; be incisive rather than abusive.':''} ${kind==='spontaneous'?'Interrupt only when relevant; if there is no worthwhile observation return exactly SKIP.':''} Additional administrator style preferences: ${s.custom_instructions.slice(0,1200)}`;
+  return `${BANTER_VOICE}${seasonalVoice()} Intensity: ${s.aggression}/10. ${kind==='roast'?'The requester volunteers to be roasted; be incisive rather than abusive.':''} ${kind==='spontaneous'?'Interrupt only when relevant. Never jab at someone sharing real-life trouble, health, grief, money worries or a genuine dispute between members; return exactly SKIP for those. Pick on the situation more than the person; if there is no worthwhile observation return exactly SKIP.':''} Additional administrator style preferences: ${s.custom_instructions.slice(0,1200)}`;
 }
 function cleanOutput(raw:string){
   const x=String(raw).trim().replace(/<@!?\d+>|<@&\d+>|@everyone|@here/gi,'captain').slice(0,550);
@@ -47,6 +50,27 @@ function cleanOutput(raw:string){
   return x;
 }
 const dateTag=()=>new Date().toISOString().slice(0,10);
+/** Unprompted jabs per member per day, so the same captain isn't the punchline all evening. */
+const SPONTANEOUS_PER_TARGET_DAILY=3;
+/** Share of unprompted moments answered with a quick emoji reaction instead of a message. */
+const REACTION_SHARE=0.35;
+let optouts:{until:number;ids:Set<string>}|null=null;
+async function optedOut(userId:string){
+  if(!optouts||optouts.until<Date.now()){const r=await db.query('SELECT user_id FROM bom_banter_optouts WHERE guild_id=$1',[guildId]).catch(()=>null);optouts={until:Date.now()+60_000,ids:new Set((r?.rows??[]).map((x:any)=>String(x.user_id)))};}
+  return optouts.ids.has(String(userId));
+}
+/** Real-life or tense conversations are no place for a jab. */
+export function seriousMoment(text:string){
+  return /\b(?:hospital|surgery|cancer|funeral|passed away|died (?:last|this|yesterday|today)|my (?:mom|mum|dad|father|mother|wife|husband|son|daughter|brother|sister|grandma|grandpa|grandmother|grandfather|dog|cat) (?:is|was|died|passed)|depress\w*|anxiety|panic attack|suicid\w*|self[- ]harm|divorce|break ?up|laid off|lost my job|fired from|eviction|homeless|emergency|in the er\b|sick (?:kid|child)|miscarriage|harass\w*|report(?:ed|ing)? (?:him|her|them|this)|ban (?:him|her|them)|kick (?:him|her|them)|not ok(?:ay)?|leave of absence|\bloa\b|serious(?:ly)? (?:upset|hurt))\b/i.test(text);
+}
+function reactionFor(text:string){
+  const t=text.toLowerCase(),november=new Date().getMonth()===10;
+  if(/\b(sunk|sank|died|dead|lost|wrecked|rip|oops|whoops|my bad|misclick)\b/.test(t))return ['💀','🪦','🫠'][Math.floor(Math.random()*3)];
+  if(/\b(won|win|gg|victory|ez|clutch|carried)\b/.test(t))return ['🏴‍☠️','🫡','⚓'][Math.floor(Math.random()*3)];
+  if(/\b(gold|money|expensive|cost|broke|price)\b/.test(t))return '💰';
+  if(november&&Math.random()<0.5)return ['🦃','🍗','🥧'][Math.floor(Math.random()*3)];
+  return ['👀','🧐','🍿'][Math.floor(Math.random()*3)];
+}
 const dayKey=(kind:'total'|'spontaneous')=>`banter:${guildId}:${dateTag()}:${kind}`;
 async function counted(kind:Trigger,channelId:string,userId:string){
   await db.query(`INSERT INTO bom_banter_activity(guild_id,channel_id,user_id,trigger_kind) VALUES($1,$2,$3,$4)`,[guildId,channelId,userId,kind]).catch(()=>{});
@@ -72,7 +96,7 @@ async function contextFor(message:Message,limit:number,s:BanterSettings){
   if(!messages.some(m=>m.id===message.id))lines.push(`${(message.member?.displayName??message.author.username).slice(0,45)}: ${message.content.replace(/<@!?\d+>/g,'@captain').slice(0,400)}`);
   if(message.reference?.messageId){
     const referenced=await message.channel.messages.fetch(message.reference.messageId).catch(()=>null);
-    if(await referencedConversationOwner(message)==='banter'&&referenced?.content)lines.unshift(`BOM Banter (previous reply): ${referenced.content.slice(0,250)}`);
+    if(await referencedConversationOwner(message)==='banter'&&referenced?.content)lines.unshift(`Misfit (previous reply): ${referenced.content.slice(0,250)}`);
   }
   const previous=await Promise.all((recent?[...recent.values()]:[]).filter(m=>m.author.id===message.client.user?.id&&m.content).slice(0,4).map(async m=>await redis.get(`conversation:reply:${m.id}`)==='banter'?m.content.slice(0,250):null));
   const avoid=previous.filter(Boolean).join(' | ');if(avoid)lines.push(`Avoid repeating these recent Banter lines: ${avoid}`);
@@ -86,15 +110,16 @@ async function generate(settings:BanterSettings,kind:Trigger,input:string,sensit
   if(!res){apiCoolingDownUntil=Date.now()+15_000;return null;}
   return cleanOutput(res.text);
 }
-function dailyReservations(s:BanterSettings,kind:Trigger):CounterLimit[]{
+function dailyReservations(s:BanterSettings,kind:Trigger,targetId?:string):CounterLimit[]{
   const limits=[{key:dayKey('total'),limit:s.daily_total_limit,ttlSeconds:172800}];
   if(kind==='spontaneous')limits.push({key:dayKey('spontaneous'),limit:s.daily_spontaneous_limit,ttlSeconds:172800});
+  if(kind==='spontaneous'&&targetId)limits.push({key:`banter:${guildId}:${dateTag()}:target:${targetId}`,limit:SPONTANEOUS_PER_TARGET_DAILY,ttlSeconds:172800});
   return limits;
 }
 async function replyToMessage(message:Message,kind:Trigger,s:BanterSettings){
   const channelId=message.channelId,userId=message.author.id,token=randomUUID();
   const lock=`banter:busy:${guildId}:${channelId}`,perUser=`banter:member:${guildId}:${userId}:${kind==='spontaneous'?'ambient':'direct'}`,channelCooldown=`banter:channel:${guildId}:${channelId}:spontaneous`;
-  const limits=dailyReservations(s,kind);let reserved=false,delivered=false,userClaim=false,channelClaim=false;
+  const limits=dailyReservations(s,kind,userId);let reserved=false,delivered=false,userClaim=false,channelClaim=false;
   if(await redis.set(lock,token,'EX',120,'NX')!=='OK'){diag('channel_busy',{kind,channelId});return;}
   try{
     const seconds=kind==='spontaneous'?s.spontaneous_user_cooldown_seconds:8;
@@ -145,13 +170,29 @@ export function installBanter(client:Client){
       if(!s.spontaneous_enabled){diag('spontaneous_disabled',{channelId:message.channelId});return;}
       if(!s.spontaneous_channels.includes(message.channelId)){diag('spontaneous_channel_not_selected',{channelId:message.channelId});return;}
       if(s.spontaneity<=0||!candidate(message.content)){diag('not_a_candidate',{channelId:message.channelId});return;}
+      if(seriousMoment(message.content)){diag('serious_moment',{channelId:message.channelId});return;}
+      if(await optedOut(message.author.id)){diag('member_opted_out',{channelId:message.channelId});return;}
       if(Math.random()*100>=s.spontaneity){diag('chance_not_selected',{channelId:message.channelId});return;}
+      // Let the moment land: wait a few seconds so a burst of lines gets one
+      // reply (to the speaker's latest), and stay quiet if the chat moved on.
+      await new Promise(r=>setTimeout(r,4000+Math.random()*6000));
+      const recent='messages' in message.channel?await message.channel.messages.fetch({limit:12}).catch(()=>null):null;
+      const all=recent?[...recent.values()]:[];
+      const newer=all.filter(m=>!m.author.bot&&m.createdTimestamp>message.createdTimestamp).sort((a,b)=>a.createdTimestamp-b.createdTimestamp);
+      if(newer.filter(m=>m.author.id!==message.author.id).length>=4){diag('moment_passed',{channelId:message.channelId});return;}
+      if(newer.some(m=>seriousMoment(m.content))){diag('serious_moment',{channelId:message.channelId});return;}
+      const target=[...newer].reverse().find(m=>m.author.id===message.author.id&&m.content.trim())??message;
       // Ensure there's an ongoing multi-person discussion rather than replying
       // to the first message in an otherwise silent channel.
-      const recent='messages' in message.channel?await message.channel.messages.fetch({limit:8}).catch(()=>null):null;
-      const participants=new Set((recent?[...recent.values()]:[]).filter(m=>!m.author.bot&&!roleExcluded(m.member?[...m.member.roles.cache.keys()]:[],s)&&m.createdTimestamp>Date.now()-8*60_000).map(m=>m.author.id));
+      const participants=new Set(all.filter(m=>!m.author.bot&&!roleExcluded(m.member?[...m.member.roles.cache.keys()]:[],s)&&m.createdTimestamp>Date.now()-8*60_000).map(m=>m.author.id));
       if(participants.size<s.minimum_participants){diag('not_enough_participants',{channelId:message.channelId,count:participants.size});return;}
-      await replyToMessage(message,'spontaneous',s);
+      if(Math.random()<REACTION_SHARE){
+        // A quick reaction: present without taking over the conversation.
+        const cooldown=`banter:channel:${guildId}:${message.channelId}:spontaneous`;
+        if(s.channel_cooldown_minutes>0&&await redis.set(cooldown,randomUUID(),'EX',Math.max(60,Math.round(s.channel_cooldown_minutes*30)),'NX')!=='OK'){diag('channel_cooldown',{channelId:message.channelId});return;}
+        await target.react(reactionFor(target.content)).catch(()=>{});diag('reacted',{channelId:message.channelId});return;
+      }
+      await replyToMessage(target,'spontaneous',s);
     }catch(err){console.warn('[banter] listener failed',err);}
   });
 }
@@ -164,18 +205,44 @@ export async function handleRoast(interaction:ChatInputCommandInteraction){
     const s=await settings();
     const rawRoles=(interaction.member as any)?.roles;
     const roleIds:string[]=Array.isArray(rawRoles)?rawRoles.map(String):[...(rawRoles?.cache?.keys?.()??[])];
-    if(!s.enabled||!s.roast_enabled||channelExcluded(interaction.channelId,s)||roleExcluded(roleIds,s)){await interaction.editReply('Banter Roast Mode is disabled here.');return true;}
+    if(!s.enabled||!s.roast_enabled||channelExcluded(interaction.channelId,s)||roleExcluded(roleIds,s)){await interaction.editReply('Roasts are switched off here.');return true;}
     claimed=await redis.set(key,token,'EX',120,'NX')==='OK';
     if(!claimed){await interaction.editReply('You got roasted recently. Give the wreckage a minute to cool.');return true;}
     limits=dailyReservations(s,'roast');reserved=await reserveCounters(limits);
     if(!reserved){await interaction.editReply('The roast budget is exhausted for today.');return true;}
-    const topic=interaction.options.getString('topic')?.trim()||'My terrible decisions as a captain.';
-    const text=await generate(s,'roast',`The person voluntarily requested a roast about themselves. Their chosen topic: ${topic}`);
+    const target=interaction.options.getUser('target');
+    const other=Boolean(target&&target.id!==interaction.user.id);
+    let input:string;
+    if(other&&target){
+      if(target.bot){await interaction.editReply('Misfit doesn\'t roast other bots. Professional courtesy.');return true;}
+      if(await optedOut(target.id)){await interaction.editReply('That captain has opted out of roasts. Pick on someone who signed up for it.');return true;}
+      if(await redis.set(`banter:roasted:${guildId}:${target.id}`,token,'EX',600,'NX')!=='OK'){await interaction.editReply('They were roasted in the last few minutes. Let the burns heal.');return true;}
+      const guild=interaction.guild,names=await Promise.all([interaction.user.id,target.id].map(async id=>{const m=await guild?.members.fetch(id).catch(()=>null);return (m?.displayName??(id===target.id?target:interaction.user).username).slice(0,45);}));
+      const topic=interaction.options.getString('topic')?.trim()||'their general conduct as a captain';
+      input=`${names[0]} asked you to roast their crewmate ${names[1]}. Topic: ${topic}. Address ${names[1]} by name. Keep it playful: a crewmate, not an enemy; no real-life, appearance or personal attacks.`;
+    }else{
+      const topic=interaction.options.getString('topic')?.trim()||'My terrible decisions as a captain.';
+      input=`The person voluntarily requested a roast about themselves. Their chosen topic: ${topic}`;
+    }
+    const text=await generate(s,'roast',input);
     if(!text){await interaction.editReply(`The insult department is temporarily offline. ${aiFailureMessage('banter')}`);return true;}
     const sent=await interaction.editReply({content:text,allowedMentions:{parse:[]}});delivered=true;
     await rememberConversationReply(sent.id,'banter').catch(()=>{});await counted('roast',interaction.channelId,interaction.user.id);
   }catch(error){console.warn('[banter] roast failed',error);await interaction.editReply('The roast cannon jammed. Please try again.').catch(()=>{});}
   finally{if(!delivered){if(claimed)await releaseLease(key,token).catch(()=>{});if(reserved)await refundCounters(limits.map(x=>x.key)).catch(()=>{});}}
+  return true;
+}
+
+/** /roasts on|off: whether Misfit may roast this member unprompted (and let others /roast them). */
+export async function handleRoastPreference(interaction:ChatInputCommandInteraction){
+  if(interaction.commandName!=='roasts')return false;
+  const on=interaction.options.getString('setting',true)==='on';
+  try{
+    if(on)await db.query('DELETE FROM bom_banter_optouts WHERE guild_id=$1 AND user_id=$2',[guildId,interaction.user.id]);
+    else await db.query('INSERT INTO bom_banter_optouts(guild_id,user_id) VALUES($1,$2) ON CONFLICT DO NOTHING',[guildId,interaction.user.id]);
+    optouts=null;
+    await interaction.reply({content:on?'Roasts are on. Misfit may take the occasional shot at you in chat, and crewmates can /roast you.':'Roasts are off. Misfit won\'t roast you unprompted and crewmates can\'t /roast you. You can still /roast yourself, and he\'ll still answer when you talk to him.',flags:MessageFlags.Ephemeral});
+  }catch(e){console.warn('[banter] roast preference failed',e);await interaction.reply({content:'Could not save that just now. Try again in a moment.',flags:MessageFlags.Ephemeral}).catch(()=>{});}
   return true;
 }
 
@@ -207,7 +274,7 @@ export async function handleBanterStatus(interaction:ChatInputCommandInteraction
     if(total>=s.daily_total_limit)issues.push('Daily total reply limit reached.');
     if(spontaneous>=s.daily_spontaneous_limit)issues.push('Daily spontaneous reply limit reached.');
     const text=[
-      '**BOM Banter diagnostics**',
+      '**Misfit banter diagnostics**',
       `Banter: **${s.enabled?'ON':'OFF'}** · AI gateway: **${gateway?'reachable':'unreachable'}** · Groq: **${gateway?.providers?.groq?.configured?'configured':'not configured'}** · Gemini: **${gateway?.providers?.gemini?.configured?'configured':'not configured'}**`,
       `Mention/reply mode: **${s.enabled&&!channelExcluded(interaction.channelId,s)?'eligible':'restricted'}**`,
       `Spontaneous mode: **${s.spontaneous_enabled?'ON':'OFF'}** · This channel: **${s.spontaneous_channels.includes(interaction.channelId)?'selected':'not selected'}**`,

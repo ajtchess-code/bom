@@ -48,7 +48,7 @@ import {feedbackCommands,handleFeedbackCommand,handleFeedbackAdminCommand,handle
 import {membershipCommands,installMembership,handleMembershipInteraction} from "./membership.js";
 import {recruitmentCommands,installRecruitment,handleRecruitmentInteraction} from "./recruitment.js";
 import {canDiscordDm} from './notifications.js';
-import {banterCommands,installBanter,handleRoast,handleBanterStatus,banterOwnsMention,banterShouldDeferToWiki} from './banter.js';
+import {banterCommands,installBanter,handleRoast,handleRoastPreference,handleBanterStatus,banterOwnsMention,banterShouldDeferToWiki} from './banter.js';
 // A rejected background promise (Discord event handler, timer, cache refresh) must not take
 // the whole service down; the supervisor restart would drop every in-flight request.
 process.on("unhandledRejection",reason=>{console.error("[controller] unhandled promise rejection",reason);});
@@ -965,6 +965,7 @@ client.on("interactionCreate",async interaction=>{
     if(await handleEventDonations(interaction,redis))return;
     if(interaction.isChatInputCommand()){
       if(interaction.commandName==="roast")return void await handleRoast(interaction);
+      if(interaction.commandName==="roasts")return void await handleRoastPreference(interaction);
       if(interaction.commandName==="banter-status")return void await handleBanterStatus(interaction);
       if(interaction.commandName==="ask")return void await sentinelAsk(interaction);
       if(interaction.commandName==="wiki")return void await handleWiki(interaction);
