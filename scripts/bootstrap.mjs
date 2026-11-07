@@ -19,7 +19,21 @@ const retiredWaveformPaths = [
   "apps/api/dist/waveform.js.map",
   "apps/dashboard/app/api/public/waveform",
 ];
-for (const path of retiredWaveformPaths) {
+// Removed features. Zip deploys add/overwrite files but never delete them, and a
+// leftover source file importing removed code would break the build.
+const retiredFeaturePaths = [
+  // Minecraft and Clash of Clans game hubs
+  "apps/api/src/clashTools.ts", "apps/api/src/gameHubCore.ts", "apps/api/src/gameHubs.ts",
+  "apps/api/dist/clashTools.js", "apps/api/dist/gameHubCore.js", "apps/api/dist/gameHubs.js",
+  "apps/controller/src/clashToolReminders.ts", "apps/controller/src/gameHubNotifications.ts",
+  "apps/controller/dist/clashToolReminders.js", "apps/controller/dist/gameHubNotifications.js",
+  "apps/dashboard/app/api/games", "apps/dashboard/app/api/minecraft-map",
+  "apps/dashboard/app/dashboard/clash", "apps/dashboard/app/dashboard/minecraft",
+  "apps/dashboard/components/game-hubs",
+  "packages/shared/src/clashToolkit.ts", "packages/shared/dist/clashToolkit.js", "packages/shared/dist/clashToolkit.d.ts", "packages/shared/dist/clashToolkit.js.map",
+  "scripts/tests/clash-toolkit.test.mjs", "scripts/tests/game-hub-browser.mjs", "scripts/tests/game-hubs-lifecycle.test.mjs",
+];
+for (const path of [...retiredWaveformPaths, ...retiredFeaturePaths]) {
   try { rmSync(path, { recursive: true, force: true }); } catch {}
 }
 
