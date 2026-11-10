@@ -19,13 +19,14 @@ export async function handleLegacyPBControls(i:any,d:Deps){
  if(!i.isButton?.())return false;
  if(!['auto','all','preferences','officers','manage','refresh','mine','leave','panel'].includes(action))return false;
  await deferInteractionReply(i,{flags:64});
+ if(action==='preferences'){await editInteractionReply(i,{content:'Manage your preferred ships by rate directly in Discord.',components:[new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId('pbprefs:open').setLabel('Manage Preferred Ships').setStyle(ButtonStyle.Primary))]});return true;}
  if(action==='panel'){const page=Number(pageRaw);await editInteractionReply(i,await d.panel(battleId,pageId,Number.isInteger(page)?page:0,i.user.id));return true;}
  if(action==='all'||action==='auto'){
   if(action==='all'&&battleId!==d.guildId)return true;
   const [battles,prefs,cat,config]=await Promise.all([action==='auto'?d.api(`/port-battles/${battleId}`,i.user.id).then(x=>[x.battle]):d.api('/port-battles',i.user.id),d.api('/pb-preferences',i.user.id),d.api('/catalogue',i.user.id),d.api('/pb-config',i.user.id)]);let signed=0;const noShips:string[]=[];const skipped:string[]=[];
-  for(const b of (Array.isArray(battles)?battles:[]).filter((b:any)=>b.status==='OPEN'&&(!b.starts_at||Date.parse(b.starts_at)>Date.now()))){
+  for(const b of (Array.isArray(battles)?battles:[]).filter((b:any)=>b.status==='OPEN')){
    const rate=String(b.rate),profile=prefs.rates?.[rate]??{},valid=new Set((cat.ships??[]).filter((s:any)=>String(s.rate??s.level)===rate&&(!Array.isArray(config.preferredShipCatalog?.[rate])||config.preferredShipCatalog[rate].includes(s.name))).map((s:any)=>s.name)),ships=(profile.ships??[]).filter((s:string)=>valid.has(s));
-   if(!ships.length){if(action!=='auto')await remindPreferredShips(i.user,d.base);noShips.push(b.id);skipped.push(`${b.port_name}: no saved ships for this rate yet`);continue;}
+   if(!ships.length){if(action!=='auto')await remindPreferredShips(i.user,d.base,Number(b.rate));noShips.push(b.id);skipped.push(`${b.port_name}: no saved ships for this rate yet`);continue;}
    try{await d.api(`/port-battles/${b.id}/signup`,i.user.id,{method:'POST',body:JSON.stringify({onlyIfAbsent:true,displayName:i.member?.displayName??i.user.globalName??i.user.username,status:'ATTENDING',ships,preferredShips:(profile.preferred??[]).filter((s:string)=>ships.includes(s)),hornCapable:Boolean(prefs.horn_capable&&prefs.horn_requirements_ack),hornPreferred:Boolean(prefs.horn_preferred&&prefs.horn_capable&&prefs.horn_requirements_ack)})});signed++;}catch(e:any){skipped.push(`${b.port_name}: ${String(e.message??'signup unavailable').slice(0,100)}`);}
   }
   await d.refresh();if(action==='auto'&&noShips.length){await editInteractionReply(i,{content:"You haven't saved ships for this rate yet. Pick them once and 1-Click Signup will work from then on.",components:[new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId(`pb:form:${noShips[0]}`).setLabel('Choose my ships').setStyle(ButtonStyle.Primary))]});return true;}

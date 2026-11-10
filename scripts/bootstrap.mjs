@@ -28,6 +28,7 @@ const retiredWaveformPaths = [
 // Removed features. Zip deploys add/overwrite files but never delete them, and a
 // leftover source file importing removed code would break the build.
 const retiredFeaturePaths = [
+  "apps/dashboard/components/BattleCoordination.tsx",
   "apps/api/src/permissionPresets.ts", "apps/api/dist/permissionPresets.js",
   "apps/controller/src/channelAccessLayout.ts", "apps/controller/dist/channelAccessLayout.js",
   "apps/dashboard/app/dashboard/admin/permission-presets", "apps/dashboard/components/PermissionPresetsDashboard.tsx",
