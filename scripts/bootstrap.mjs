@@ -1,10 +1,16 @@
 import { loadRootEnv } from "./load-env.mjs";
 import { spawn } from "node:child_process";
-import { existsSync, readFileSync, rmSync, writeFileSync, readdirSync } from "node:fs";
+import { existsSync, readFileSync, rmSync, writeFileSync, readdirSync, mkdirSync } from "node:fs";
 import { createHash } from "node:crypto";
 import process from "node:process";
 
 loadRootEnv();
+// /tmp may be a 100 MB tmpfs even when the server disk has ample free space.
+const buildTmp = process.env.BOM_BUILD_TMP_DIR || `${process.cwd()}/build-tmp`;
+mkdirSync(buildTmp, { recursive: true });
+process.env.TMPDIR = buildTmp;
+process.env.TMP = buildTmp;
+process.env.TEMP = buildTmp;
 
 import { yarnArgs } from "./yarn-cmd.mjs";
 const runYarn = (args) => { const y = yarnArgs(args); return run(y.command, y.args); };

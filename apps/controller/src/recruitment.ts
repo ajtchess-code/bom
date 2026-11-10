@@ -118,7 +118,16 @@ async function sweepRecruitment(client:any){if(sweepRunning)return;sweepRunning=
 
 async function restoreApplicationChannels(client:any){
  const guild=await client.guilds.fetch(guildId);const apps=await many<any>(`SELECT * FROM recruitment_applications WHERE guild_id=$1 AND status IN ('RECRUITER_REVIEW','INTERVIEW')`,[guildId]);
- for(const app of apps){if(!app.ticket_channel_id)continue;try{const ch=await guild.channels.fetch(app.ticket_channel_id);if(!ch?.isTextBased())continue;
+ for(const app of apps){if(!app.ticket_channel_id)continue;try{const ch=await guild.channels.fetch(app.ticket_channel_id).catch(async(error:any)=>{
+  if(Number(error.code)!==10003)throw error;
+  const deleted=await db.query(`WITH abandoned AS (
+   SELECT id FROM recruitment_applications WHERE guild_id=$1 AND id=$2 AND ticket_channel_id=$3 AND status IN ('RECRUITER_REVIEW','INTERVIEW') FOR UPDATE
+  ), removed_jobs AS (
+   DELETE FROM recruitment_completion_jobs WHERE guild_id=$1 AND application_id IN (SELECT id FROM abandoned) RETURNING application_id
+  ) DELETE FROM recruitment_applications WHERE id IN (SELECT id FROM abandoned) AND (SELECT count(*) FROM removed_jobs)>=0`,[guildId,app.id,app.ticket_channel_id]);
+  if(deleted.rowCount)console.info('[recruitment] Deleted abandoned application whose ticket no longer exists',app.id);
+  return null;
+ });if(!ch?.isTextBased())continue;
   const name=`app-${safeName(app.captain_name)}`;if(ch.name!==name)await ch.setName(name,'Simplified application channels');
   if(app.status_message_id){const message=await ch.messages.fetch(app.status_message_id).catch(()=>null);if(message){await message.edit({embeds:[statusEmbed(app)],components:statusRows(app),allowedMentions:{parse:[]}});continue;}}
   const message=await ch.send({embeds:[statusEmbed(app)],components:statusRows(app),allowedMentions:{parse:[]}});await db.query('UPDATE recruitment_applications SET status_message_id=$2 WHERE id=$1',[app.id,message.id]);
