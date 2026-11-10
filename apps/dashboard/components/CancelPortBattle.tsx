@@ -36,13 +36,13 @@ export default function CancelPortBattle({ battle, onChanged }: { battle: any; o
       </div>
     );
   if (!["OPEN", "CLOSED"].includes(battle.status)) return null;
-  async function cancel() {
+  async function cancel(silent = false) {
     setBusy(true);
     try {
       const r = await fetch(`/api/internal/wosb/port-battles/${battle.id}/cancel`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ reason }),
+        body: JSON.stringify({ reason, silent }),
       });
       const b = await r.json();
       if (!r.ok) throw new Error(b.message ?? b.error);
@@ -75,6 +75,7 @@ export default function CancelPortBattle({ battle, onChanged }: { battle: any; o
               Signups and pending reminders stop. The roster stays in history and captains receive no
               attendance penalty.
             </p>
+            <div className="controlRow">{['Not enough players','Enemy withdrew','Battle timer changed','Battle no longer needed','Technical issues'].map(value=><button type="button" key={value} aria-pressed={reason===value} onClick={()=>setReason(value)}>{value}</button>)}</div>
             <label>
               Cancellation reason
               <textarea
@@ -89,12 +90,13 @@ export default function CancelPortBattle({ battle, onChanged }: { battle: any; o
               <button disabled={busy} onClick={() => setOpen(false)}>
                 Keep Battle
               </button>
+              <button disabled={busy || !reason.trim()} onClick={()=>void cancel(true)}>Cancel silently</button>
               <button
                 className="dangerAction"
                 disabled={busy || !reason.trim()}
                 onClick={() => void cancel()}
               >
-                Confirm Cancellation
+                Cancel & notify captains
               </button>
             </div>
           </section>

@@ -1,7 +1,6 @@
 "use client";
 import ScheduleMessagePreview from "../DiscordPayloadPreview";
 import SavedViewControl from "../SavedViewControl";
-import BattleCoordination from "../BattleCoordination";
 import BattleHourButtons from "../BattleHourButtons";
 import CancelPortBattle from "../CancelPortBattle";
 import { useEffect, useMemo, useRef, useState } from "react";

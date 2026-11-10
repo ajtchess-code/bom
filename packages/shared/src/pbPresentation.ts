@@ -17,7 +17,7 @@ export function legacyPanel(title:string,body:string,o:PanelOptions){
  const display={type:10,content:pages[page]+(pages.length>1?`\n\n-# Page ${page+1} of ${pages.length}`:'')};
  components.push(o.thumbnail?{type:9,components:[display],accessory:{type:11,media:{url:o.thumbnail}}}:display);
  for(const row of o.rows??[])components.push(sep(),row);
- if(o.preferred){components.push(sep(),{type:10,content:'### Preferred Ships\nChoose the ships you can sail and your favourites for automatic port battle signups.'},...(o.base?[pbRow(pbLink('Set Preferred Ships',o.base+'/dashboard/port-battles?preferences=1'),pbLink('My Profile & Ships',o.base+'/dashboard/members?view=profile'))]:[]));}
+ if(o.preferred){components.push(sep(),{type:10,content:'### Preferred Ships\nChoose the ships you can sail and your favourites for automatic port battle signups.'},pbRow(pbButton('Manage Preferred Ships','pbprefs:open')));}
  if(pages.length>1){components.push(sep(),pbRow({...pbButton('Previous page',`pb:panel:${o.pageKind}:${o.pageId}:${Math.max(0,page-1)}`),disabled:page===0},{...pbButton('Next page',`pb:panel:${o.pageKind}:${o.pageId}:${Math.min(pages.length-1,page+1)}`),disabled:page===pages.length-1}));}
  return {flags:32768,allowedMentions:{parse:[]},components:[{type:17,accent_color:PB_LEGACY_GOLD,components}]};
 }
@@ -40,7 +40,7 @@ export function rosterPanel(b:any,signups:any[],o:PanelOptions){
 export function indexPanel(active:any[],o:PanelOptions,kind='signup'){
  let body=active.length?'':kind==='signup'?'No active signups.':'No active rosters.';
  for(const b of active){const id=kind==='signup'?b.discord_signup_message_id:b.discord_roster_message_id;const channel=kind==='signup'?b.discord_signup_channel_id:b.discord_roster_channel_id;body+=`${body?'\n\n':''}**${text(b.port_name)}**\n${pbTimestamp(b.starts_at)}\n${pbRate(b.rate)} • ${Number(b.team_size)||20}v${Number(b.team_size)||20} • ${b.status==='OPEN'?'Open':'Closed'}\n${text(b.attacker)} vs ${text(b.defender)}${id&&channel?`\n[Open ${kind==='signup'?'signup':'roster'}](https://discord.com/channels/${o.guildId}/${channel}/${id})`:`\n${kind==='signup'?'Signup':'Roster'} post pending.`}`;}
- const rows=kind==='signup'?[pbRow(pbButton('Sign Up for ALL Port Battles',`pb:all:${o.guildId}`,3))]:[];
+ const rows=kind==='signup'?[pbRow(pbButton('Sign Up for ALL Port Battles',`pb:all:${o.guildId}`,3),pbButton('I can no longer attend','pbops:withdraw',4))]:[];
  return legacyPanel(kind==='signup'?'Active Port Battle Signups':'Rosters Index',body,{...o,rows,preferred:kind==='signup',pageKind:kind==='signup'?'index':'rosterindex',pageId:o.guildId});
 }
 /** One V2 section per guild, packed under message text and component limits. */

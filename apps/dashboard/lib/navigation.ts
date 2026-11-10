@@ -46,6 +46,7 @@ export const NAV_SECTIONS: NavSection[] = [
         feature: "portBattles",
         match: ["/dashboard/prep-review"],
       },
+      { href: "/dashboard/port-battles/coordination", label: "Multi-Battle Board", requires: "pbManager" },
       { href: "/dashboard/battle-review", label: "Review", feature: "portBattles" },
       { href: "/dashboard/after-action-reports", label: "Reports", feature: "portBattles" },
       {

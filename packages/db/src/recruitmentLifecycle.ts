@@ -25,13 +25,13 @@ export async function finishApplication(input:{guildId:string;id:string;actorId:
   await tx.query('COMMIT');return updated.rows[0];
  }catch(e){await tx.query('ROLLBACK');throw e;}finally{tx.release();}
 }
-export async function cancelPortBattle(guildId:string,id:string,actorId:string,reason:string){
+export async function cancelPortBattle(guildId:string,id:string,actorId:string,reason:string,silent=false){
  const tx=await pool.connect();try{
   await tx.query('BEGIN');const r=await tx.query('SELECT * FROM pb_battles WHERE guild_id=$1 AND id=$2 FOR UPDATE',[guildId,id]);const b=r.rows[0];
   if(!b)throw Object.assign(new Error('Battle not found'),{statusCode:404});
   if(!['OPEN','CLOSED'].includes(b.status))throw Object.assign(new Error('Only a scheduled battle can be cancelled.'),{statusCode:409});
-  await tx.query("UPDATE pb_battles SET status='CANCELLED',cancelled_at=now(),cancelled_by=$3,cancellation_reason=$4,revision=revision+1,updated_at=now() WHERE guild_id=$1 AND id=$2",[guildId,id,actorId,reason]);
-  await tx.query("INSERT INTO pb_cancellation_deliveries(battle_id,user_id) SELECT DISTINCT battle_id,user_id FROM pb_signups WHERE battle_id=$1 AND user_id IS NOT NULL ON CONFLICT DO NOTHING",[id]);
+  await tx.query("UPDATE pb_battles SET status='CANCELLED',cancelled_at=now(),cancelled_by=$3,cancellation_reason=$4,cancellation_silent=$5,revision=revision+1,updated_at=now() WHERE guild_id=$1 AND id=$2",[guildId,id,actorId,reason,silent]);
+  if(!silent)await tx.query("INSERT INTO pb_cancellation_deliveries(battle_id,user_id) SELECT DISTINCT battle_id,user_id FROM pb_signups WHERE battle_id=$1 AND user_id IS NOT NULL ON CONFLICT DO NOTHING",[id]);
   await tx.query("UPDATE pb_assignment_events SET notified_at=now(),notification_error='battle_cancelled' WHERE battle_id=$1 AND notified_at IS NULL",[id]);
   await tx.query("UPDATE pb_tactical_dispatches SET status='FAILED',result='{"+'"error":"battle_cancelled"'+"}'::jsonb,finished_at=now() WHERE battle_id=$1 AND status IN('QUEUED','RUNNING')",[id]);
   await tx.query("UPDATE pb_invitations SET status='SKIPPED',error='battle_cancelled',updated_at=now() WHERE battle_id=$1 AND status IN('QUEUED','FAILED')",[id]);
