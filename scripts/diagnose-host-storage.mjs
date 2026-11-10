@@ -1,0 +1,15 @@
+// Dependency-free host diagnostics. Never deletes caches, dependencies or data.
+import {existsSync,statSync,statfsSync,openSync,writeSync,fsyncSync,closeSync,unlinkSync,readFileSync} from 'node:fs';
+import {resolve,dirname,join} from 'node:path';
+import {homedir,tmpdir} from 'node:os';
+import {spawnSync} from 'node:child_process';
+const root=process.cwd(),home=homedir();
+const candidates=new Set([root,join(root,'node_modules'),join(root,'.yarn/cache'),join(root,'.cache/yarn'),join(root,'.npm/_cacache'),join(home,'.yarn/berry/cache'),join(home,'.cache/yarn'),join(home,'.npm/_cacache'),tmpdir(),'/tmp','/dev/shm',process.env.YARN_CACHE_FOLDER,process.env.YARN_GLOBAL_FOLDER,process.env.npm_config_cache,process.env.TMPDIR].filter(Boolean).map(p=>resolve(p)));
+try{const text=readFileSync(join(root,'.yarnrc.yml'),'utf8');for(const line of text.split('\n')){const m=line.match(/^\s*(?:cacheFolder|globalFolder):\s*["']?([^"'#]+?)["']?\s*$/);if(m&&!m[1].includes('${'))candidates.add(resolve(root,m[1].trim()));}}catch{}
+const gb=n=>(Number(n)/1024**3).toFixed(2)+' GiB';
+console.log('BOM HOST STORAGE DIAGNOSTICS');console.log('Node:',process.version,'Platform:',process.platform,'UID:',process.getuid?.()??'unknown');console.log('Working directory:',root);console.log('No cache, data, environment or dependency files are removed.');
+for(const requested of candidates){let path=requested;while(!existsSync(path)&&dirname(path)!==path)path=dirname(path);try{if(!statSync(path).isDirectory())path=dirname(path);const s=statfsSync(path,{bigint:true});console.log('\nPATH:',requested,requested===path?'':'(checking existing parent '+path+')');console.log('FS type:','0x'+s.type.toString(16),'Capacity:',gb(s.blocks*s.bsize),'Available to process:',gb(s.bavail*s.bsize),'Free total:',gb(s.bfree*s.bsize));console.log('Inodes total:',String(s.files),'free:',String(s.ffree));if(path==='/dev/shm'){console.log('Write probe skipped: shared memory is not a normal Yarn install target.');continue;}
+const probe=join(path,`.bom-storage-probe-${process.pid}-${Math.random().toString(16).slice(2)}`);let fd;try{fd=openSync(probe,'wx',0o600);writeSync(fd,Buffer.from('BOM disk probe\n'));fsyncSync(fd);console.log('Tiny synced write probe: OK');}catch(e){console.log('Tiny synced write probe:',e.code,e.message);}finally{if(fd!==undefined)closeSync(fd);try{unlinkSync(probe);}catch{}}
+}catch(e){console.log('PATH:',requested,'ERROR:',e.code,e.message);}}
+for(const [command,args] of [['df',['-h',root,tmpdir()]],['df',['-i',root,tmpdir()]],['quota',['-s']]]){console.log('\nCOMMAND:',command,args.join(' '));const r=spawnSync(command,args,{encoding:'utf8',timeout:10000});if(r.error)console.log(r.error.code??r.error.message);else console.log((r.stdout+r.stderr).trim()||`exit ${r.status}`);}
+console.log('\nEND. A successful tiny probe does not rule out per-project quotas, inode limits in another directory, or a limit reached during the larger install. Share this output with the full Yarn error path if available.');

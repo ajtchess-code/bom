@@ -16,7 +16,7 @@ export function resolveYarn() {
     const r = spawnSync(c.command, [...c.prefixArgs, "--version"], {
       stdio: "pipe", encoding: "utf8", shell: win, env: { ...process.env, COREPACK_ENABLE_DOWNLOAD_PROMPT: "0" },
     });
-    if (r.status === 0) {
+    if (r.status === 0 && /^1\.\d+\.\d+$/.test(String(r.stdout).trim())) {
       cached = c;
       console.log(`[startup] using yarn via: ${[c.command, ...c.prefixArgs].join(" ")} (v${String(r.stdout).trim()})`);
       return c;

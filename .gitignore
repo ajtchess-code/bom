@@ -34,3 +34,6 @@ donation-preview/tsconfig.json
 halloween-preview/next-env.d.ts
 halloween-preview/tsconfig.json
 test-preview/public
+
+# Host build temporary files on the persistent filesystem
+build-tmp/
