@@ -15,6 +15,7 @@ export const ADMIN_GROUPS = [
 ] as const;
 
 export const ADMIN_SECTION_LIST: Section[] = [
+  {key:"casino",title:"Casino",description:"Exchange rates, deposit reviews, house reserve and battle results",group:"Members & community",keywords:["casino","coins","wagers","deposits"]},
   {
     key: "membership",
     title: "Membership & Welcome",
@@ -49,13 +50,6 @@ export const ADMIN_SECTION_LIST: Section[] = [
       "screenshot",
       "voting",
     ],
-  },
-  {
-    key: "permission-presets",
-    title: "Permission Presets",
-    description: "Save channel permission layouts and apply them",
-    group: "Members & community",
-    keywords: ["channel permissions", "overwrites", "copy permissions"],
   },
   {
     key: "sentinel",

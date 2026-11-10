@@ -11,7 +11,7 @@ async function get(path: string) {
 export default async function ShipBuilderPage() {
   const [catalogue, builds, access, session] = await Promise.all([
     get("/v1/wosb/catalogue"),
-    get("/v1/wosb/builds"),
+    get("/v1/wosb/build-library"),
     get("/v1/access"),
     getSession(),
   ]);
@@ -19,7 +19,7 @@ export default async function ShipBuilderPage() {
   return (
     <ShipBuilderDashboard
       catalogue={catalogue}
-      initialBuilds={builds ?? []}
+      initialLibrary={builds}
       viewerId={String(session?.id ?? "")}
       roleIds={(a.roleIds ?? a.roles ?? []).map(String)}
     />

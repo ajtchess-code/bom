@@ -79,7 +79,7 @@ function humanKind(v:any){return String(v??'').replaceAll('_',' ').replace(/\b\w
 function dashboardLabelFromPath(path:string){
   const cleanPath=String(path??'').split('?')[0];
   const names:Record<string,string>={
-    '/dashboard':'Dashboard','/dashboard/music':'Music','/dashboard/port-battles':'Port Battles','/dashboard/ship-builder':'Ship Builder','/dashboard/ships':'Ships','/dashboard/map':'Map','/dashboard/wiki':'Wiki','/dashboard/prep-review':'Prep & Review','/dashboard/feedback':'Feedback','/dashboard/sentinel':'Sentinel','/dashboard/admin':'Administration'
+    '/dashboard':'Dashboard','/dashboard/music':'Music','/dashboard/port-battles':'Port Battles','/dashboard/ship-builder':'Build Library','/dashboard/ships':'Ships','/dashboard/map':'Map','/dashboard/wiki':'Wiki','/dashboard/prep-review':'Prep & Review','/dashboard/feedback':'Feedback','/dashboard/sentinel':'Sentinel','/dashboard/admin':'Administration'
   };
   if(names[cleanPath])return names[cleanPath];
   const last=decodeURIComponent(cleanPath.split('/').filter(Boolean).at(-1)??'Dashboard').replace(/[-_]+/g,' ');

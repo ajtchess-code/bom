@@ -1,3 +1,4 @@
+import {restoreChannelPermissions} from './restoreChannelPermissions.js';
 import {handleEventDonationRequests} from './eventDonationRequests.js';
 import {ensureEventTrophyEmojis} from './eventEmojis.js';
 import {handleEventDonations} from './eventDonations.js';
@@ -14,7 +15,6 @@ import {installMisfitAssistant} from './misfitAssistant.js';
 import {correctionStatement,factualCorrection} from './assistantIntent.js';
 import {maintainDeskOrderForChannel,refreshMembershipSurfaces} from './membership.js';
 import {applyMisfitBranding} from './misfitBranding.js';
-import {applyChannelAccessLayout} from './channelAccessLayout.js';
 import {ensurePBEmojis} from './pbEmojis.js';
 import {legacyPanel,signupPanel,rosterPanel,indexPanel,schedulePanel,schedulePanels,pbRow,pbButton,pbLink,samePBPanel} from './pbPresentation.js';
 import {fetchPBMessage,upsertPBMessage,removeLegacyFleetPanels} from './pbMessages.js';
@@ -517,6 +517,7 @@ async function roomByVoice(voiceChannelId:string){return oneOrNone<RoomRow>(`SEL
 async function ensureVoiceRoom(voiceChannelId:string):Promise<RoomRow>{
   const existing=await roomByVoice(voiceChannelId);if(existing){await redis.set(voiceRoomKey(voiceChannelId),existing.id,"EX",24*3600);diagDebug("music-session","reusing voice session",{roomId:existing.id,voiceChannelId});return existing;}
   await ensureGuild();
+  await restoreChannelPermissions(client,guildId!).catch(error=>console.warn('[permissions-restore] Will retry on restart',error));
   const guild=client.guilds.cache.get(guildId!);const channel=guild?.channels.cache.get(voiceChannelId)??await guild?.channels.fetch(voiceChannelId).catch(()=>null);
   if(!channel?.isVoiceBased())throw new Error("Join a Discord voice channel before using music.");
   await cacheVoiceChannel(channel);
@@ -841,7 +842,6 @@ client.on("clientReady",async()=>{
   await ensureGuild();
   void ensureEventTrophyEmojis(client,guildId!);
   void applyMisfitBranding(client,guildId!).catch(error=>console.warn('[misfit-branding] Branding deferred',error));
-  void applyChannelAccessLayout(client,guildId!).catch(error=>console.warn('[channel-layout] Deferred',error));
   for(const g of client.guilds.cache.values())if(g.id!==guildId)await g.leave().catch(()=>{});
   const guild=client.guilds.cache.get(guildId!);
   const voiceQualityChannels=new Set<string>();
