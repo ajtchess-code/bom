@@ -22,6 +22,10 @@ const retiredWaveformPaths = [
 // Removed features. Zip deploys add/overwrite files but never delete them, and a
 // leftover source file importing removed code would break the build.
 const retiredFeaturePaths = [
+  "apps/api/src/permissionPresets.ts", "apps/api/dist/permissionPresets.js",
+  "apps/controller/src/channelAccessLayout.ts", "apps/controller/dist/channelAccessLayout.js",
+  "apps/dashboard/app/dashboard/admin/permission-presets", "apps/dashboard/components/PermissionPresetsDashboard.tsx",
+  "apps/dashboard/components/RecruitmentDashboard.tsx", "scripts/tests/permission-presets-437.test.mjs", "scripts/tests/wiki-builder-redesign.test.mjs",
   // Minecraft and Clash of Clans game hubs
   "apps/api/src/clashTools.ts", "apps/api/src/gameHubCore.ts", "apps/api/src/gameHubs.ts",
   "apps/api/dist/clashTools.js", "apps/api/dist/gameHubCore.js", "apps/api/dist/gameHubs.js",

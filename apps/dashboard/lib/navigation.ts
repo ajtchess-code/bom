@@ -62,7 +62,7 @@ export const NAV_SECTIONS: NavSection[] = [
     icon: "ship",
     tabs: [
       { href: "/dashboard/ships", label: "Ships" },
-      { href: "/dashboard/ship-builder", label: "Ship Builder" },
+      { href: "/dashboard/ship-builder", label: "Build Library" },
       { href: "/dashboard/map", label: "Map" },
       { href: "/dashboard/wiki", label: "Wiki", feature: "wiki" },
     ],
@@ -77,6 +77,7 @@ export const NAV_SECTIONS: NavSection[] = [
       { href: "/dashboard/recruitment", label: "Recruitment", feature: "recruitment" },
       { href: "/dashboard/diplomacy", label: "Guilds & Alliances" },
       { href: "/dashboard/guild-ledger", label: "Guild Ledger" },
+      { href: "/dashboard/casino", label: "The ßǾM Casino" },
       { href: "/dashboard/feedback", label: "Feedback" },
     ],
   },

@@ -70,8 +70,8 @@ function sectionFor(pathname: string) {
     return { title: "Guilds & Alliances", subtitle: "Selected guilds and alliance relationships" };
   if (pathname.startsWith("/dashboard/guild-ledger"))
     return { title: "Guild Ledger", subtitle: "Donations, chests and treasury" };
-  if (pathname.startsWith("/dashboard/admin/permission-presets"))
-    return { title: "Permission Presets", subtitle: "Copy and apply channel permission layouts" };
+  if (pathname.startsWith("/dashboard/casino"))
+    return { title: "The ßǾM Casino", subtitle: "Port Battle wagers, coinflip and fort exchanges" };
   if (pathname.startsWith("/dashboard/members/leave"))
     return { title: "Leave of Absence", subtitle: "Away records, check-ins and returning members" };
   if (pathname.startsWith("/dashboard/members"))
@@ -81,7 +81,7 @@ function sectionFor(pathname: string) {
   if (pathname.startsWith("/dashboard/wiki"))
     return { title: "Wiki", subtitle: "World of Sea Battles knowledge, guides and calculators" };
   if (pathname.startsWith("/dashboard/ship-builder"))
-    return { title: "Ship Builder", subtitle: "Private fleet fitting and build repository" };
+    return { title: "Build Library", subtitle: "Private fleet fitting and build repository" };
   if (pathname.startsWith("/dashboard/ships"))
     return { title: "Ships", subtitle: "Fleet reference and comparison" };
   if (pathname.startsWith("/dashboard/map"))
@@ -581,7 +581,7 @@ export default function DashboardShell({
     {
       kind: "Action",
       label: "Create A Ship Build",
-      detail: "Open the Ship Builder",
+      detail: "Open the Build Library",
       href: "/dashboard/ship-builder?new=1",
       key: "create-build",
     },
@@ -980,7 +980,7 @@ export default function DashboardShell({
               <span>
                 {item.label === "Port Battles"
                   ? "Battles"
-                  : item.label === "Ship Builder"
+                  : item.label === "Build Library"
                     ? "Builder"
                     : item.label === "Wiki"
                       ? "Wiki"

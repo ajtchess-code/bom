@@ -11,7 +11,7 @@ const nextConfig: NextConfig = {
   },
   // Retired sections: send old bookmarks home instead of a 404.
   async redirects() {
-    return ["/dashboard/minecraft", "/dashboard/clash"].flatMap((source) => [
+    return ["/dashboard/minecraft", "/dashboard/clash", "/dashboard/admin/permission-presets"].flatMap((source) => [
       { source, destination: "/dashboard", permanent: false },
       { source: `${source}/:path*`, destination: "/dashboard", permanent: false },
     ]);

@@ -5,7 +5,7 @@ export const DESK_DESTINATIONS=[
  {value:'review',label:'Battle Review · VODs',path:'/dashboard/battle-review'},
  {value:'aar',label:'After Action Reports',path:'/dashboard/after-action-reports'},
  {value:'wiki',label:'Wiki',path:'/dashboard/wiki'},
- {value:'builder',label:'Ship Builder',path:'/dashboard/ship-builder'},
+ {value:'builder',label:'Build Library',path:'/dashboard/ship-builder'},
  {value:'ships',label:'Ships',path:'/dashboard/ships'},
  {value:'alliances',label:'Guilds & Alliances',path:'/dashboard/diplomacy'},
  {value:'map',label:'Battle Map',path:'/dashboard/map'},

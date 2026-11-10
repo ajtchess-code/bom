@@ -92,7 +92,7 @@ export default function DashboardModules({
       },
       {
         href: "/dashboard/ship-builder",
-        title: "Ship Builder",
+        title: "Build Library",
         description: "Create, compare, save and share fleet loadouts with the guild.",
         category: "wosb",
         icon: "hammer",
