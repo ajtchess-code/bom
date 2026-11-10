@@ -37,3 +37,10 @@ test-preview/public
 
 # Host build temporary files on the persistent filesystem
 build-tmp/
+
+# Versioned wiki data and imagery ship as checked release parts, not Git blobs.
+data/wiki-v2/
+wiki-releases/
+data/wiki-releases/
+data/wiki-active.json
+docs/wiki-v2-screenshots/

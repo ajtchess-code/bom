@@ -7,6 +7,14 @@ import { startLocalRedis } from "./local-redis.mjs";
 import { prepareIntelRelay } from "./intel-relay.mjs";
 
 loadRootEnv();
+// Optional offline installation: upload the checked release parts, set this path,
+// and restart normally. Subsequent starts skip an already active release.
+if(process.env.WOSB_WIKI_LOCAL_RELEASE){
+  const manifestPath=process.env.WOSB_WIKI_LOCAL_RELEASE;
+  const release=JSON.parse(readFileSync(manifestPath,'utf8')).release;
+  let current=null;try{current=JSON.parse(readFileSync('data/wiki-active.json','utf8')).release;}catch{}
+  if(current!==release){const {installLocal}=await import('./wiki-release.mjs');await installLocal(manifestPath);}
+}
 const root=process.cwd();
 const required=["DISCORD_GUILD_ID","DISCORD_CLIENT_ID","DISCORD_CLIENT_SECRET","DISCORD_BOT_TOKEN","SESSION_SECRET","INTERNAL_API_TOKEN","PUBLIC_DASHBOARD_URL","LAVALINK_URL","LAVALINK_PASSWORD"];
 const databaseUrl=process.env.DATABASE_URL?.trim()??"";
