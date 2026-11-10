@@ -46,13 +46,13 @@ export function shiftedLocalDate(offsetDays = 0) {
   d.setDate(d.getDate() + offsetDays);
   return localDateKey(d);
 }
-export function gameSelectionToIso(date: string, hour: number, offsetMinutes: number) {
-  const [y, m, d] = date.split("-").map(Number);
-  return new Date(y, m - 1, d, Number(hour) || 0, Number(offsetMinutes) || 0, 0, 0).toISOString();
+export function gameSelectionToIso(date:string,hour:number,offsetMinutes:number,timeZone='America/Chicago'){
+ const [year,month,day]=date.split('-').map(Number),target=Date.UTC(year,month-1,day,Number(hour)||0,Number(offsetMinutes)||0);let value=target;
+ for(let i=0;i<3;i++){const p=Object.fromEntries(new Intl.DateTimeFormat('en-US',{timeZone,year:'numeric',month:'numeric',day:'numeric',hour:'numeric',minute:'numeric',second:'numeric',hourCycle:'h23'}).formatToParts(new Date(value)).map(p=>[p.type,p.value]));value+=target-Date.UTC(+p.year,+p.month-1,+p.day,+p.hour,+p.minute,+p.second);}
+ return new Date(value).toISOString();
 }
-export function gameSelectionFromIso(value: any, offsetMinutes: number) {
-  const shifted = new Date(new Date(value).getTime() - (Number(offsetMinutes) || 0) * 60000);
-  return { date: localDateKey(shifted), hour: shifted.getHours() };
+export function gameSelectionFromIso(value:any,offsetMinutes:number,timeZone='America/Chicago'){
+ const d=new Date(new Date(value).getTime()-(Number(offsetMinutes)||0)*60000),p=Object.fromEntries(new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',hourCycle:'h23'}).formatToParts(d).map(p=>[p.type,p.value]));return {date:`${p.year}-${p.month}-${p.day}`,hour:Number(p.hour)};
 }
 export function cleanName(v: any) {
   return String(v ?? "").trim();

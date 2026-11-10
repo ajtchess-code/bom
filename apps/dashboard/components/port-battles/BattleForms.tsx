@@ -1,7 +1,6 @@
 "use client";
 import ScheduleMessagePreview from "../DiscordPayloadPreview";
 import SavedViewControl from "../SavedViewControl";
-import BattleCoordination from "../BattleCoordination";
 import BattleHourButtons from "../BattleHourButtons";
 import CancelPortBattle from "../CancelPortBattle";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -248,7 +247,7 @@ export function ManageBattleModal({
             attacker,
             defender,
             startsAt: gameSelectionToIso(date, hour, gameTimeOffsetMinutes),
-            status: String(fd.get("status") ?? battle.status),
+            status: ["WIN","DRAW","LOSS"].includes(String(fd.get("result"))) ? "FINISHED" : String(fd.get("status") ?? battle.status),
             result: String(fd.get("result") ?? review.result ?? "UNKNOWN"),
             issueTags,
             reviewNotes: String(fd.get("reviewNotes") ?? ""),

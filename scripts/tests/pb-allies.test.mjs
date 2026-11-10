@@ -22,6 +22,7 @@ test('allied membership, ownership and direct API requests are scoped',async()=>
  let review=(await query('SELECT * FROM pb_battle_reviews WHERE battle_id=$1',[ids[0]])).rows[0];assert.equal(review.result,'WIN');assert.deepEqual(review.issue_tags,['Good comms']);assert.equal(review.notes,'Updated notes');
  assert.equal((await app.inject({method:'PATCH',url:'/v1/wosb/port-battles/'+ids[0],payload:{reviewNotes:'',issueTags:[]}})).statusCode,200);review=(await query('SELECT * FROM pb_battle_reviews WHERE battle_id=$1',[ids[0]])).rows[0];assert.equal(review.notes,null);assert.deepEqual(review.issue_tags,[]);assert.equal(review.result,'WIN');
  const selfUrl='/v1/wosb/port-battles/'+ids[0]+'/signup';
+ await query("UPDATE pb_battles SET rate=3,starts_at=now()-interval '1 hour' WHERE id=$1",[ids[0]]);
  {const response=await app.inject({method:'POST',url:selfUrl,payload:{ships:['Anson']}});assert.equal(response.statusCode,200,response.body);}
  await query("UPDATE pb_signups SET confirmed_ship='Anson',horn_duty='Primary Horn',formation='Mainline',commander_duty='Fleet Commander',flare_duty='Red Flare' WHERE battle_id=$1 AND user_id=$2",[ids[0],uid]);
  assert.equal((await app.inject({method:'POST',url:selfUrl,payload:{status:'WAITLIST',ships:['Anson']}})).statusCode,200);

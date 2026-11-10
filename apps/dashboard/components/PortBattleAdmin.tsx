@@ -1,4 +1,6 @@
 "use client";
+import PBExperienceSettings from "./PBExperienceSettings";
+import {api} from "./port-battles/helpers";
 import { useMemo, useState } from "react";
 import { emitToast } from "@/lib/dashboardQoL";
 type Props = { initial: any; catalogue: any };
@@ -101,6 +103,7 @@ export default function PortBattleAdmin({ initial, catalogue }: Props) {
           {saving ? "Saving…" : "Save Configuration"}
         </button>
       </header>
+      <PBExperienceSettings/>
       <section className="panel">
         <div className="panelHead">
           <div>
@@ -184,12 +187,13 @@ export default function PortBattleAdmin({ initial, catalogue }: Props) {
             </p>
           </div>
         </div>
+        <div className="controlRow"><button disabled={saving} onClick={()=>{setSaving(true);void api('/pb-experience/clock',{method:'POST',body:JSON.stringify({delta:-60})}).then(r=>{setGameTimeOffsetMinutes(r.offset);emitToast('Future schedules moved one hour earlier.',{tone:'success'});}).catch(e=>emitToast(e.message,{tone:'error'})).finally(()=>setSaving(false));}}>− 1 hour</button><button disabled={saving} onClick={()=>{setSaving(true);void api('/pb-experience/clock',{method:'POST',body:JSON.stringify({delta:60})}).then(r=>{setGameTimeOffsetMinutes(r.offset);emitToast('Future schedules moved one hour later.',{tone:'success'});}).catch(e=>emitToast(e.message,{tone:'error'})).finally(()=>setSaving(false));}}>+ 1 hour</button><small>Applies immediately to newly scheduled battles. Existing battle timestamps stay fixed.</small></div>
         <label className="pbGameTimeOffset">
           Actual local battle time is{" "}
           <input
             type="number"
-            min={-180}
-            max={180}
+            min={-720}
+            max={720}
             step={15}
             value={gameTimeOffsetMinutes}
             onChange={(e) => setGameTimeOffsetMinutes(Number(e.target.value) || 0)}
