@@ -11,6 +11,7 @@ type ShipyardTreeProps = {
   selectedKey?: string | null;
   compact?: boolean;
   title?: string;
+  sourceArtwork?: boolean;
 };
 type ShipyardRow = { ships: string[]; offset?: number };
 type ShipyardGroup = { id: string; label: string; rows: ShipyardRow[] };
@@ -54,6 +55,7 @@ const SHIPYARD_CUTOUTS = new Set([
   "mTieLong.png",
 ]);
 function shipyardArt(ship: any) {
+  if (ship.sourceArtwork) return String(ship.image || "/wosb/navigation/ships.png");
   const source = String(ship.image ?? "");
   const filename = source.split("/").at(-1) ?? "";
   return SHIPYARD_CUTOUTS.has(filename)
@@ -232,7 +234,7 @@ function ShipTile({
           className={`shipyardGameShipImg shipyardGameShipImg-${key}`}
           src={shipyardArt(ship)}
           alt=""
-          loading="lazy"
+          loading={ship.sourceArtwork ? "eager" : "lazy"}
         />
       </span>
       <span className="shipyardGameShipName">
@@ -291,21 +293,24 @@ export default function ShipyardTree({
   selectedKey,
   compact = false,
   title = "Shipyard tree",
+  sourceArtwork = false,
 }: ShipyardTreeProps) {
   const byName = new Map<string, any>();
-  for (const ship of ships ?? []) {
+  for (const original of ships ?? []) {
+    const ship = sourceArtwork ? {...original, sourceArtwork: true} : original;
     const key = normalize(ship?.name);
     if (key && !byName.has(key)) byName.set(key, ship);
   }
   const used = new Set<string>();
+  const identity = (ship:any)=>String(ship?.entityKey ?? ship?.id ?? normalize(ship?.name));
   const groups = GROUPS.map((group) => {
     const rows = group.rows
       .map((row, rowIndex) => {
         const visible = row.ships.flatMap((name, i) => {
           const ship = byName.get(normalize(name));
           const key = normalize(ship?.name);
-          if (!ship || used.has(key)) return [];
-          used.add(key);
+          if (!ship || used.has(identity(ship))) return [];
+          used.add(identity(ship));
           return [{ ship, column: (row.offset ?? 0) + i + 1 }];
         });
         return { index: rowIndex, visible };
@@ -314,7 +319,7 @@ export default function ShipyardTree({
     return { ...group, rows };
   }).filter((group) => group.rows.length > 0);
   const extra = (ships ?? [])
-    .filter((ship) => !used.has(normalize(ship?.name)))
+    .filter((ship) => !used.has(identity(ship)))
     .sort((a: any, b: any) => String(a.name ?? "").localeCompare(String(b.name ?? "")));
   if (extra.length) {
     const rows = [];
@@ -353,7 +358,7 @@ export default function ShipyardTree({
                   <span className="shipyardGameOtherGlyph" aria-hidden="true">
                     {group.id === "event" ? "★" : "✦"}
                   </span>
-                ) : (
+                ) : sourceArtwork ? null : (
                   <img src={`/wosb/shipyard/crest-${group.id}.png`} alt="" loading="lazy" />
                 )}
                 <strong>{group.label}</strong>
@@ -372,7 +377,7 @@ export default function ShipyardTree({
                             style={{ gridColumn: column }}
                           >
                             <ShipTile
-                              ship={ship}
+                              ship={sourceArtwork ? {...ship,sourceArtwork:true} : ship}
                               premium={group.id === "premium"}
                               compact={compact}
                               onSelect={onSelect}

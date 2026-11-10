@@ -23,6 +23,7 @@ import { registerAutomationSocialRoutes, startSocialEngine } from "./automationS
 import { bootstrapWikiSeed, registerWikiRoutes } from "./wiki.js";
 import {registerPrepReviewRoutes} from "./prepReview.js";
 import {registerWikiPortalRoutes} from "./wikiPortal.js";
+import {registerGameWiki} from "./gameWiki.js";
 import {registerWosbWorkspaceRoutes} from "./wosbWorkspace.js";
 import {registerPbResetRoutes} from "./pbResetRoutes.js";
 import {bootstrapFeedbackCenter,registerFeedbackRoutes} from "./feedback.js";
@@ -134,6 +135,7 @@ registerAutomationSocialRoutes(app,{guildId,requireAdmin,userId});
 await bootstrapWikiSeed();
 registerWikiRoutes(app,{guildId,requireMember,requireAdmin,userId});
 registerWikiPortalRoutes(app,{guildId,requireMember,requireAdmin,userId});
+registerGameWiki(app,{requireMember,requireAdmin});
 registerWosbWorkspaceRoutes(app,{guildId,requireMember,requireAdmin,userId});
 registerPbResetRoutes(app,{guildId,requireAdmin,userId});
 await bootstrapFeedbackCenter(guildId);

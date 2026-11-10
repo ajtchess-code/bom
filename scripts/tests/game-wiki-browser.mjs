@@ -1,0 +1,40 @@
+import {chromium} from '@playwright/test';
+import {spawn} from 'node:child_process';
+import {mkdir} from 'node:fs/promises';
+import {existsSync} from 'node:fs';
+import {resolve} from 'node:path';
+import assert from 'node:assert/strict';
+const children=[],root=process.cwd();let logs='';
+const launch=(args,cwd=root)=>{const child=spawn(process.execPath,args,{cwd,env:{...process.env,WOSB_WIKI_DIR:resolve('data/wiki-v2')},windowsHide:true,stdio:['ignore','pipe','pipe']});children.push(child);child.stdout.on('data',d=>logs+=d);child.stderr.on('data',d=>logs+=d);return child;};
+async function ready(url){const end=Date.now()+60000;while(Date.now()<end){try{if((await fetch(url)).ok)return;}catch{}await new Promise(r=>setTimeout(r,300));}throw new Error('Preview did not start: '+logs.slice(-5000));}
+let browser,page;
+try{
+ launch(['--import','tsx','scripts/wiki-preview.mjs']);
+ launch([resolve('node_modules/next/dist/bin/next'),'dev','-p','4128'],resolve('test-preview'));
+ await Promise.all([ready('http://127.0.0.1:4127/v1/game-wiki/catalog'),ready('http://localhost:4128/dashboard/wiki')]);
+ const edge=['C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe','C:/Program Files/Google/Chrome/Application/chrome.exe'].find(existsSync);
+ browser=await chromium.launch({headless:true,...(edge?{executablePath:edge}:{})});
+ page=await browser.newPage({viewport:{width:1440,height:1000}});const errors=[];
+ page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(m.type()==='error')logs+='\nBrowser: '+m.text();});
+ await page.goto('http://localhost:4128/dashboard/wiki');await page.waitForLoadState('networkidle');
+ await page.getByRole('heading',{name:'The Archipelago, at your fingertips.'}).waitFor();
+ await mkdir('docs/wiki-v2-screenshots',{recursive:true});
+ await page.screenshot({path:'docs/wiki-v2-screenshots/home.png',fullPage:true});
+ await page.getByRole('button',{name:'All nine lanterns',exact:true}).click();
+ await page.getByText('Golden Lantern (+5% to Speed, Defense, and Damage dealt)',{exact:true}).waitFor();
+ await page.waitForFunction(()=>document.querySelectorAll('.gwCards article').length===9);
+ await page.screenshot({path:'docs/wiki-v2-screenshots/lanterns.png',fullPage:true});
+ const boxes=page.locator('.gwCards input[type=checkbox]');await boxes.nth(0).check();await boxes.nth(1).check();
+ await page.getByRole('heading',{name:'Compare 2 entries'}).waitFor();
+ await page.getByRole('button',{name:'Golden Lantern (+5% to Speed, Defense, and Damage dealt)',exact:true}).click();
+ await page.locator('.gwFacts').waitFor();assert.ok((await page.locator('.gwFacts').innerText()).includes('5 5 4 5'));
+ await page.getByRole('button',{name:'Crafting calculator',exact:true}).click();
+ await page.getByLabel('Recipe',{exact:true}).selectOption('CRAFT001');await page.getByLabel('Desired output').fill('300');
+ await page.getByRole('button',{name:'Calculate materials',exact:true}).click();await page.getByRole('heading',{name:'Materials to acquire'}).waitFor();
+ await page.screenshot({path:'docs/wiki-v2-screenshots/crafting.png',fullPage:true});
+ await page.getByRole('button',{name:'Shipyard tree',exact:true}).click();await page.waitForFunction(()=>document.querySelectorAll('.shipyardGameShip').length===84);
+ await page.waitForFunction(()=>[...document.querySelectorAll('.shipyardGameShipImg')].every(i=>i.complete&&i.naturalWidth>0));await page.screenshot({path:'docs/wiki-v2-screenshots/shipyard.png',fullPage:true});
+ await page.setViewportSize({width:390,height:844});await page.screenshot({path:'docs/wiki-v2-screenshots/mobile.png',fullPage:true});
+ assert.equal(await page.evaluate(()=>document.documentElement.scrollWidth>window.innerWidth),false,'Mobile page must not overflow horizontally');
+ assert.deepEqual(errors,[]);console.log('Browser checks passed: navigation, nine lanterns, comparison, raw bonus values, crafting, all 84 ships, mobile width.');
+}catch(e){console.error('Preview browser failure',await page?.locator('body').innerText());await page?.screenshot({path:'docs/wiki-v2-screenshots/failure.png',fullPage:true});console.error(logs.slice(-3000));throw e;}finally{await browser?.close();for(const child of children)child.kill();}

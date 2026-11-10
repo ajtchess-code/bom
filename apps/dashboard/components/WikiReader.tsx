@@ -11,14 +11,14 @@ export function WikiHeader() {
       </Link>
       <nav aria-label="Wiki sections">
         <Link href="/dashboard/wiki">Main page</Link>
-        <Link href="/dashboard/wiki/topic/ships">Ships</Link>
-        <Link href="/dashboard/wiki/topic/cannons-and-weapons">Combat</Link>
-        <Link href="/dashboard/wiki/topic/crafting">Crafting</Link>
-        <Link href="/dashboard/wiki/topic/trade-goods">Economy</Link>
-        <Link href="/dashboard/wiki/topic/ports-and-port-battles">World & ports</Link>
-        <Link href="/dashboard/wiki#encyclopedia">Guides</Link>
+        <Link href="/dashboard/wiki?table=ShipsToPlay">Ships</Link>
+        <Link href="/dashboard/wiki?table=Cannons">Combat</Link>
+        <Link href="/dashboard/wiki?table=Crafting_Recipes">Crafting</Link>
+        <Link href="/dashboard/wiki?table=Market_Price_Limits">Economy</Link>
+        <Link href="/dashboard/wiki?table=WorldPorts">World & ports</Link>
+        <Link href="/dashboard/wiki?table=Gamepedia">Guides</Link>
       </nav>
-      <Link className="wikiSearchLink" href="/dashboard/wiki#ask-wiki">
+      <Link className="wikiSearchLink" href="/dashboard/wiki">
         Search Wiki ↗
       </Link>
     </header>
