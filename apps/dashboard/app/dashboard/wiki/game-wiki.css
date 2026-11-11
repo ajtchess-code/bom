@@ -118,3 +118,112 @@ html[data-theme="light"] .gameWiki .gwHero::before{opacity:.42}
 @media(max-width:650px){.wpEngagement{height:380px}.wpRangeRow{grid-template-columns:minmax(100px,1fr) minmax(70px,1fr) 70px;gap:7px;font-size:11px}.wpLoadout .gwToolControls{grid-template-columns:1fr}.wpOptions{grid-template-columns:1fr}}
 
 .wpBankShip .gwItemImage{width:130px;height:85px;object-fit:contain}.wpBankShip{margin:8px 0 16px}
+
+/* Wiki shell: one header, home, guides, tools hub and comparison charts. */
+.whIcon{flex:0 0 auto;display:block}
+.whHeader{position:sticky;top:0;z-index:20;display:grid;gap:10px;margin:-8px -8px 22px;padding:12px 14px;border:1px solid var(--cc-border);border-radius:14px;background:color-mix(in srgb,var(--cc-surface) 92%,transparent);backdrop-filter:blur(10px);box-shadow:var(--cc-shadow)}
+.whBrand{display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.gameWiki .whWordmark{display:grid;gap:0;padding:2px 6px;background:none;border:0;text-align:left;line-height:1.15}
+.whWordmark span{font-size:10px;letter-spacing:2px;color:var(--gw-gold);font-weight:700}
+.whWordmark b{font-family:var(--cc-display,Georgia,serif);font-size:20px}
+.whSearch{flex:1;min-width:220px;display:flex;align-items:center;gap:8px;padding:0 12px;border:1px solid var(--cc-border);border-radius:999px;background:var(--cc-field,var(--cc-surface-2));color:var(--cc-muted)}
+.gameWiki .whSearch input:not([type=checkbox]){flex:1;min-width:0;border:0;background:transparent;padding:9px 0;color:var(--cc-text)}
+.gameWiki .whSearch input:focus-visible,.gameWiki .whHeroSearch input:focus-visible{outline:0}
+.whHeroSearch:focus-within{border-color:var(--cc-accent);box-shadow:0 0 0 3px var(--cc-accent-soft)}
+.whArticle .gwEyebrow,.whPageHead .gwEyebrow{text-transform:uppercase}
+.whSearch:focus-within{border-color:var(--cc-accent);box-shadow:0 0 0 3px var(--cc-accent-soft)}
+.whNav{display:flex;align-items:center;gap:4px;overflow-x:auto;scrollbar-width:none}
+.whNav::-webkit-scrollbar{display:none}
+.gameWiki .whNav button{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;border-color:transparent;background:transparent;border-radius:999px;padding:7px 14px;font-weight:600;color:var(--cc-text-soft,var(--cc-text))}
+.gameWiki .whNav button:hover{background:var(--cc-surface-2)}
+.gameWiki .whNav button[aria-current=page]{background:var(--cc-accent-soft);color:var(--cc-text);border-color:color-mix(in srgb,var(--cc-accent) 40%,transparent)}
+.gameWiki .whNav .whNavAdmin{margin-left:auto;font-size:12px;font-weight:500;border:1px dashed var(--cc-border)}
+.whStats{margin-left:auto;white-space:nowrap;font-size:11px}
+.whNavAdmin+.whStats{margin-left:10px}
+.whHome{display:grid;gap:8px}
+.whHero{position:relative;overflow:hidden;isolation:isolate;padding:clamp(24px,5vw,56px);border:1px solid var(--cc-border);border-radius:18px;background:var(--cc-surface);box-shadow:var(--cc-shadow)}
+.whHero::before{content:'';position:absolute;inset:0;z-index:-1;background:url('/wosb/map/world-map.png') 70% 40%/cover no-repeat;opacity:.35;-webkit-mask-image:linear-gradient(100deg,transparent 15%,#000 75%);mask-image:linear-gradient(100deg,transparent 15%,#000 75%)}
+.whHero h1{font-family:var(--cc-display,Georgia,serif);font-size:clamp(28px,4vw,48px);line-height:1.1;margin:8px 0 10px;max-width:16ch}
+.whHero>p{max-width:56ch;color:var(--cc-text-soft,var(--cc-text));font-size:16px}
+.whHeroSearch{display:flex;align-items:center;gap:10px;max-width:620px;margin-top:22px;padding:6px 6px 6px 16px;border:1px solid var(--cc-border-strong,var(--cc-border));border-radius:999px;background:var(--cc-surface);color:var(--cc-muted);box-shadow:var(--cc-shadow)}
+.gameWiki .whHeroSearch input:not([type=checkbox]){flex:1;min-width:0;border:0;background:transparent;padding:10px 0;font-size:16px;color:var(--cc-text)}
+.gameWiki .whHeroSearch input:focus-visible{outline:0}
+.gameWiki .whHeroSearch button{border-radius:999px;padding:10px 20px;background:var(--cc-accent);border-color:var(--cc-accent);color:#fff;font-weight:700}
+.whGroup{margin:26px 0 8px}
+.whGroupHead{display:flex;align-items:baseline;gap:14px;flex-wrap:wrap;margin-bottom:12px}
+.whGroupHead h2{margin:0;font-size:20px}
+.whGroupHead p{margin:0;color:var(--cc-muted);font-size:14px}
+.whPageHead{margin:8px 0 18px}
+.whPageHead h1{font-family:var(--cc-display,Georgia,serif);font-size:clamp(26px,3.4vw,40px);line-height:1.15;margin:6px 0}
+.whPageHead>p{margin:0;max-width:62ch;color:var(--cc-text-soft,var(--cc-text))}
+.whToolGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,250px),1fr));gap:12px}
+.gameWiki .whToolCard{display:flex;align-items:flex-start;gap:14px;text-align:left;padding:16px;border-radius:14px;background:var(--cc-surface);line-height:1.4}
+.gameWiki .whToolCard:hover{border-color:var(--cc-accent);background:var(--cc-surface);transform:translateY(-1px)}
+.whToolCard b{display:block;font-size:15px;margin-bottom:3px}
+.whToolCard small{display:block;font-size:13px}
+.whToolIcon{display:grid;place-items:center;width:42px;height:42px;flex:0 0 42px;border-radius:12px;background:var(--cc-accent-soft);color:var(--cc-accent)}
+.whGroupCards{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,260px),1fr));gap:12px}
+.whGroupCard{padding:18px;border:1px solid var(--cc-border);border-radius:14px;background:var(--cc-surface)}
+.whGroupCard h3{margin:0 0 4px;font-size:16px}
+.whGroupCard p{margin:0 0 10px;color:var(--cc-muted);font-size:13px}
+.whGroupCard ul{list-style:none;margin:0;padding:0;display:grid;gap:2px}
+.gameWiki .whGroupCard li button{display:flex;align-items:center;gap:8px;width:100%;text-align:left;background:transparent;border-color:transparent;padding:6px 8px;font-size:14px}
+.gameWiki .whGroupCard li button:hover{background:var(--cc-surface-2)}
+.whGroupCard li .whIcon{color:var(--cc-accent)}
+.whDataGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,190px),1fr));gap:10px}
+.gameWiki .whDataGrid button{display:grid;gap:2px;text-align:left;padding:14px;border-radius:12px;background:var(--cc-surface)}
+.gameWiki .whMore{margin-top:12px;background:transparent;border-color:transparent;color:var(--cc-accent);font-weight:700;padding-left:0}
+.whGuideGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,270px),1fr));gap:10px}
+.gameWiki .whGuideCard{display:flex;flex-direction:column;gap:6px;text-align:left;padding:16px;border-radius:12px;background:var(--cc-surface);border-left:3px solid var(--cc-accent);line-height:1.45}
+.gameWiki .whGuideCard:hover{background:var(--cc-surface-2)}
+.whGuideCard b{font-size:15px}
+.whGuideCard small{font-size:13px;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.whTags{display:flex;gap:6px;flex-wrap:wrap;margin-top:auto}
+.whTags em{font-style:normal;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--cc-surface-3,var(--cc-surface-2));color:var(--cc-muted)}
+.whTags em.tool{background:var(--cc-accent-soft);color:var(--cc-text)}
+.whFilters{display:grid;gap:10px;margin-bottom:6px}
+.whChips{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px}
+.gameWiki .whChips button{white-space:nowrap;border-radius:999px;padding:6px 14px;font-size:13px}
+.gameWiki .whChips button.active{background:var(--cc-accent);border-color:var(--cc-accent);color:#fff}
+.gameWiki .whFilters input[type=search]{max-width:420px}
+.whCrumbs{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--cc-muted);flex-wrap:wrap}
+.gameWiki .whCrumbs button{background:none;border:0;padding:0;color:var(--cc-accent);font-weight:600}
+.whToolBar{display:flex;align-items:center;gap:12px 18px;flex-wrap:wrap;margin:0 0 18px;padding-bottom:12px;border-bottom:1px solid var(--cc-border)}
+.whSiblings{display:flex;gap:4px;flex-wrap:wrap}
+.gameWiki .whSiblings button{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 12px;font-size:13px;background:transparent}
+.gameWiki .whSiblings button.active{background:var(--cc-accent-soft);border-color:color-mix(in srgb,var(--cc-accent) 45%,transparent)}
+.whJump{margin-left:auto}
+.gameWiki .whJump select{padding:7px 10px;font-size:13px}
+.whGuideLayout{max-width:860px;margin:0 auto}
+.whArticle header{margin:10px 0 18px}
+.whArticle h1{font-family:var(--cc-display,Georgia,serif);font-size:clamp(26px,3.4vw,40px);line-height:1.15;margin:6px 0 8px}
+.whLead{font-size:17px;color:var(--cc-text-soft,var(--cc-text));margin:0}
+.gameWiki .whCta{margin-top:14px;background:var(--cc-accent);border-color:var(--cc-accent);color:#fff;font-weight:700;border-radius:999px;padding:9px 18px}
+.whProse{font-size:16px;line-height:1.75}
+.whProse p{margin:0 0 14px;max-width:72ch}
+.whProse h3{margin:24px 0 8px;font-size:18px}
+.whProse ul{margin:0 0 14px;padding-left:22px}
+.whProse li{margin:4px 0}
+.whArticle section{margin:20px 0}
+.whArticle section>h2{font-size:20px;margin:0 0 10px}
+.whNote{font-size:12px;color:var(--cc-muted);border-left:3px solid var(--cc-border);padding-left:10px}
+.whNotes{padding:14px 14px 14px 32px;border-radius:10px;background:var(--cc-surface-2);font-size:14px}
+.whGuideTable table th{position:sticky;top:0;background:var(--cc-surface)}
+.whRelated div{display:flex;gap:8px;flex-wrap:wrap}
+.gameWiki .whRelated button{border-radius:999px;font-size:13px}
+.whCompare{margin:16px 0;padding:16px;border:1px solid var(--cc-border);border-radius:14px;background:var(--cc-surface)}
+.whCompare header{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.whCompare h3{margin:0}
+.whLegend{display:flex;gap:6px 16px;flex-wrap:wrap;margin:10px 0 14px;font-size:13px}
+.whLegend span{display:inline-flex;align-items:center;gap:6px}
+.whLegend i{width:12px;height:12px;border-radius:3px}
+.whBars{display:grid;gap:12px;max-height:620px;overflow:auto;padding-right:4px}
+.whBarRow{display:grid;grid-template-columns:minmax(120px,200px) 1fr;gap:12px;align-items:center}
+.whBarLabel{font-size:13px;font-weight:600;overflow-wrap:anywhere}
+.whBarSet{display:grid;gap:3px}
+.whBar{display:flex;align-items:center;gap:8px;height:14px}
+.whBar span{display:block;height:100%;min-width:2px;border-radius:3px;max-width:calc(100% - 72px)}
+.whBar small{font-size:11px;white-space:nowrap}
+.whBar small.top{color:var(--cc-text);font-weight:700}
+@media(max-width:700px){.whHeader{margin:-4px -4px 16px;padding:10px}.whStats{display:none}.whJump{margin-left:0;width:100%}.gameWiki .whJump select{width:100%}.whBarRow{grid-template-columns:1fr;gap:4px}.whHeroSearch{padding-left:12px}.gameWiki .whHeroSearch button{padding:9px 14px}}
+.commandContent .gameWiki :is(.whSearch,.whHeroSearch) input{border:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;padding-left:0!important;padding-right:0!important}
