@@ -7,6 +7,10 @@ import process from "node:process";
 loadRootEnv();
 // /tmp may be a 100 MB tmpfs even when the server disk has ample free space.
 const buildTmp = process.env.BOM_BUILD_TMP_DIR || `${process.cwd()}/build-tmp`;
+// Start each boot with an empty temp folder so leftovers from interrupted builds
+// can't pile up and fill the disk (nothing is running yet at this point).
+// Only ever clear a folder named build-tmp, never a shared temp directory.
+if (/(^|[\\/])build-tmp[\\/]?$/.test(buildTmp)) { try { rmSync(buildTmp, { recursive: true, force: true }); } catch {} }
 mkdirSync(buildTmp, { recursive: true });
 process.env.TMPDIR = buildTmp;
 process.env.TMP = buildTmp;
