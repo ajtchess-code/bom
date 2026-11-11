@@ -1,7 +1,7 @@
 import {WebhookClient,type WebhookMessageCreateOptions,type WebhookMessageEditOptions} from 'discord.js';
 import type {Logger} from '../logging/logger.js';
 function statusFromError(error:any):number|null{return typeof(error?.status??error?.httpStatus)==='number'?(error.status??error.httpStatus):null;}
-function retryable(error:any){const status=statusFromError(error);return !status||status===408||status===429||status>=500;}
+function retryable(error:any){if(Number(error?.code)===50006)return false;const status=statusFromError(error);return !status||status===408||status===429||status>=500;}
 export interface WebhookMessageRef{id:string;}
 export interface DestinationPolicy{allowedGuildIds:Set<string>;blockedGuildIds?:Set<string>;}
 export class ManagedWebhook{

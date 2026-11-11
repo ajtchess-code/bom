@@ -1,0 +1,25 @@
+import {existsSync} from 'node:fs';
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {readFile,mkdtemp,rm} from 'node:fs/promises';
+import {resolve,join} from 'node:path';
+import {tmpdir} from 'node:os';
+import {wikiPosition,routeLength,windSector,nodeUpgradePlan,effectiveArmor,nodeCapacity} from '../../packages/shared/src/wikiVisuals.ts';
+import {GameWiki,craftingPlan} from '../../apps/api/src/gameWiki.ts';
+import {extractNpcNames,wikiVisualData,nodeCostSchedule} from '../../apps/api/src/gameWikiVisuals.ts';
+import {wikiImageResolver} from '../../apps/api/src/wikiImages.ts';
+const dir=resolve('data/wiki-v2'),wiki=new GameWiki(dir);
+const dataTest=(name,fn)=>test(name,{skip:!existsSync(join(dir,'catalog.json'))},fn);
+test('route geometry preserves ordered coordinates and rejects invalid positions',()=>{assert.deepEqual(wikiPosition('3 4'),{x:3,y:4});assert.equal(wikiPosition('bad 4'),null);assert.equal(routeLength([{x:0,y:0},{x:3,y:4},{x:6,y:4}]),8);});
+test('wind bands wrap with the wind bearing and do not assert final ship speed',()=>{const p={GreenRight:{Start:36,End:52},GreenLeft:{Start:308,End:324},FordewindFineEdge:14};assert.equal(windSector(p,40,0).green,'right');assert.equal(windSector(p,10,330).green,'right');assert.equal(windSector(p,355,0).downwind,true);});
+test('armor applies percent before flat bonus and rejects invalid values',()=>{assert.equal(effectiveArmor(4,25,1),6);assert.throws(()=>effectiveArmor(4,-101,0));});
+dataTest('source upgrade schedule aggregates transitions without inventing special estate levels',async()=>{const levels=(await wiki.all('Factory_Levels')).filter(r=>r.FactoryTypeID===22);const p=nodeUpgradePlan(levels,1,4,nodeCostSchedule);assert.equal(p.gold,12000);assert.deepEqual(p.materials,{'29':20,'16':20,'5':1000});assert.equal(p.target.BaseHoldCapacity,7150);assert.throws(()=>nodeUpgradePlan(levels,4,2,nodeCostSchedule));assert.throws(()=>nodeUpgradePlan([{Level:1}],0,1,nodeCostSchedule));assert.match(nodeCapacity(3.402823466e38),/unverified/);});
+dataTest('atlas joins all 42 named ports and retains all 662 route points',async()=>{const data=await wikiVisualData(wiki,'atlas',()=>[]);assert.equal(data.routes.length,105);assert.equal(data.routes.reduce((n,r)=>n+r.points.length,0),662);assert.equal(data.ports.filter(p=>p.position).length,42);assert.equal(data.battleMaps.filter(p=>p.mapFile).length,21);});
+dataTest('NPC names remain pools and NPC categories exclude tutorial/effect enums',async()=>{const data=await wikiVisualData(wiki,'npcs',()=>[]);assert.equal(data.ships.length,62);assert.equal(data.types.length,21);assert.equal(data.namePools.length,7);assert.equal(data.namePools.reduce((n,p)=>n+p.names.length,0),235);assert.equal(data.namePools[0].names[0],'Golden Voyage');assert.ok(data.namePools.every(p=>!('hull' in p)));});
+dataTest('all nine lantern rectangles and explicit decoration texture references resolve',async()=>{const inventory=await wiki.all('Images'),links=JSON.parse(await readFile(join(dir,'image-links.json'),'utf8')),images=wikiImageResolver(inventory,links);const designs=await wiki.all('ShipDesingElements');const lanterns=designs.filter(r=>r.Category==='Satellite');assert.equal(lanterns.length,9);for(const row of lanterns){const found=images('ShipDesingElements',row);assert.ok(found.length,row.EnglishName);assert.ok(found[0].Rect,row.EnglishName);assert.ok(found[0].Rect.x+found[0].Rect.width<=found[0].Width);}
+ const golden=images('ShipDesingElements',lanterns.find(r=>r.Name==='design_7_name'))[0];assert.deepEqual(golden.Rect,{x:640,y:0,width:128,height:128});const bright=images('ShipDesingElements',lanterns.find(r=>r.Name==='design_423_name'))[0];assert.equal(bright.RectScale,1);assert.equal(bright.Rect.width,128);
+ const flag=designs.find(r=>r.Texture==='desing_flag1');assert.ok(images('ShipDesingElements',flag).length,'Flag texture without IconName');
+ for(const row of await wiki.all('EnvDesingElements'))assert.ok(images('EnvDesingElements',row).length,row.Name);
+});
+test('crafting alternatives name their resource',()=>{const recipes=[{RecipeID:'root',OutputID:9,OutputQuantity:1},{RecipeID:'a',OutputID:4,OutputType:'resource',OutputQuantity:1,EnglishName:'Iron'},{RecipeID:'b',OutputID:4,OutputType:'resource',OutputQuantity:1,EnglishName:'Iron'}];const p=craftingPlan(recipes,[{RecipeID:'root',ResourceID:4,EnglishName:'Iron',Quantity:1}],'root',1);assert.equal(p.choicesRequired[0].resourceName,'Iron');});
+test('missing data is an installation-required response, not an unhandled file error',async()=>{const folder=await mkdtemp(join(tmpdir(),'wiki-missing-'));try{await assert.rejects(()=>new GameWiki(folder).catalog(),e=>e.statusCode===503&&e.code==='WIKI_NOT_INSTALLED');}finally{await rm(folder,{recursive:true,force:true});}});

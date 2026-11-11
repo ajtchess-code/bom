@@ -90,4 +90,4 @@ export function editOptionsForPart(payload: BuiltRelayPayload, index: number): W
   return { content: partContent(payload,index), allowedMentions: { parse: [] }, embeds: index === 0 ? payload.embeds : [], attachments: [], files: index === 0 ? payload.files : [] };
 }
 
-function partContent(payload:BuiltRelayPayload,index:number){const count=payload.chunks.length;return [index===0?(payload.alertRoles??[]).map(id=>`<@&${id}>`).join(' '):'',count>1?`**Part ${index+1}/${count}**`:'',payload.chunks[index]??''].filter(Boolean).join('\n');}
+function partContent(payload:BuiltRelayPayload,index:number){const count=payload.chunks.length;const content=[index===0?(payload.alertRoles??[]).map(id=>`<@&${id}>`).join(' '):'',count>1?`**Part ${index+1}/${count}**`:'',payload.chunks[index]??''].filter(Boolean).join('\n');return !content.trim()&&!(index===0&&(payload.embeds.length||payload.files.length))?'[This message has no relayable text, files, or embeds.]':content;}
