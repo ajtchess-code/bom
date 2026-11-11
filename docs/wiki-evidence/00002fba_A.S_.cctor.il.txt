@@ -1,0 +1,373 @@
+000c ldc.i4.5 
+000d newarr ::token(0x1B0003AE) token(0x1B0003AE)
+0012 dup 
+0013 ldc.i4.0 
+0014 ldc.r4 0.10000000149011612
+0019 ldc.i4.1 
+001a newarr ::ChestRewardInfo token(0x020003BD)
+001f dup 
+0020 ldc.i4.0 
+0021 ldloca.s local(0x0000)
+0023 ldc.i4.3 
+0024 ldc.i4.s 65
+0026 call Common.Game.ShopChestApplyHelper::B token(0x06002FD8)
+002b ldc.i4.1 
+002c call Common.Local::get_chest_incas_ShipHuracan token(0x06001773)
+0031 call Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0036 ldloca.s local(0x0000)
+0038 newobj TheraEngine.Collections.Tlist`1::.ctor token(0x0A000289)
+003d dup 
+003e ldc.i4.s 65
+0040 stloc.1 
+0041 ldloca.s local(0x0001)
+0043 callvirt TheraEngine.Collections.Tlist`1::Add token(0x0A000370)
+0048 stfld Common.Game.ChestRewardInfo::CheckShipID token(0x0400180D)
+004d ldloca.s local(0x0000)
+004f ldc.i4.1 
+0050 stfld Common.Game.ChestRewardInfo::DisallowOnLowRang token(0x04001810)
+0055 ldloc.0 
+0056 stelem ::ChestRewardInfo token(0x020003BD)
+005b newobj System.ValueTuple`2::.ctor token(0x0A000C17)
+0060 stelem ::token(0x1B0003AE) token(0x1B0003AE)
+0065 dup 
+0066 ldc.i4.1 
+0067 ldc.r4 1.0
+006c ldc.i4.1 
+006d newarr ::ChestRewardInfo token(0x020003BD)
+0072 dup 
+0073 ldc.i4.0 
+0074 ldc.i4.3 
+0075 ldc.i4 3000
+007a call Common.Game.ShopChestApplyHelper::a token(0x06002FD3)
+007f ldc.i4.0 
+0080 ldc.i4 3000
+0085 box ::Int32 token(0x0100001E)
+008a call Common.Local::chest_incas_Monets token(0x06001774)
+008f newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0094 stelem ::ChestRewardInfo token(0x020003BD)
+0099 newobj System.ValueTuple`2::.ctor token(0x0A000C17)
+009e stelem ::token(0x1B0003AE) token(0x1B0003AE)
+00a3 dup 
+00a4 ldc.i4.2 
+00a5 ldc.r4 2.0
+00aa ldc.i4.1 
+00ab newarr ::ChestRewardInfo token(0x020003BD)
+00b0 dup 
+00b1 ldc.i4.0 
+00b2 ldc.i4.3 
+00b3 ldc.i4 1500000
+00b8 call Common.Game.ShopChestApplyHelper::A token(0x06002FD2)
+00bd ldc.i4.0 
+00be ldc.i4 1500000
+00c3 call World_Of_Sea_Battle.Constants.StringHelper::BigValueHelper token(0x060000B5)
+00c8 call Common.Local::chest_incas_Gold token(0x06001775)
+00cd newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+00d2 stelem ::ChestRewardInfo token(0x020003BD)
+00d7 newobj System.ValueTuple`2::.ctor token(0x0A000C17)
+00dc stelem ::token(0x1B0003AE) token(0x1B0003AE)
+00e1 dup 
+00e2 ldc.i4.3 
+00e3 ldc.r4 25.0
+00e8 ldc.i4.s 9
+00ea newarr ::ChestRewardInfo token(0x020003BD)
+00ef dup 
+00f0 ldc.i4.0 
+00f1 ldloca.s local(0x0000)
+00f3 ldc.i4.2 
+00f4 ldc.i4.s 72
+00f6 ldc.i4 1000
+00fb call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+0100 ldc.i4.0 
+0101 ldc.i4 1000
+0106 box ::Int32 token(0x0100001E)
+010b call Common.Local::chest_incas_PirateMonets token(0x06001778)
+0110 call Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0115 ldloca.s local(0x0000)
+0117 ldc.i4.1 
+0118 stfld Common.Game.ChestRewardInfo::FirstOpenChestCategory token(0x04001814)
+011d ldloc.0 
+011e stelem ::ChestRewardInfo token(0x020003BD)
+0123 dup 
+0124 ldc.i4.1 
+0125 ldc.i4.2 
+0126 ldc.i4 150000
+012b call Common.Game.ShopChestApplyHelper::A token(0x06002FD2)
+0130 ldc.i4.0 
+0131 ldc.i4 150000
+0136 call World_Of_Sea_Battle.Constants.StringHelper::BigValueHelper token(0x060000B5)
+013b call Common.Local::chest_incas_Gold token(0x06001775)
+0140 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0145 stelem ::ChestRewardInfo token(0x020003BD)
+014a dup 
+014b ldc.i4.2 
+014c ldloca.s local(0x0000)
+014e ldc.i4.2 
+014f ldc.i4.s 15
+0151 ldc.i4.s 30
+0153 call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+0158 ldc.i4.0 
+0159 call Common.Local::get_res_15_name token(0x06000349)
+015e call Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0163 ldloca.s local(0x0000)
+0165 ldc.i4.1 
+0166 stfld Common.Game.ChestRewardInfo::FirstOpenChestCategory token(0x04001814)
+016b ldloc.0 
+016c stelem ::ChestRewardInfo token(0x020003BD)
+0171 dup 
+0172 ldc.i4.3 
+0173 ldloca.s local(0x0000)
+0175 ldc.i4.2 
+0176 ldc.i4.s 67
+0178 ldc.i4.8 
+0179 call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+017e ldc.i4.0 
+017f ldc.i4.8 
+0180 box ::Int32 token(0x0100001E)
+0185 call Common.Local::chest_incas_BlueprintFragments token(0x0600177B)
+018a call Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+018f ldloca.s local(0x0000)
+0191 ldc.i4.1 
+0192 stfld Common.Game.ChestRewardInfo::FirstOpenChestCategory token(0x04001814)
+0197 ldloc.0 
+0198 stelem ::ChestRewardInfo token(0x020003BD)
+019d dup 
+019e ldc.i4.4 
+019f ldloca.s local(0x0000)
+01a1 ldc.i4.2 
+01a2 ldc.i4.s 33
+01a4 ldc.i4.5 
+01a5 call Common.Game.ShopChestApplyHelper::C token(0x06002FD9)
+01aa ldc.i4.0 
+01ab call Common.Local::get_chest_incas_QualityCannons token(0x06001779)
+01b0 call Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+01b5 ldloca.s local(0x0000)
+01b7 ldc.i4.1 
+01b8 stfld Common.Game.ChestRewardInfo::FirstOpenChestCategory token(0x04001814)
+01bd ldloc.0 
+01be stelem ::ChestRewardInfo token(0x020003BD)
+01c3 dup 
+01c4 ldc.i4.5 
+01c5 ldloca.s local(0x0000)
+01c7 ldc.i4.2 
+01c8 ldc.i4.s 34
+01ca ldc.i4.5 
+01cb call Common.Game.ShopChestApplyHelper::C token(0x06002FD9)
+01d0 ldc.i4.0 
+01d1 call Common.Local::get_chest_incas_QualityCannons token(0x06001779)
+01d6 call Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+01db ldloca.s local(0x0000)
+01dd ldc.i4.1 
+01de stfld Common.Game.ChestRewardInfo::FirstOpenChestCategory token(0x04001814)
+01e3 ldloc.0 
+01e4 stelem ::ChestRewardInfo token(0x020003BD)
+01e9 dup 
+01ea ldc.i4.6 
+01eb ldloca.s local(0x0000)
+01ed ldc.i4.2 
+01ee ldc.i4.s 31
+01f0 ldc.i4.s 15
+01f2 call Common.Game.ShopChestApplyHelper::C token(0x06002FD9)
+01f7 ldc.i4.0 
+01f8 call Common.Local::get_chest_incas_QualityCannons token(0x06001779)
+01fd call Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0202 ldloca.s local(0x0000)
+0204 ldc.i4.1 
+0205 stfld Common.Game.ChestRewardInfo::FirstOpenChestCategory token(0x04001814)
+020a ldloc.0 
+020b stelem ::ChestRewardInfo token(0x020003BD)
+0210 dup 
+0211 ldc.i4.7 
+0212 ldloca.s local(0x0000)
+0214 ldc.i4.2 
+0215 ldc.i4.s 32
+0217 ldc.i4.s 15
+0219 call Common.Game.ShopChestApplyHelper::C token(0x06002FD9)
+021e ldc.i4.0 
+021f call Common.Local::get_chest_incas_QualityCannons token(0x06001779)
+0224 call Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0229 ldloca.s local(0x0000)
+022b ldc.i4.1 
+022c stfld Common.Game.ChestRewardInfo::FirstOpenChestCategory token(0x04001814)
+0231 ldloc.0 
+0232 stelem ::ChestRewardInfo token(0x020003BD)
+0237 dup 
+0238 ldc.i4.8 
+0239 ldloca.s local(0x0000)
+023b ldc.i4.2 
+023c ldc.i4.s 30
+023e ldc.i4.s 15
+0240 call Common.Game.ShopChestApplyHelper::C token(0x06002FD9)
+0245 ldc.i4.0 
+0246 call Common.Local::get_chest_incas_QualityCannons token(0x06001779)
+024b call Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0250 ldloca.s local(0x0000)
+0252 ldc.i4.1 
+0253 stfld Common.Game.ChestRewardInfo::FirstOpenChestCategory token(0x04001814)
+0258 ldloc.0 
+0259 stelem ::ChestRewardInfo token(0x020003BD)
+025e newobj System.ValueTuple`2::.ctor token(0x0A000C17)
+0263 stelem ::token(0x1B0003AE) token(0x1B0003AE)
+0268 dup 
+0269 ldc.i4.4 
+026a ldc.r4 71.9000015258789
+026f ldc.i4.s 15
+0271 newarr ::ChestRewardInfo token(0x020003BD)
+0276 dup 
+0277 ldc.i4.0 
+0278 ldc.i4.1 
+0279 ldc.i4.s 72
+027b ldc.i4 150
+0280 call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+0285 ldc.i4.0 
+0286 ldc.i4 150
+028b box ::Int32 token(0x0100001E)
+0290 call Common.Local::chest_incas_PirateMonets token(0x06001778)
+0295 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+029a stelem ::ChestRewardInfo token(0x020003BD)
+029f dup 
+02a0 ldc.i4.1 
+02a1 ldc.i4.1 
+02a2 ldc.i4.s 67
+02a4 ldc.i4.1 
+02a5 call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+02aa ldc.i4.0 
+02ab ldc.i4.1 
+02ac box ::Int32 token(0x0100001E)
+02b1 call Common.Local::chest_incas_BlueprintFragments token(0x0600177B)
+02b6 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+02bb stelem ::ChestRewardInfo token(0x020003BD)
+02c0 dup 
+02c1 ldc.i4.2 
+02c2 ldc.i4.1 
+02c3 ldc.i4.s 16
+02c5 ldc.i4.5 
+02c6 call Common.Game.ShopChestApplyHelper::b token(0x06002FD7)
+02cb ldc.i4.0 
+02cc call Common.Local::get_chest_reward_Consumable token(0x06001790)
+02d1 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+02d6 stelem ::ChestRewardInfo token(0x020003BD)
+02db dup 
+02dc ldc.i4.3 
+02dd ldc.i4.1 
+02de ldc.i4.3 
+02df ldc.i4.s 35
+02e1 call Common.Game.ShopChestApplyHelper::b token(0x06002FD7)
+02e6 ldc.i4.0 
+02e7 call Common.Local::get_chest_reward_Consumable token(0x06001790)
+02ec newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+02f1 stelem ::ChestRewardInfo token(0x020003BD)
+02f6 dup 
+02f7 ldc.i4.4 
+02f8 ldc.i4.1 
+02f9 ldc.i4.s 14
+02fb ldc.i4.8 
+02fc call Common.Game.ShopChestApplyHelper::b token(0x06002FD7)
+0301 ldc.i4.0 
+0302 call Common.Local::get_chest_reward_Consumable token(0x06001790)
+0307 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+030c stelem ::ChestRewardInfo token(0x020003BD)
+0311 dup 
+0312 ldc.i4.5 
+0313 ldc.i4.1 
+0314 ldc.i4.2 
+0315 ldc.i4.s 40
+0317 call Common.Game.ShopChestApplyHelper::b token(0x06002FD7)
+031c ldc.i4.0 
+031d call Common.Local::get_chest_reward_Consumable token(0x06001790)
+0322 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0327 stelem ::ChestRewardInfo token(0x020003BD)
+032c dup 
+032d ldc.i4.6 
+032e ldc.i4.1 
+032f ldc.i4.s 12
+0331 ldc.i4.s 120
+0333 call Common.Game.ShopChestApplyHelper::b token(0x06002FD7)
+0338 ldc.i4.0 
+0339 call Common.Local::get_chest_reward_Consumable token(0x06001790)
+033e newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0343 stelem ::ChestRewardInfo token(0x020003BD)
+0348 dup 
+0349 ldc.i4.7 
+034a ldc.i4.1 
+034b ldc.i4.5 
+034c ldc.i4 500
+0351 call Common.Game.ShopChestApplyHelper::a token(0x06002FD5)
+0356 ldc.i4.0 
+0357 call Common.Local::get_chest_reward_HeavyAmmo token(0x0600178D)
+035c newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0361 stelem ::ChestRewardInfo token(0x020003BD)
+0366 dup 
+0367 ldc.i4.8 
+0368 ldc.i4.1 
+0369 ldc.i4.7 
+036a ldc.i4 800
+036f call Common.Game.ShopChestApplyHelper::a token(0x06002FD5)
+0374 ldc.i4.0 
+0375 call Common.Local::get_chest_reward_SaxonAmmo token(0x0600178E)
+037a newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+037f stelem ::ChestRewardInfo token(0x020003BD)
+0384 dup 
+0385 ldc.i4.s 9
+0387 ldc.i4.1 
+0388 ldc.i4.s 37
+038a ldc.i4.s 50
+038c call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+0391 ldc.i4.0 
+0392 call Common.Local::get_war_marks_pack token(0x060013E7)
+0397 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+039c stelem ::ChestRewardInfo token(0x020003BD)
+03a1 dup 
+03a2 ldc.i4.s 10
+03a4 ldc.i4.1 
+03a5 ldc.i4.s 38
+03a7 ldc.i4.3 
+03a8 call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+03ad ldc.i4.0 
+03ae call Common.Local::get_res_38_name token(0x06000373)
+03b3 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+03b8 stelem ::ChestRewardInfo token(0x020003BD)
+03bd dup 
+03be ldc.i4.s 11
+03c0 ldc.i4.1 
+03c1 ldc.i4.4 
+03c2 ldc.i4 2500
+03c7 call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+03cc ldc.i4.0 
+03cd call Common.Local::get_chest_incas_Materials token(0x0600177A)
+03d2 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+03d7 stelem ::ChestRewardInfo token(0x020003BD)
+03dc dup 
+03dd ldc.i4.s 12
+03df ldc.i4.1 
+03e0 ldc.i4.1 
+03e1 ldc.i4 12000
+03e6 call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+03eb ldc.i4.0 
+03ec call Common.Local::get_chest_incas_Materials token(0x0600177A)
+03f1 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+03f6 stelem ::ChestRewardInfo token(0x020003BD)
+03fb dup 
+03fc ldc.i4.s 13
+03fe ldc.i4.1 
+03ff ldc.i4.s 12
+0401 ldc.i4 1500
+0406 call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+040b ldc.i4.0 
+040c call Common.Local::get_chest_incas_Materials token(0x0600177A)
+0411 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0416 stelem ::ChestRewardInfo token(0x020003BD)
+041b dup 
+041c ldc.i4.s 14
+041e ldc.i4.1 
+041f ldc.i4.s 9
+0421 ldc.i4 1000
+0426 call Common.Game.ShopChestApplyHelper::A token(0x06002FD4)
+042b ldc.i4.0 
+042c call Common.Local::get_chest_incas_Materials token(0x0600177A)
+0431 newobj Common.Game.ChestRewardInfo::.ctor token(0x06002F98)
+0436 stelem ::ChestRewardInfo token(0x020003BD)
+043b newobj System.ValueTuple`2::.ctor token(0x0A000C17)
+0440 stelem ::token(0x1B0003AE) token(0x1B0003AE)
+0445 call Common.Game.ShopChestApplyHelper::A token(0x06002FCE)
+044a stsfld A.S::A token(0x0400182C)
+044f ret 

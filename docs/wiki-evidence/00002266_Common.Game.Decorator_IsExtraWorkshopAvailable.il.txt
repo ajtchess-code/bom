@@ -1,0 +1,33 @@
+000c ldarg.2 
+000d brfalse.s 48
+000f ldarg.0 
+0010 ldfld Common.Game.Decorator::A token(0x04000BEC)
+0015 ldfld Common.Account.PlayerAccount::ResourcesInPorts token(0x0400039A)
+001a ldarg.1 
+001b ldfld Common.Resources.IslePortInfo::PortID token(0x0400095F)
+0020 callvirt Common.Account.PlayerAccountPortsItems::GetStorageLevel token(0x06001B7D)
+0025 ldsfld Common.Game.WosbStorages::Port token(0x04000E0E)
+002a ldlen 
+002b conv.i4 
+002c ldc.i4.2 
+002d sub 
+002e bge.s 93
+0030 ldarg.3 
+0031 brfalse.s 91
+0033 ldarg.1 
+0034 ldflda Common.Resources.IslePortInfo::EntryPos token(0x04000962)
+0039 ldc.r4 0.0
+003e call Common.Game.Gameplay::IsInHazardZone token(0x060022C9)
+0043 brfalse.s 91
+0045 ldarg.0 
+0046 ldfld Common.Game.Decorator::A token(0x04000BEC)
+004b ldfld Common.Account.PlayerAccount::CaptainSkills token(0x04000397)
+0050 ldc.i4.s 32
+0052 callvirt Common.Account.PlayerCaptainSkillsStorage::get_Item token(0x06001BD8)
+0057 ldc.i4.0 
+0058 cgt 
+005a ret 
+005b ldc.i4.0 
+005c ret 
+005d ldc.i4.1 
+005e ret 

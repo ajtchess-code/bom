@@ -1,0 +1,145 @@
+{
+  "assemblySha256": "3fbe9d5a8199be8e95c449d4f4a981221c823cec70381c709d57c165888fca82",
+  "methods": [
+    {
+      "type": "Common.Account.PlayerAccountPortsItems",
+      "method": "CountWorkshops",
+      "token": "0x06001b85",
+      "file": "00001b85_Common.Account.PlayerAccountPortsItems_CountWorkshops.il.txt",
+      "sha256": "d7ae5ac1384bfba9ef9ef39741da351c4104ef94cc68c608c23e4716b37ee1be"
+    },
+    {
+      "type": "Common.Account.PlayerAchievementStorage",
+      "method": "Count",
+      "token": "0x06001bc5",
+      "file": "00001bc5_Common.Account.PlayerAchievementStorage_Count.il.txt",
+      "sha256": "eb9f138b7a94ca674594a83192bf821a8a916437039d2647244e94e75bfd7ee9"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "A",
+      "token": "0x06002264",
+      "file": "00002264_Common.Game.Decorator_A.il.txt",
+      "sha256": "35ed9d5784397eff442fe4e9852860c6dd12d207abc0a147088a62b5e53fa0f3"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "IsExtraWorkshopAvailable",
+      "token": "0x06002266",
+      "file": "00002266_Common.Game.Decorator_IsExtraWorkshopAvailable.il.txt",
+      "sha256": "f9fdc247ba8e4fdfb1b3f0a5e4ea834b2d43ced4446dec0d276b4da0d936cb62"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "get_MaxCountOfWorkshops",
+      "token": "0x06002267",
+      "file": "00002267_Common.Game.Decorator_get_MaxCountOfWorkshops.il.txt",
+      "sha256": "46d84a60fce62ad5154017b1932cb0a708ecb6f88c658afa9fb04a4b3c20d75a"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "CurrentPortShipCraftDisccount",
+      "token": "0x0600226f",
+      "file": "0000226f_Common.Game.Decorator_CurrentPortShipCraftDisccount.il.txt",
+      "sha256": "d1a8c4ba8d722494b20c1a06247bbb1c24c1f8beb5d61bb6f63075bd67e71a02"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "CanHaveShipCraftFractionFine",
+      "token": "0x06002273",
+      "file": "00002273_Common.Game.Decorator_CanHaveShipCraftFractionFine.il.txt",
+      "sha256": "946e538579197b30307db909cc64da2479a5af4578c5e9388f90ae0ed72803cf"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "HasCraftShipFractionFine",
+      "token": "0x06002274",
+      "file": "00002274_Common.Game.Decorator_HasCraftShipFractionFine.il.txt",
+      "sha256": "8b618688a995640758e240370bc8473263b648d4f0e6f6b2202bb008bfc9cb22"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "get_PowerupItemCraftDiscount",
+      "token": "0x06002278",
+      "file": "00002278_Common.Game.Decorator_get_PowerupItemCraftDiscount.il.txt",
+      "sha256": "4596214b90386e7c0faf329fdf1be803df40e44876cc0f5405eccf3c8bf6ffee"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "get_AllCraftTimeEconomyBonus",
+      "token": "0x0600227b",
+      "file": "0000227b_Common.Game.Decorator_get_AllCraftTimeEconomyBonus.il.txt",
+      "sha256": "7f0a2f4b1c9f4da81d332bb00887f9b75fe07006c5df11857c3b991df5e477f0"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "get_WeaponCraftDiscount",
+      "token": "0x06002280",
+      "file": "00002280_Common.Game.Decorator_get_WeaponCraftDiscount.il.txt",
+      "sha256": "28fd45eac938bff3c4ffbaeb1bf0448669da6a48b55bff32280da7779c786872"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "get_PortMissionCraftTimeBonus",
+      "token": "0x06002281",
+      "file": "00002281_Common.Game.Decorator_get_PortMissionCraftTimeBonus.il.txt",
+      "sha256": "45b1a529181a0c58f78503b8b8011b2a73c91b4ac37e2d1ec850d5120e9ee746"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "get_AllowRareWeaponsCrafting",
+      "token": "0x06002287",
+      "file": "00002287_Common.Game.Decorator_get_AllowRareWeaponsCrafting.il.txt",
+      "sha256": "c25d550d51d71d4e8cbbefa50fabbb9082d316bb82a9fde2f64a273fedf6ed25"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "RareWeaponsCraftingCraftTime",
+      "token": "0x06002288",
+      "file": "00002288_Common.Game.Decorator_RareWeaponsCraftingCraftTime.il.txt",
+      "sha256": "5f5d33360a6b746d839145f3efb4c1d92b8ac7aeafcbae6ffcd7be961fad1b74"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "get_CraftTimeLimitWithoutDonate",
+      "token": "0x0600228c",
+      "file": "0000228c_Common.Game.Decorator_get_CraftTimeLimitWithoutDonate.il.txt",
+      "sha256": "7bd41a2a738feaa99da698d1636f36613e505cb07265fc7c2f54b795b783ab5e"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "get_CraftTimeLimit",
+      "token": "0x0600228d",
+      "file": "0000228d_Common.Game.Decorator_get_CraftTimeLimit.il.txt",
+      "sha256": "2399aab3c2d22b642b48a0654754a0e411549c418de4ba0d23fc074f84842b05"
+    },
+    {
+      "type": "Common.Game.Decorator",
+      "method": "get_CraftTimeUpdate",
+      "token": "0x06002293",
+      "file": "00002293_Common.Game.Decorator_get_CraftTimeUpdate.il.txt",
+      "sha256": "8ce23d9d9d27754a8a49d4547e0e742768898669342e9a7c520be3c299749d10"
+    },
+    {
+      "type": "Common.Game.WosbCrafting",
+      "method": "A",
+      "token": "0x0600236e",
+      "file": "0000236e_Common.Game.WosbCrafting_A.il.txt",
+      "sha256": "f19e20bed308e1eeaec4e59ea1d708a676e9c0c5b65ee67ddc6beeb269b71537"
+    },
+    {
+      "type": "A.r",
+      "method": ".cctor",
+      "token": "0x06002f5e",
+      "file": "00002f5e_A.r_.cctor.il.txt",
+      "sha256": "43de79c82302a4ca206e3969672bf540e9e6b28fe9b6e2aef1fa368ac0e4246e"
+    },
+    {
+      "type": "A.S",
+      "method": ".cctor",
+      "token": "0x06002fba",
+      "file": "00002fba_A.S_.cctor.il.txt",
+      "sha256": "e8e06ff0951807f07ed6882ac20eb2d13a410948a430e4354fb7a768c0959a55"
+    }
+  ]
+}

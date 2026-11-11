@@ -1,0 +1,42 @@
+000c ldarg.0 
+000d ldfld Common.Game.Decorator::A token(0x04000BEC)
+0012 ldfld Common.Account.PlayerAccount::CaptainSkills token(0x04000397)
+0017 ldc.i4.s 18
+0019 callvirt Common.Account.PlayerCaptainSkillsStorage::get_Item token(0x06001BD8)
+001e stloc.0 
+001f ldarg.0 
+0020 ldfld Common.Game.Decorator::A token(0x04000BEC)
+0025 ldfld Common.Account.PlayerAccount::CaptainSkills token(0x04000397)
+002a ldc.i4.s 12
+002c callvirt Common.Account.PlayerCaptainSkillsStorage::get_Item token(0x06001BD8)
+0031 call Common.Game.WosbCrafting::A token(0x0600236E)
+0036 ldfld System.ValueTuple`2::Item1 token(0x0A000029)
+003b stloc.1 
+003c ldloc.0 
+003d ldc.i4.0 
+003e ble.s 85
+0040 ldloc.1 
+0041 ldloc.0 
+0042 ldarg.0 
+0043 ldfld Common.Game.Decorator::A token(0x04000BEC)
+0048 ldfld Common.Account.PlayerAccount::ResourcesInPorts token(0x0400039A)
+004d callvirt Common.Account.PlayerAccountPortsItems::CountWorkshops token(0x06001B85)
+0052 mul 
+0053 add 
+0054 stloc.1 
+0055 ldloc.1 
+0056 ldarg.0 
+0057 ldc.i4.s 47
+0059 ldc.i4.0 
+005a call Common.Game.Decorator::A token(0x06002264)
+005f conv.i4 
+0060 add 
+0061 ldarg.0 
+0062 ldfld Common.Game.Decorator::A token(0x04000BEC)
+0067 ldfld Common.Account.PlayerAccount::Achievements token(0x04000396)
+006c ldc.i4.s 70
+006e callvirt Common.Account.PlayerAchievementStorage::Count token(0x06001BC5)
+0073 ldc.i4.s 50
+0075 mul 
+0076 add 
+0077 ret 

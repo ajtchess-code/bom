@@ -1,0 +1,14 @@
+0001 ldarg.0 
+0002 ldc.i4.s 10
+0004 ldc.i4.0 
+0005 call Common.Game.Decorator::A token(0x06002264)
+000a ldarg.0 
+000b ldfld Common.Game.Decorator::A token(0x04000BEC)
+0010 ldfld Common.Account.PlayerAccount::Achievements token(0x04000396)
+0015 ldc.i4.s 73
+0017 callvirt Common.Account.PlayerAchievementStorage::Count token(0x06001BC5)
+001c conv.r4 
+001d ldc.r4 0.05000000074505806
+0022 mul 
+0023 add 
+0024 ret 

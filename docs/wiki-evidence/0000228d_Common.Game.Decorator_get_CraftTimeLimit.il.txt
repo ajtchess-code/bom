@@ -1,0 +1,14 @@
+0001 ldarg.0 
+0002 call Common.Game.Decorator::get_CraftTimeLimitWithoutDonate token(0x0600228C)
+0007 conv.r4 
+0008 ldarg.0 
+0009 ldfld Common.Game.Decorator::A token(0x04000BEC)
+000e ldfld Common.Account.PlayerAccount::TradingSubscriptionSec token(0x040003D5)
+0013 ldc.r4 0.0
+0018 bgt.s 33
+001a ldc.r4 1.0
+001f br.s 38
+0021 ldc.r4 1.5
+0026 mul 
+0027 conv.i4 
+0028 ret 

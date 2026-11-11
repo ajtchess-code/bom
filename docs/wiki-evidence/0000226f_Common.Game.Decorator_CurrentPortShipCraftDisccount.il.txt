@@ -1,0 +1,98 @@
+000c ldc.r4 0.0
+0011 stloc.0 
+0012 ldarg.1 
+0013 ldfld Common.Resources.PlayerShipInfo::Coolness token(0x040006C5)
+0018 brtrue.s 38
+001a ldloc.0 
+001b ldarg.0 
+001c ldc.i4.s 9
+001e ldc.i4.1 
+001f call Common.Game.Decorator::A token(0x06002264)
+0024 add 
+0025 stloc.0 
+0026 ldarg.0 
+0027 ldc.i4.s 26
+0029 ldc.i4.1 
+002a call Common.Game.Decorator::A token(0x06002264)
+002f stloc.1 
+0030 ldarg.0 
+0031 call Common.Game.Decorator::get_MapMyFraction token(0x06002259)
+0036 stloc.2 
+0037 ldloca.s local(0x0002)
+0039 ldc.i4.6 
+003a call System.Nullable`1::GetValueOrDefault token(0x0A0007B7)
+003f call Common.Game.FractionDecorator::IsNation token(0x060030B9)
+0044 brfalse.s 120
+0046 ldarg.1 
+0047 ldfld Common.Resources.PlayerShipInfo::Fraction token(0x040006D4)
+004c ldarg.0 
+004d call Common.Game.Decorator::get_MapMyFraction token(0x06002259)
+0052 stloc.2 
+0053 ldloca.s local(0x0002)
+0055 call System.Nullable`1::GetValueOrDefault token(0x0A0003F1)
+005a ceq 
+005c ldloca.s local(0x0002)
+005e call System.Nullable`1::get_HasValue token(0x0A000692)
+0063 and 
+0064 brfalse.s 120
+0066 ldarg.1 
+0067 ldfld Common.Resources.PlayerShipInfo::Coolness token(0x040006C5)
+006c brtrue.s 120
+006e ldloc.0 
+006f ldloc.1 
+0070 ldc.r4 2.0
+0075 mul 
+0076 add 
+0077 stloc.0 
+0078 ldarg.0 
+0079 call Common.Game.Decorator::get_MapMyFraction token(0x06002259)
+007e stloc.2 
+007f ldloca.s local(0x0002)
+0081 call System.Nullable`1::get_HasValue token(0x0A000692)
+0086 brfalse.s 156
+0088 ldloca.s local(0x0002)
+008a call System.Nullable`1::GetValueOrDefault token(0x0A0003F1)
+008f stloc.3 
+0090 ldloc.3 
+0091 brfalse.s 151
+0093 ldloc.3 
+0094 ldc.i4.5 
+0095 bne.un.s 156
+0097 ldc.i4.1 
+0098 stloc.s local(0x0004)
+009a br.s 159
+009c ldc.i4.0 
+009d stloc.s local(0x0004)
+009f ldloc.s local(0x0004)
+00a1 brfalse.s 175
+00a3 ldarg.1 
+00a4 ldfld Common.Resources.PlayerShipInfo::Coolness token(0x040006C5)
+00a9 brtrue.s 175
+00ab ldloc.0 
+00ac ldloc.1 
+00ad add 
+00ae stloc.0 
+00af ldarg.1 
+00b0 ldfld Common.Resources.PlayerShipInfo::Coolness token(0x040006C5)
+00b5 ldc.i4.3 
+00b6 bne.un.s 196
+00b8 ldloc.0 
+00b9 ldarg.0 
+00ba ldc.i4.s 27
+00bc ldc.i4.1 
+00bd call Common.Game.Decorator::A token(0x06002264)
+00c2 add 
+00c3 stloc.0 
+00c4 ldarg.1 
+00c5 ldfld Common.Resources.PlayerShipInfo::Coolness token(0x040006C5)
+00ca ldc.i4.1 
+00cb bne.un.s 217
+00cd ldloc.0 
+00ce ldarg.0 
+00cf ldc.i4.s 29
+00d1 ldc.i4.1 
+00d2 call Common.Game.Decorator::A token(0x06002264)
+00d7 add 
+00d8 stloc.0 
+00d9 ldloc.0 
+00da ret 

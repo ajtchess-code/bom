@@ -1,0 +1,32 @@
+000c ldarg.0 
+000d ldfld Common.Game.Decorator::A token(0x04000BEC)
+0012 ldfld Common.Account.PlayerAccount::CaptainSkills token(0x04000397)
+0017 ldc.i4.s 12
+0019 callvirt Common.Account.PlayerCaptainSkillsStorage::get_Item token(0x06001BD8)
+001e call Common.Game.WosbCrafting::A token(0x0600236E)
+0023 ldfld System.ValueTuple`2::Item2 token(0x0A00002A)
+0028 conv.r4 
+0029 ldarg.0 
+002a ldfld Common.Game.Decorator::A token(0x04000BEC)
+002f ldfld Common.Account.PlayerAccount::TradingSubscriptionSec token(0x040003D5)
+0034 ldc.r4 0.0
+0039 bgt.s 66
+003b ldc.r4 1.0
+0040 br.s 71
+0042 ldc.r4 1.5
+0047 mul 
+0048 ldarg.0 
+0049 ldc.i4.s 53
+004b ldc.i4.0 
+004c call Common.Game.Decorator::A token(0x06002264)
+0051 add 
+0052 ldarg.0 
+0053 ldfld Common.Game.Decorator::A token(0x04000BEC)
+0058 ldfld Common.Account.PlayerAccount::Achievements token(0x04000396)
+005d ldc.i4.s 72
+005f callvirt Common.Account.PlayerAchievementStorage::Count token(0x06001BC5)
+0064 conv.r4 
+0065 ldc.r4 5.0
+006a mul 
+006b add 
+006c ret 

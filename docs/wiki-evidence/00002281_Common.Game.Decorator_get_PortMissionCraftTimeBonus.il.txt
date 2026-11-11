@@ -1,0 +1,7 @@
+0001 ldarg.0 
+0002 ldc.i4.s 48
+0004 ldc.i4.0 
+0005 call Common.Game.Decorator::A token(0x06002264)
+000a ldc.r4 0.0
+000f cgt 
+0011 ret 

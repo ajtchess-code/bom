@@ -1,0 +1,17 @@
+000c ldarg.0 
+000d switch [32, 45, 58]
+001e br.s 71
+0020 ldc.i4 300
+0025 ldc.i4.s 30
+0027 newobj System.ValueTuple`2::.ctor token(0x0A000031)
+002c ret 
+002d ldc.i4 600
+0032 ldc.i4.s 40
+0034 newobj System.ValueTuple`2::.ctor token(0x0A000031)
+0039 ret 
+003a ldc.i4 1000
+003f ldc.i4.s 50
+0041 newobj System.ValueTuple`2::.ctor token(0x0A000031)
+0046 ret 
+0047 newobj System.NotSupportedException::.ctor token(0x0A00012D)
+004c throw 
