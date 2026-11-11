@@ -687,3 +687,54 @@ body:before { display: none !important; }
 .audioHealth { display: grid; gap: 2px; margin: 0 0 10px; padding: 8px 10px; border-radius: 8px; border: 1px solid color-mix(in srgb, #53b96e 40%, var(--cc-border)); background: color-mix(in srgb, #53b96e 10%, transparent); color: var(--cc-text); font-size: 0.8rem; font-weight: 600; }
 .audioHealth.bad { border-color: color-mix(in srgb, #dc4b45 45%, var(--cc-border)); background: color-mix(in srgb, #dc4b45 12%, transparent); }
 .audioHealth small { color: var(--cc-muted); font-weight: 400; font-size: 0.72rem; }
+
+/* Prep studio: map plus one tool dock (docked beside the map, floating in full screen). */
+.psStudio { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 12px; align-items: start; }
+.psStage { min-width: 0; }
+.psDock { display: grid; gap: 10px; align-content: start; min-width: 0; position: sticky; top: 84px; max-height: calc(100dvh - 100px); overflow: auto; padding: 10px; border: 1px solid var(--cc-border); border-radius: 12px; background: var(--cc-surface); }
+.psDockHead { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--cc-muted); }
+.psDockHead b { font-weight: 700; }
+.psGrip { font-size: 1rem; letter-spacing: 0; color: var(--cc-muted); }
+.psDockActions { margin-left: auto; display: flex; gap: 4px; }
+.psDockActions button { width: 28px; height: 28px; display: grid; place-items: center; border: 1px solid var(--cc-border); border-radius: 7px; background: var(--cc-surface-2); color: var(--cc-text); cursor: pointer; }
+.psPalette { display: grid; gap: 8px; }
+.psGroup { display: grid; gap: 4px; }
+.psGroupLabel { font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cc-muted); }
+.psGroup > div { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.psGroup button { position: relative; display: flex; align-items: center; gap: 6px; min-height: 34px; padding: 0 8px; border: 1px solid var(--cc-border); border-radius: 8px; background: var(--cc-surface-2); color: var(--cc-text); font-size: 0.76rem; cursor: pointer; text-align: left; }
+.psGroup button:hover { border-color: var(--cc-border-strong, var(--cc-border)); }
+.psGroup button.active { border-color: var(--cc-accent); background: var(--cc-accent-soft); box-shadow: inset 0 -2px 0 var(--cc-accent); }
+.psGroup button span { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.psGroup kbd { font: inherit; font-size: 0.62rem; color: var(--cc-muted); padding: 0 4px; border: 1px solid var(--cc-border); border-radius: 4px; }
+.psGroup button:focus-visible, .psUndo:focus-visible, .psDockActions button:focus-visible, .psDockHead:focus-visible { outline: 2px solid var(--cc-accent); outline-offset: 1px; }
+.psHint { margin: 0; font-size: 0.76rem; color: var(--cc-muted); line-height: 1.4; }
+.psUndo { justify-self: start; min-height: 30px; padding: 0 10px; border: 1px solid var(--cc-border); border-radius: 8px; background: transparent; color: var(--cc-text); font-size: 0.76rem; cursor: pointer; }
+.psUndo:disabled { opacity: 0.45; cursor: default; }
+.psDockBody { display: grid; gap: 10px; }
+.psDockBody .tcPanel { grid-template-columns: 1fr; }
+.psSection { border: 1px solid var(--cc-border); border-radius: 10px; background: var(--cc-surface-2); padding: 8px 11px; }
+.psSection summary { cursor: pointer; font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--cc-muted); padding: 3px 0; }
+.psSection .prToolbar.psPen { padding: 8px 0 2px; gap: 8px; }
+.psPen > label { flex: 1 1 80px; font-size: 0.66rem !important; color: var(--cc-muted) !important; }
+.psPen > label select { width: 100%; }
+.psPen .prLayers { display: flex; flex-wrap: wrap; gap: 4px; }
+.psPen .prLayers button, .psPen > button { font-size: 0.72rem !important; min-height: 28px; padding: 0 9px !important; border-radius: 7px !important; }
+.psPen .prColors button { width: 26px; height: 26px; }
+.psPen .prColors, .psPen .prLayers { flex-basis: 100%; }
+/* Full screen: the map fills the screen and the dock floats over it. */
+.prWorkspaceFullscreen .psStudio { grid-template-columns: minmax(0, 1fr); }
+.prWorkspaceFullscreen .psStage .prCanvasScroller { max-height: calc(100dvh - 190px); }
+.psDock.floating { position: fixed; top: 262px; right: 18px; z-index: 10020; width: min(330px, calc(100vw - 24px)); max-height: calc(100dvh - 274px); box-shadow: 0 18px 44px rgba(0, 0, 0, 0.42); background: color-mix(in srgb, var(--cc-surface) 94%, transparent); backdrop-filter: blur(8px); }
+.psDock.floating .psDockHead { cursor: grab; touch-action: none; user-select: none; margin: -10px -10px 0; padding: 8px 10px; border-bottom: 1px solid var(--cc-border); border-radius: 12px 12px 0 0; background: var(--cc-surface-2); }
+.psDock.floating .psDockHead:active { cursor: grabbing; }
+.psDock.floating.collapsed { max-height: none; }
+@media (max-width: 1100px) {
+  .psStudio { grid-template-columns: 1fr; }
+  .psDock:not(.floating) { position: static; max-height: none; }
+  .psDock:not(.floating) .tcPanel { grid-template-columns: repeat(auto-fit, minmax(min(100%, 250px), 1fr)); }
+}
+@media (max-width: 560px) {
+  .psGroup > div { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .psGroup kbd { display: none; }
+  .psDock.floating { top: auto; bottom: 10px; right: 8px; max-height: 55dvh; }
+}

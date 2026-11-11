@@ -23,7 +23,7 @@ import {
   weatherGauge,
 } from "./Tactics";
 
-const TOOLS: [TacticTool, string, string][] = [
+export const TACTIC_TOOLS: [TacticTool, string, string][] = [
   ["select", "M8 1v14M1 8h14M8 1 6 3M8 1l2 2M8 15l-2-2M8 15l2-2M1 8l2-2M1 8l2 2M15 8l-2-2M15 8l-2 2", "Move"],
   ["cone", "M8 14 2 4a8 8 0 0 1 12 0Z", "Firing arc"],
   ["zone", "M8 2a6 6 0 1 0 0 12A6 6 0 0 0 8 2Zm0 3a3 3 0 1 0 0 6 3 3 0 0 0 0-6Z", "Denial zone"],
@@ -77,7 +77,9 @@ export default function TacticsPanel({
   onSelect,
   activeSquadron,
   onActiveSquadron,
+  showTools = true,
 }: {
+  showTools?: boolean;
   tactics: Tactics;
   onTactics: (t: Tactics) => void;
   tool: TacticTool;
@@ -122,40 +124,42 @@ export default function TacticsPanel({
 
   return (
     <aside className="tcPanel" aria-label="Tactics">
-      <section>
-        <div className="prToolGroup tcTools" role="group" aria-label="Tactics tools">
-          {TOOLS.map(([t, icon, label]) => (
-            <button
-              key={t}
-              type="button"
-              className={tool === t ? "active" : ""}
-              aria-pressed={tool === t}
-              onClick={() => onTool(t)}
-            >
-              <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
-                <path
-                  d={icon}
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.6"
-                  strokeLinejoin="round"
-                  strokeLinecap="round"
-                />
-              </svg>
-              <span>{label}</span>
-            </button>
-          ))}
-        </div>
-        <small className="tcHint">
-          {tool === "select"
-            ? "Drag ships, objects and the wind arrow on the map."
-            : tool === "cone"
-              ? "Click a ship (or anywhere) to add a firing arc."
-              : tool === "zone"
-                ? "Click the map to mark a denial zone."
-                : "Click the map to place the next numbered tower."}
-        </small>
-      </section>
+      {showTools && (
+        <section>
+          <div className="prToolGroup tcTools" role="group" aria-label="Tactics tools">
+            {TACTIC_TOOLS.map(([t, icon, label]) => (
+              <button
+                key={t}
+                type="button"
+                className={tool === t ? "active" : ""}
+                aria-pressed={tool === t}
+                onClick={() => onTool(t)}
+              >
+                <svg viewBox="0 0 16 16" width="16" height="16" aria-hidden="true">
+                  <path
+                    d={icon}
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="1.6"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                  />
+                </svg>
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
+          <small className="tcHint">
+            {tool === "select"
+              ? "Drag ships, objects and the wind arrow on the map."
+              : tool === "cone"
+                ? "Click a ship (or anywhere) to add a firing arc."
+                : tool === "zone"
+                  ? "Click the map to mark a denial zone."
+                  : "Click the map to place the next numbered tower."}
+          </small>
+        </section>
+      )}
 
       <section>
         <h4>Wind</h4>

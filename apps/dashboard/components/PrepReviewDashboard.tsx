@@ -14,6 +14,7 @@ import {
   type Tactics,
 } from "./prep/Tactics";
 import TacticsPanel from "./prep/TacticsPanel";
+import { PrepDock, PrepPalette, isTacticTool, type PrepTool } from "./prep/PrepDock";
 
 type Kind = "PREP" | "REVIEW";
 type Tool = "arrow" | "line" | "dots" | "ship" | "eraser";
@@ -220,7 +221,9 @@ function DrawingToolbar({
   onShapes,
   hiddenLayers,
   onHiddenLayers,
+  pen = false,
 }: {
+  pen?: boolean;
   state: ToolState;
   onState: (v: ToolState) => void;
   shapes: Shape[];
@@ -230,20 +233,22 @@ function DrawingToolbar({
 }) {
   const set = <K extends keyof ToolState>(key: K, value: ToolState[K]) => onState({ ...state, [key]: value });
   return (
-    <div className="prToolbar">
-      <div className="prToolGroup" aria-label="Drawing tools">
-        {(["arrow", "line", "dots", "ship", "eraser"] as Tool[]).map((t) => (
-          <button
-            key={t}
-            type="button"
-            className={state.tool === t ? "active" : ""}
-            onClick={() => set("tool", t)}
-          >
-            {t === "arrow" ? "↗" : t === "line" ? "╱" : t === "dots" ? "•••" : t === "ship" ? "⛵" : "⌫"}
-            <span>{t}</span>
-          </button>
-        ))}
-      </div>
+    <div className={pen ? "prToolbar psPen" : "prToolbar"}>
+      {!pen && (
+        <div className="prToolGroup" aria-label="Drawing tools">
+          {(["arrow", "line", "dots", "ship", "eraser"] as Tool[]).map((t) => (
+            <button
+              key={t}
+              type="button"
+              className={state.tool === t ? "active" : ""}
+              onClick={() => set("tool", t)}
+            >
+              {t === "arrow" ? "↗" : t === "line" ? "╱" : t === "dots" ? "•••" : t === "ship" ? "⛵" : "⌫"}
+              <span>{t}</span>
+            </button>
+          ))}
+        </div>
+      )}
       <label>
         Label
         <select value={state.label} onChange={(e) => set("label", e.target.value)}>
@@ -284,9 +289,11 @@ function DrawingToolbar({
           </button>
         ))}
       </div>
-      <button type="button" onClick={() => onShapes(shapes.slice(0, -1))} disabled={!shapes.length}>
-        Undo
-      </button>
+      {!pen && (
+        <button type="button" onClick={() => onShapes(shapes.slice(0, -1))} disabled={!shapes.length}>
+          Undo
+        </button>
+      )}
       <button
         type="button"
         className="dangerGhost"
@@ -295,7 +302,7 @@ function DrawingToolbar({
         }}
         disabled={!shapes.length}
       >
-        Reset
+        {pen ? "Clear drawings" : "Reset"}
       </button>
       <div className="prLayers">
         {LAYERS.map((layer) => (
@@ -737,10 +744,20 @@ export default function PrepReviewDashboard({ initialPorts, initialSessions, ini
     [newPort, setNewPort] = useState(initialPorts[0]?.name ?? "Aruba"),
     [newTitle, setNewTitle] = useState(""),
     [videoDraft, setVideoDraft] = useState(""),
-    [prepMode, setPrepMode] = useState<"draw" | "tactics">("draw"),
+    [prepMode, setPrepMode] = useState<"draw" | "tactics">("tactics"),
     [tacticTool, setTacticTool] = useState<TacticTool>("select"),
     [tacticSel, setTacticSel] = useState<Selection>(null),
     [activeSquadron, setActiveSquadron] = useState<string | null>(null);
+  const pickTool = (t: PrepTool) => {
+    if (isTacticTool(t)) {
+      setTacticTool(t);
+      setPrepMode("tactics");
+    } else {
+      setTools((v) => ({ ...v, tool: t }));
+      setPrepMode("draw");
+      setTacticSel(null);
+    }
+  };
   const routeParams = useSearchParams();
   const visibleSessions = useMemo(() => sessions.filter((s) => s.kind === kind), [sessions, kind]);
   const port =
@@ -999,55 +1016,50 @@ export default function PrepReviewDashboard({ initialPorts, initialSessions, ini
               </section>
               {session.kind === "PREP" ? (
                 <section className="panel prToolPanel">
-                  <div className="tcModes" role="tablist" aria-label="Planning mode">
-                    {(
-                      [
-                        ["draw", "Draw", "Arrows, lines and markers"],
-                        ["tactics", "Tactics", "Wind, squadrons and objectives"],
-                      ] as const
-                    ).map(([m, label, hint]) => (
-                      <button
-                        key={m}
-                        type="button"
-                        role="tab"
-                        aria-selected={prepMode === m}
-                        className={prepMode === m ? "active" : ""}
-                        onClick={() => setPrepMode(m)}
-                      >
-                        <b>{label}</b>
-                        <small>{hint}</small>
-                      </button>
-                    ))}
-                  </div>
-                  {prepMode === "draw" && (
-                    <DrawingToolbar
-                      state={tools}
-                      onState={setTools}
-                      shapes={session.drawing}
-                      onShapes={(v) => updateSession({ drawing: v })}
-                      hiddenLayers={hiddenLayers}
-                      onHiddenLayers={setHiddenLayers}
-                    />
-                  )}
-                  <div className={prepMode === "tactics" ? "tcWorkspace" : undefined}>
-                    <AnnotationSurface
-                      background={mapUrl}
-                      missing={port?.name}
-                      shapes={session.drawing}
-                      onShapes={(v) => updateSession({ drawing: v })}
-                      tools={tools}
-                      hiddenLayers={hiddenLayers}
-                      tactics={{
-                        data: tactics,
-                        onChange: setTactics,
-                        active: prepMode === "tactics",
-                        tool: tacticTool,
-                        selected: tacticSel,
-                        onSelect: setTacticSel,
-                      }}
-                    />
-                    {prepMode === "tactics" && (
+                  <div className={`psStudio ${workspace.fullscreen ? "psFull" : ""}`}>
+                    <div className="psStage">
+                      <AnnotationSurface
+                        background={mapUrl}
+                        missing={port?.name}
+                        shapes={session.drawing}
+                        onShapes={(v) => updateSession({ drawing: v })}
+                        tools={tools}
+                        hiddenLayers={hiddenLayers}
+                        tactics={{
+                          data: tactics,
+                          onChange: setTactics,
+                          active: prepMode === "tactics",
+                          tool: tacticTool,
+                          selected: tacticSel,
+                          onSelect: setTacticSel,
+                        }}
+                      />
+                    </div>
+                    <PrepDock
+                      floating={workspace.fullscreen}
+                      palette={
+                        <PrepPalette
+                          tool={prepMode === "tactics" ? tacticTool : tools.tool}
+                          onTool={pickTool}
+                          canUndo={session.drawing.length > 0}
+                          onUndo={() => updateSession({ drawing: session.drawing.slice(0, -1) })}
+                        />
+                      }
+                    >
+                      <details className="psSection" open>
+                        <summary>Pen &amp; layers</summary>
+                        <DrawingToolbar
+                          pen
+                          state={tools}
+                          onState={setTools}
+                          shapes={session.drawing}
+                          onShapes={(v) => updateSession({ drawing: v })}
+                          hiddenLayers={hiddenLayers}
+                          onHiddenLayers={setHiddenLayers}
+                        />
+                      </details>
                       <TacticsPanel
+                        showTools={false}
                         tactics={tactics}
                         onTactics={setTactics}
                         tool={tacticTool}
@@ -1057,7 +1069,7 @@ export default function PrepReviewDashboard({ initialPorts, initialSessions, ini
                         activeSquadron={activeSquadron}
                         onActiveSquadron={setActiveSquadron}
                       />
-                    )}
+                    </PrepDock>
                   </div>
                   <div className="prMapFoot">
                     <span>{port?.name}</span>
