@@ -23,7 +23,12 @@ const lavalinkPassword=process.env.LAVALINK_PASSWORD??"youshallnotpass";
 const secureEnv=(process.env.LAVALINK_SECURE??"false").toLowerCase()==="true";
 const searchPrefix=process.env.LAVALINK_SEARCH_PREFIX??"ytmsearch:";
 const voiceJoinSettleMs=Math.max(0,Math.min(500,Number(process.env.VOICE_JOIN_SETTLE_MS??100)));
+/** "host:port", "https://host[:port]", optionally followed by "|password" for a server with its own password. */
 function parseLavalinkEndpoint(value:string){
+  const [address,...pass]=value.trim().split("|"),auth=pass.length?pass.join("|"):lavalinkPassword;
+  return {...parseLavalinkAddress(address),auth};
+}
+function parseLavalinkAddress(value:string){
   const raw=value.trim();
   if(/^https?:\/\//i.test(raw)){
     const u=new URL(raw);
@@ -47,7 +52,7 @@ class DiscordClientReadyConnector extends Connectors.DiscordJS {
     this.client.on("raw",(packet:any)=>this.raw(packet));
   }
 }
-const shoukaku=new Shoukaku(new DiscordClientReadyConnector(client),lavalinkEndpoints.map((x,i)=>({name:i===0?"primary":`backup-${i}`,url:x.url,auth:lavalinkPassword,secure:x.secure})),{resume:true,resumeTimeout:60,reconnectTries:20,reconnectInterval:5,voiceConnectionTimeout:20});
+const shoukaku=new Shoukaku(new DiscordClientReadyConnector(client),lavalinkEndpoints.map((x,i)=>({name:i===0?"primary":`backup-${i}`,url:x.url,auth:x.auth,secure:x.secure})),{resume:true,resumeTimeout:60,reconnectTries:20,reconnectInterval:5,voiceConnectionTimeout:20});
 // Keep blocking stream reads off the general-purpose Redis connection so
 // heartbeats, leases and playback state are never stuck behind XREAD BLOCK.
 const commandRedis=redis.duplicate();
@@ -74,7 +79,9 @@ shoukaku.on("reconnecting",(name,reconnectsLeft,reconnectInterval)=>{
   console.warn(`[Lavalink] Worker ${workerId}: node ${name} reconnecting; attempts left=${reconnectsLeft}, interval=${reconnectInterval}s`);
 });
 
-async function verifyLavalinkRest(){
+async function verifyLavalinkRest(){for(const [i,endpoint] of lavalinkEndpoints.entries())await verifyLavalinkEndpoint(endpoint,i===0?"primary":`backup-${i}`);}
+async function verifyLavalinkEndpoint(lavalink:{restBase:string;auth:string},label:string){
+  const lavalinkPassword=lavalink.auth;
   try{
     const signal=AbortSignal.timeout(10000);
     const versionResponse=await fetch(`${lavalink.restBase}/version`,{headers:{Authorization:lavalinkPassword},signal});
@@ -83,9 +90,9 @@ async function verifyLavalinkRest(){
     if(!infoResponse.ok)throw new Error(`GET /v4/info returned HTTP ${infoResponse.status}`);
     const info:any=await infoResponse.json();
     const pluginNames=Array.isArray(info?.plugins)?info.plugins.map((p:any)=>p?.name).filter(Boolean):[];
-    console.log(`[Lavalink] Worker ${workerId}: REST health OK at ${lavalink.restBase} (version=${version||info?.version?.semver||"unknown"}, plugins=${pluginNames.length?pluginNames.join(", "):"none reported"})`);
+    console.log(`[Lavalink] Worker ${workerId}: REST health OK for ${label} at ${lavalink.restBase} (version=${version||info?.version?.semver||"unknown"}, plugins=${pluginNames.length?pluginNames.join(", "):"none reported"})`);
   }catch(err:any){
-    console.error(`[Lavalink] Worker ${workerId}: REST health FAILED at ${lavalink.restBase}: ${err?.message??err}`);
+    console.error(`[Lavalink] Worker ${workerId}: REST health FAILED for ${label} at ${lavalink.restBase}: ${err?.message??err}`);
   }
 }
 
@@ -310,8 +317,11 @@ async function fetchLyrics(){
   if(!runtime)return;
   const node:any=runtime.player.node; const sessionId=node.sessionId??node.session?.id;
   if(!sessionId)throw new Error("Lavalink session is not ready for lyrics");
-  const url=`${protocol}://${lavalinkUrl}/v4/sessions/${encodeURIComponent(sessionId)}/players/${runtime.guildId}/track/lyrics`;
-  const r=await fetch(url,{headers:{Authorization:lavalinkPassword},signal:AbortSignal.timeout(8000)});
+  // Ask whichever server is actually playing (the primary or a backup).
+  const idx=node.name==="primary"?0:Number(String(node.name??"").replace("backup-",""));
+  const endpoint=lavalinkEndpoints[Number.isFinite(idx)?idx:0]??lavalinkEndpoints[0];
+  const url=`${endpoint.restBase}/v4/sessions/${encodeURIComponent(sessionId)}/players/${runtime.guildId}/track/lyrics`;
+  const r=await fetch(url,{headers:{Authorization:endpoint.auth},signal:AbortSignal.timeout(8000)});
   if(r.status===204)return null;
   if(!r.ok)throw new Error(`Lyrics request failed (${r.status})`);
   return r.json();
