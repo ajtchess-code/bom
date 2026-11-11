@@ -5,6 +5,8 @@
 import { Component, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
 import Prose, { tidy } from "./Prose";
 import { GLOSSARY } from "./glossary";
+import ReportMistake from "./ReportMistake";
+import { load, portrait, rateName, useLoad, useShips } from "./wikiData";
 
 export type WikiSection = "home" | "guides" | "tools" | "browse" | "admin";
 
@@ -18,6 +20,13 @@ export const TOOL_GROUPS: Group[] = [
     title: "Ships & combat",
     blurb: "Pick a ship, fit its guns and know your angles.",
     tools: [
+      {
+        id: "ship",
+        title: "Ship profiles",
+        blurb: "One page per ship: stats, role and BOM's view.",
+        icon: "ship",
+      },
+      { id: "ship-compare", title: "Ship vs ship", blurb: "Two or three ships side by side.", icon: "data" },
       { id: "shipyard", title: "Shipyard", blurb: "Every ship by rate, with its full stats.", icon: "ship" },
       {
         id: "combat",
@@ -51,6 +60,18 @@ export const TOOL_GROUPS: Group[] = [
         blurb: "Your loadout and BOM's stockpile targets, ticked off.",
         icon: "flag",
       },
+      {
+        id: "ports",
+        title: "Port battle ports",
+        blurb: "Maps, team sizes and BOM's record at each port.",
+        icon: "map",
+      },
+      {
+        id: "cheatsheet",
+        title: "Cheat sheet",
+        blurb: "Everything for the fight on one printable page.",
+        icon: "guide",
+      },
     ],
   },
   {
@@ -81,6 +102,12 @@ export const TOOL_GROUPS: Group[] = [
         title: "Personal islands",
         blurb: "Plan buildings, decorations and their costs.",
         icon: "island",
+      },
+      {
+        id: "trade",
+        title: "Trade route finder",
+        blurb: "The most profitable runs for your hold.",
+        icon: "chest",
       },
     ],
   },
@@ -120,8 +147,14 @@ export const TOOL_GROUPS: Group[] = [
   {
     id: "reference",
     title: "About the data",
-    blurb: "Where the numbers come from.",
+    blurb: "Where the numbers come from, and what's new.",
     tools: [
+      {
+        id: "changes",
+        title: "What changed",
+        blurb: "Every change in the latest game update.",
+        icon: "clock",
+      },
       {
         id: "coverage",
         title: "Coverage & sources",
@@ -132,12 +165,14 @@ export const TOOL_GROUPS: Group[] = [
   },
 ];
 export const ALL_TOOLS = TOOL_GROUPS.flatMap((g) => g.tools.map((t) => ({ ...t, group: g })));
-export const isTool = (id: string) => ALL_TOOLS.some((t) => t.id === id) || id === "install";
+export const isTool = (id: string) =>
+  ALL_TOOLS.some((t) => t.id === id) || id === "install" || id === "manage";
 
 /** Which top-level section a tab belongs to. */
 export function sectionOf(tab: string): WikiSection {
   if (tab === "home" || tab === "guides" || tab === "browse") return tab;
-  if (tab === "install") return "admin";
+  if (tab === "search") return "browse";
+  if (tab === "install" || tab === "manage") return "admin";
   return "tools";
 }
 
@@ -241,9 +276,9 @@ export function WikiNav({
             type="button"
             className="whNavAdmin"
             aria-current={section === "admin" ? "page" : undefined}
-            onClick={() => go("install")}
+            onClick={() => go("manage")}
           >
-            Update wiki data
+            Manage wiki
           </button>
         )}
         {stats && <small className="whStats">{stats}</small>}
@@ -572,17 +607,70 @@ function Glossary() {
   );
 }
 
+/** New Player Guide reading progress, saved per member. */
+let progressCache: Promise<string[]> | null = null;
+export function useProgress() {
+  const [done, setDone] = useState<string[]>([]);
+  useEffect(() => {
+    let live = true;
+    progressCache ??= fetch("/api/internal/wiki/portal/progress", { cache: "no-store" })
+      .then((r) => (r.ok ? r.json() : { done: [] }))
+      .then((b) => (Array.isArray(b.done) ? b.done : []))
+      .catch(() => []);
+    progressCache.then((d) => live && setDone(d));
+    return () => {
+      live = false;
+    };
+  }, []);
+  const mark = async (slug: string, value: boolean) => {
+    const next = value ? [...new Set([...done, slug])] : done.filter((x) => x !== slug);
+    setDone(next);
+    progressCache = Promise.resolve(next);
+    await fetch(`/api/internal/wiki/portal/progress/${encodeURIComponent(slug)}`, {
+      method: "PUT",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ done: value }),
+    }).catch(() => {});
+  };
+  return { done, mark };
+}
+
+const day = (d: any) => {
+  const v = String(d ?? ""),
+    t = Date.parse(/^\d{4}-\d{2}-\d{2}$/.test(v) ? `${v}T12:00:00` : v);
+  return Number.isFinite(t) ? t : null;
+};
+/** "Checked" line for a guide, flagging guides older than the installed game data. */
+function Checked({ a, dataAsOf }: { a: any; dataAsOf?: string | null }) {
+  const checked = day(a.checked ?? (a.system === false ? a.updated_at : null)),
+    data = day(dataAsOf);
+  if (!checked)
+    return a.category === "community" ? null : (
+      <p className="whChecked">Not reviewed since it was added to the wiki.</p>
+    );
+  const stale = data !== null && checked < data;
+  return (
+    <p className={`whChecked ${stale ? "stale" : ""}`}>
+      Last checked {new Date(checked).toLocaleDateString(undefined, { dateStyle: "medium" })}
+      {stale ? " · the game has been updated since, so some details may have changed" : ""}
+    </p>
+  );
+}
+
 function GuideArticle({
   slug,
   go,
   openGuide,
   articles,
+  dataAsOf,
 }: {
   slug: string;
   go: (tab: string) => void;
   openGuide: (s: string) => void;
   articles: Article[];
+  dataAsOf?: string | null;
 }) {
+  const progress = useProgress();
   const [a, setA] = useState<any>(null),
     [error, setError] = useState("");
   useEffect(() => {
@@ -625,6 +713,7 @@ function GuideArticle({
         </p>
         <h1>{cleanTitle(a.title).replace(/^\d+\.\s*/, "")}</h1>
         {a.summary && <p className="whLead">{a.summary}</p>}
+        {a.type !== "glossary" && <Checked a={a} dataAsOf={dataAsOf} />}
         {isCommunity(a) && (
           <p className="whNote">
             From an older community guide or patch notes. Some details may have changed since.
@@ -665,6 +754,16 @@ function GuideArticle({
         </>
       )}
       {at >= 0 && (
+        <label className="whRead gwCheck">
+          <input
+            type="checkbox"
+            checked={progress.done.includes(slug)}
+            onChange={(e) => progress.mark(slug, e.target.checked)}
+          />{" "}
+          I've read this chapter
+        </label>
+      )}
+      {at >= 0 && (
         <nav className="whChapterNav" aria-label="Chapters">
           {at > 0 ? (
             <button type="button" onClick={() => openGuide(path[at - 1].slug)}>
@@ -696,6 +795,7 @@ function GuideArticle({
           </div>
         </section>
       )}
+      {a.type !== "glossary" && <ReportMistake page={slug} label={cleanTitle(a.title)} />}
     </article>
   );
 }
@@ -703,21 +803,39 @@ function GuideArticle({
 /** The New Player Guide as a numbered path. */
 function ChapterPath({ articles, openGuide }: { articles: Article[]; openGuide: (s: string) => void }) {
   const path = chapters(articles);
+  const { done } = useProgress();
   if (!path.length) return null;
+  const read = path.filter((c) => done.includes(c.slug)).length;
   return (
-    <ol className="whPath">
-      {path.map((c, i) => (
-        <li key={c.slug}>
-          <button type="button" onClick={() => openGuide(c.slug)}>
-            <span className="whPathNum">{i + 1}</span>
-            <span>
-              <b>{c.title.replace(/^\d+\.\s*/, "")}</b>
-              {c.summary && <small>{c.summary}</small>}
-            </span>
-          </button>
-        </li>
-      ))}
-    </ol>
+    <>
+      {read > 0 && (
+        <p className="whProgress" role="status">
+          <span style={{ width: `${(read / path.length) * 100}%` }} />
+          <b>
+            {read === path.length
+              ? "All chapters read. Nice work, captain!"
+              : `${read} of ${path.length} chapters read`}
+          </b>
+        </p>
+      )}
+      <ol className="whPath">
+        {path.map((c, i) => (
+          <li key={c.slug}>
+            <button
+              type="button"
+              className={done.includes(c.slug) ? "read" : ""}
+              onClick={() => openGuide(c.slug)}
+            >
+              <span className="whPathNum">{done.includes(c.slug) ? "✓" : i + 1}</span>
+              <span>
+                <b>{c.title.replace(/^\d+\.\s*/, "")}</b>
+                {c.summary && <small>{c.summary}</small>}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </>
   );
 }
 
@@ -725,10 +843,12 @@ export function WikiGuides({
   slug,
   go,
   openGuide,
+  dataAsOf,
 }: {
   slug: string | null;
   go: (tab: string) => void;
   openGuide: (s: string | null) => void;
+  dataAsOf?: string | null;
 }) {
   const { data, error } = useGuides();
   const [cat, setCat] = useState("all"),
@@ -747,7 +867,13 @@ export function WikiGuides({
           <span aria-hidden="true">›</span>
           <span>{label(data.articles.find((a) => a.slug === slug)?.category ?? "")}</span>
         </nav>
-        <GuideArticle slug={slug} go={go} openGuide={openGuide} articles={data.articles} />
+        <GuideArticle
+          slug={slug}
+          go={go}
+          openGuide={openGuide}
+          articles={data.articles}
+          dataAsOf={dataAsOf}
+        />
       </div>
     );
   const term = q.trim().toLowerCase();
@@ -1060,4 +1186,198 @@ export class ToolBoundary extends Component<{ tool: string; children: ReactNode 
       </div>
     );
   }
+}
+
+// ---- One search for everything ----------------------------------------------
+
+const score = (text: string, term: string) => {
+  const t = text.toLowerCase();
+  if (t === term) return 100;
+  if (t.startsWith(term)) return 60;
+  if (new RegExp(`\\b${term.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`).test(t)) return 40;
+  return t.includes(term) ? 20 : 0;
+};
+
+export function WikiSearch({
+  q,
+  go,
+  openGuide,
+  openShip,
+  openPort,
+  pick,
+}: {
+  q: string;
+  go: (tab: string) => void;
+  openGuide: (s: string) => void;
+  openShip: (n: string) => void;
+  openPort: (n: string) => void;
+  pick: (table: string, row?: number) => void;
+}) {
+  const term = q.trim().toLowerCase();
+  const { data: guides } = useGuides();
+  const { ships } = useShips();
+  const { data: ports } = useLoad<any>("wiki/portal/ports");
+  const [records, setRecords] = useState<any[] | null>(null);
+  useEffect(() => {
+    let live = true;
+    setRecords(null);
+    if (term.length > 1)
+      load(`game-wiki/search?q=${encodeURIComponent(term)}`)
+        .then((d) => live && setRecords(d.results ?? []))
+        .catch(() => live && setRecords([]));
+    return () => {
+      live = false;
+    };
+  }, [term]);
+  if (term.length < 2) return <p className="gwMuted">Type at least two letters to search.</p>;
+  const rank = <T,>(items: T[], text: (x: T) => string, title: (x: T) => string) =>
+    items
+      .map((x) => ({ x, s: score(title(x), term) * 2 + score(text(x), term) }))
+      .filter((r) => r.s > 0)
+      .sort((a, b) => b.s - a.s)
+      .map((r) => r.x);
+  const g = rank(
+    guides?.articles ?? [],
+    (a) => `${a.title} ${a.summary ?? ""}`,
+    (a) => a.title,
+  ).slice(0, 12);
+  const t = rank(
+    ALL_TOOLS,
+    (x) => `${x.title} ${x.blurb} ${x.group.title}`,
+    (x) => x.title,
+  ).slice(0, 6);
+  const w = rank(
+    GLOSSARY,
+    (x) => `${x.term} ${(x.aliases ?? []).join(" ")} ${x.meaning}`,
+    (x) => x.term,
+  ).slice(0, 6);
+  const s = rank(
+    ships ?? [],
+    (x) => `${x.name} ${x.class ?? ""}`,
+    (x) => x.name,
+  ).slice(0, 8);
+  const p = rank(
+    ports?.ports ?? [],
+    (x: any) => `${x.name} ${x.rate}`,
+    (x: any) => x.name,
+  ).slice(0, 6);
+  const total = g.length + t.length + w.length + s.length + p.length + (records?.length ?? 0);
+  return (
+    <section className="whHub whSearchPage">
+      <header className="whPageHead">
+        <p className="gwEyebrow">SEARCH</p>
+        <h1>Results for “{q}”</h1>
+        {records !== null && (
+          <p>{total ? `${total} results` : "Nothing found. Try a shorter word or a different spelling."}</p>
+        )}
+      </header>
+      {w.length > 0 && (
+        <section className="whGroup">
+          <div className="whGroupHead">
+            <h2>Meaning</h2>
+          </div>
+          <dl className="whSearchTerms">
+            {w.map((x) => (
+              <div key={x.term}>
+                <dt>{x.term}</dt>
+                <dd>{x.meaning}</dd>
+              </div>
+            ))}
+          </dl>
+        </section>
+      )}
+      {s.length > 0 && (
+        <section className="whGroup">
+          <div className="whGroupHead">
+            <h2>Ships</h2>
+          </div>
+          <div className="spGrid">
+            {s.map((x) => {
+              const img = portrait(x);
+              return (
+                <button key={x.name} type="button" className="spCard" onClick={() => openShip(x.name)}>
+                  <span className="spThumb">{img ? <img src={img} alt="" loading="lazy" /> : <i>⛵</i>}</span>
+                  <b>{x.name}</b>
+                  <small>
+                    {rateName(x.rate)} · {x.class ?? "Ship"}
+                  </small>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
+      {g.length > 0 && (
+        <section className="whGroup">
+          <div className="whGroupHead">
+            <h2>Guides</h2>
+          </div>
+          <div className="whGuideGrid">
+            {g.map((a) => (
+              <button key={a.slug} type="button" className="whGuideCard" onClick={() => openGuide(a.slug)}>
+                <b>{cleanTitle(a.title)}</b>
+                {a.summary && <small>{a.summary}</small>}
+                {isCommunity(a) && (
+                  <span className="whTags">
+                    <em>Older notes</em>
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+      {(t.length > 0 || p.length > 0) && (
+        <section className="whGroup">
+          <div className="whGroupHead">
+            <h2>Tools & ports</h2>
+          </div>
+          <div className="whToolGrid">
+            {t.map((x) => (
+              <ToolCard key={x.id} tool={x} go={go} />
+            ))}
+            {p.map((x: any) => (
+              <button key={x.name} type="button" className="whToolCard" onClick={() => openPort(x.name)}>
+                <span className="whToolIcon">
+                  <Icon name="map" size={22} />
+                </span>
+                <span>
+                  <b>{x.name}</b>
+                  <small>
+                    Port battle port · {x.rate} · {x.size}v{x.size}
+                  </small>
+                </span>
+              </button>
+            ))}
+          </div>
+        </section>
+      )}
+      <section className="whGroup">
+        <div className="whGroupHead">
+          <h2>Game data</h2>
+          <p>Exact records from the game.</p>
+        </div>
+        {records === null ? (
+          <p role="status">Searching game data…</p>
+        ) : records.length ? (
+          <ul className="whRecordList">
+            {records.slice(0, 40).map((r: any, i: number) => (
+              <li key={`${r.table}${r.row}${i}`}>
+                <button type="button" className="whLink" onClick={() => pick(r.table, r.row)}>
+                  {r.name}
+                </button>{" "}
+                <small>
+                  {String(r.table)
+                    .replace(/_/g, " ")
+                    .replace(/([a-z])([A-Z])/g, "$1 $2")}
+                </small>
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p className="gwMuted">No game records match.</p>
+        )}
+      </section>
+    </section>
+  );
 }

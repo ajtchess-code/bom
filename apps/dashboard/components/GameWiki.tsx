@@ -7,7 +7,13 @@ import GameWikiTools from './GameWikiTools';
 import SpecialCrewGuide from './wiki/SpecialCrewGuide';
 import VolleyRace from './wiki/VolleyRace';
 import PbChecklist from './wiki/PbChecklist';
-import {WikiNav,WikiHome,WikiGuides,ToolsHub,ToolHeader,CompareChart,ToolBoundary,sectionOf} from './wiki/WikiHub';
+import {ShipPage,ShipCompare} from './wiki/ShipPages';
+import PortPages from './wiki/PortPages';
+import CheatSheet from './wiki/CheatSheet';
+import TradeRoutes from './wiki/TradeRoutes';
+import Changes from './wiki/Changes';
+import WikiManage from './wiki/WikiManage';
+import {WikiNav,WikiHome,WikiGuides,ToolsHub,ToolHeader,CompareChart,ToolBoundary,WikiSearch,sectionOf} from './wiki/WikiHub';
 import {availableRecipes} from '@bom/shared';
 
 type Entry={row:number;name:string;data:Record<string,any>;images?:any[];related?:any[];table?:string;source?:string;nameSource?:string};
@@ -49,7 +55,10 @@ export default function GameWiki({catalog,admin=false}:{catalog:any;admin?:boole
   useEffect(()=>{setTab(defaultTab());},[params.get('tool'),table]);
   const go=(id:string)=>{setMatches(null);setError('');setTab(id);router.push(id==='home'?'/dashboard/wiki':`/dashboard/wiki?tool=${encodeURIComponent(id)}`);if(typeof window!=='undefined')window.scrollTo({top:0});};
   const openGuide=(slug:string|null)=>{setTab('guides');router.push(slug?`/dashboard/wiki?tool=guides&guide=${encodeURIComponent(slug)}`:'/dashboard/wiki?tool=guides');if(typeof window!=='undefined')window.scrollTo({top:0});};
-  async function searchAll(q:string){setTab('browse');router.push('/dashboard/wiki?tool=browse');setBusy(true);setError('');try{setMatches((await request(`search?q=${encodeURIComponent(q)}`)).results);setQuery(q);}catch(e:any){setError(e.message);}finally{setBusy(false);}}
+  function searchAll(q:string){setMatches(null);setTab('search');router.push(`/dashboard/wiki?tool=search&q=${encodeURIComponent(q)}`);if(typeof window!=='undefined')window.scrollTo({top:0});}
+  const openShip=(n:string|null)=>{setTab('ship');router.push(n?`/dashboard/wiki?tool=ship&ship=${encodeURIComponent(n)}`:'/dashboard/wiki?tool=ship');if(typeof window!=='undefined')window.scrollTo({top:0});};
+  const openPort=(n:string|null)=>{setTab('ports');router.push(n?`/dashboard/wiki?tool=ports&port=${encodeURIComponent(n)}`:'/dashboard/wiki?tool=ports');if(typeof window!=='undefined')window.scrollTo({top:0});};
+  const compareShips=(names:string[])=>{setTab('ship-compare');router.push(`/dashboard/wiki?tool=ship-compare&ships=${encodeURIComponent(names.join(','))}`);};
   const pick=(name:string,row?:number,categoryName?:string)=>{setQuery('');setCategory('');setPage(0);setCompare([]);setMatches(null);setTab('browse');router.push(`/dashboard/wiki?table=${encodeURIComponent(name)}${row==null?'':`&record=${row}`}${categoryName?'&category='+encodeURIComponent(categoryName):''}`);};
   useEffect(()=>{setPage(0);setCategory(params.get('category')||'');setQuery('');setCompare([]);},[table,params.get('category')]);
   useEffect(()=>{
@@ -78,10 +87,18 @@ export default function GameWiki({catalog,admin=false}:{catalog:any;admin?:boole
   if(!catalog)return <main className="gameWiki"><h1>Install the game encyclopedia</h1><p>The replacement wiki is ready for its data release. An administrator can install all release parts below.</p>{error&&<p role="alert">{error}</p>}{admin&&<section><label>GitHub release tag <input value={releaseTag} onChange={e=>setReleaseTag(e.target.value)}/></label><button disabled={installBusy||!releaseTag} onClick={installRelease}>Install release</button>{install&&<p>{install.complete?'Installed — reload this page.':`Installed ${install.completedParts} of ${install.totalParts} parts`}</p>}</section>}</main>;
   return <main className="gameWiki">
     <WikiNav section={sectionOf(tab)} go={go} admin={admin} onSearch={searchAll} stats={`${collections.length} collections · client ${String(catalog.asOf).slice(0,10)}`}/>
-    {tab==='home'&&<WikiHome go={go} openGuide={openGuide} onSearch={searchAll} groups={catalog.groups.filter((g:string)=>g!=='Images & source evidence').map((g:string)=>({name:g,count:collections.filter(t=>t.group===g).length}))} openGroup={(g:string)=>pick(collections.find(t=>t.group===g)!.name)}/>}
-    {tab==='guides'&&<WikiGuides slug={guide} go={go} openGuide={openGuide}/>}
-    {tab==='tools'&&<ToolsHub go={go}/>}
     {sectionOf(tab)==='tools'&&tab!=='tools'&&<ToolHeader tab={tab} go={go}/>}
+    {tab==='home'&&<WikiHome go={go} openGuide={openGuide} onSearch={searchAll} groups={catalog.groups.filter((g:string)=>g!=='Images & source evidence').map((g:string)=>({name:g,count:collections.filter(t=>t.group===g).length}))} openGroup={(g:string)=>pick(collections.find(t=>t.group===g)!.name)}/>}
+    {tab==='guides'&&<WikiGuides slug={guide} go={go} openGuide={openGuide} dataAsOf={catalog.asOf}/>}
+    {tab==='search'&&<WikiSearch q={params.get('q')??''} go={go} openGuide={openGuide} openShip={openShip} openPort={openPort} pick={(t:string,r?:number)=>pick(t,r)}/>}
+    {tab==='ship'&&<ToolBoundary tool={tab}><ShipPage name={params.get('ship')} openShip={openShip} go={go} compare={compareShips}/></ToolBoundary>}
+    {tab==='ship-compare'&&<ToolBoundary tool={tab}><ShipCompare names={(params.get('ships')??'').split(',').filter(Boolean)} setNames={(n:string[])=>router.replace(`/dashboard/wiki?tool=ship-compare&ships=${encodeURIComponent(n.join(','))}`)} openShip={openShip}/></ToolBoundary>}
+    {tab==='ports'&&<ToolBoundary tool={tab}><PortPages name={params.get('port')} openPort={openPort}/></ToolBoundary>}
+    {tab==='cheatsheet'&&<CheatSheet/>}
+    {tab==='trade'&&<ToolBoundary tool={tab}><TradeRoutes/></ToolBoundary>}
+    {tab==='changes'&&<ToolBoundary tool={tab}><Changes/></ToolBoundary>}
+    {tab==='manage'&&admin&&<ToolBoundary tool={tab}><WikiManage go={go} openGuide={openGuide}/></ToolBoundary>}
+    {tab==='tools'&&<ToolsHub go={go}/>}
     {error&&<p className="gwError" role="alert">{error}</p>}{busy&&<p role="status">Loading encyclopedia…</p>}
     {['atlas','wind','nodes','npcs','combat','range','islands','craft-time','chests'].includes(tab)&&<ToolBoundary tool={tab}><GameWikiTools tool={tab} open={pick}/></ToolBoundary>}
     {tab==='crew'&&<ToolBoundary tool={tab}><SpecialCrewGuide open={pick}/></ToolBoundary>}

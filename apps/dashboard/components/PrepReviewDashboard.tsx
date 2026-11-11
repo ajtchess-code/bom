@@ -769,6 +769,10 @@ export default function PrepReviewDashboard({ initialPorts, initialSessions, ini
   useEffect(() => {
     const id = routeParams.get("session");
     if (id) void open(id);
+    // Arriving from a wiki port page: preselect that port for a new plan.
+    const port = routeParams.get("port");
+    const match = port && initialPorts.find((p) => p.name.toLowerCase() === port.toLowerCase());
+    if (!id && match) setNewPort(match.name);
   }, [routeParams]);
   async function create() {
     setBusy(true);

@@ -75,7 +75,9 @@ async function activate(state,directory){
     if(pages.length!==Math.ceil(t.rows/100))throw new Error(`Invalid page index: ${t.name}`);
     for(const file of new Set(pages.map(p=>p.file)))await stat(resolve(directory,'tables',t.name,file));
   }
-  await atomicJson(resolve('data/wiki-active.json'),{directory,release:catalog.release,activatedAt:new Date().toISOString()});
+  // Remember the release this one replaces so the wiki can show what changed.
+  let previous=null;try{const old=await json(resolve('data/wiki-active.json'));if(old.directory&&resolve(old.directory)!==resolve(directory))previous={directory:old.directory,release:old.release??null};}catch{}
+  await atomicJson(resolve('data/wiki-active.json'),{directory,release:catalog.release,activatedAt:new Date().toISOString(),previous});
 }
 export async function nextInstall(tag){return locked(async()=>{
   if(!tagPattern.test(tag))throw Object.assign(new Error('Invalid release tag'),{statusCode:400});
