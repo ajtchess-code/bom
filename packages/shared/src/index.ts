@@ -193,3 +193,4 @@ export * from './eventPresentation.js';
 export * from './eventRanks.js';
 
 export * from './pbPresentation.js';
+export * from './wikiVisuals.js';
