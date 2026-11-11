@@ -37,8 +37,10 @@ export async function applyMisfitBranding(client:any,guildId:string){
  if(client.user.username!==P.name)await client.user.setUsername(P.name).catch((e:any)=>warn('Username',e));
  const guild=await client.guilds.fetch(guildId),me=await guild.members.fetchMe();
  if(me.nickname!==P.name)await me.setNickname(P.name,reason).catch((e:any)=>warn('Nickname',e));
+ // The row must exist before any step records what it uploaded, even if the avatar step fails.
+ await db.query("INSERT INTO bot_branding_state(guild_id,avatar_sha) VALUES($1,'') ON CONFLICT(guild_id) DO NOTHING",[guildId]);
  const state=await oneOrNone<any>('SELECT * FROM bot_branding_state WHERE guild_id=$1',[guildId]);
- try{const avatar=await readFile(join(dir,P.avatar)),hash=digest(avatar);if(state?.avatar_sha!==hash||!client.user.avatar){await client.user.setAvatar(avatar);await db.query('INSERT INTO bot_branding_state(guild_id,avatar_sha) VALUES($1,$2) ON CONFLICT(guild_id) DO UPDATE SET avatar_sha=$2',[guildId,hash]);}}catch(e){warn('Avatar',e);}
+ try{const avatar=await readFile(join(dir,P.avatar)),hash=digest(avatar);if(state?.avatar_sha!==hash||!client.user.avatar){await client.user.setAvatar(avatar);await db.query('UPDATE bot_branding_state SET avatar_sha=$2 WHERE guild_id=$1',[guildId,hash]);}}catch(e){warn('Avatar',e);}
  try{const banner=await readFile(join(dir,P.banner)),hash=digest(banner);if(state?.banner_sha!==hash||!client.user.banner){await client.user.setBanner(banner);await db.query('UPDATE bot_branding_state SET banner_sha=$2 WHERE guild_id=$1',[guildId,hash]);}}catch(e){warn('Banner',e);}
  // Server icon and banner. Both need the bot's Manage Server permission.
  try{

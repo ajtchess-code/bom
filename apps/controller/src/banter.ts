@@ -200,7 +200,7 @@ export async function handleRoast(interaction:ChatInputCommandInteraction){
   if(interaction.commandName!=='roast')return false;
   if(interaction.guildId!==guildId)return true;
   await interaction.deferReply();
-  const key=`banter:roast:${guildId}:${interaction.user.id}`,token=randomUUID();let claimed=false,reserved=false,delivered=false;let limits:CounterLimit[]=[];
+  const key=`banter:roast:${guildId}:${interaction.user.id}`,token=randomUUID();let claimed=false,reserved=false,delivered=false,targetKey:string|null=null;let limits:CounterLimit[]=[];
   try{
     const s=await settings();
     const rawRoles=(interaction.member as any)?.roles;
@@ -216,8 +216,12 @@ export async function handleRoast(interaction:ChatInputCommandInteraction){
     if(other&&target){
       if(target.bot){await interaction.editReply('Misfit doesn\'t roast other bots. Professional courtesy.');return true;}
       if(await optedOut(target.id)){await interaction.editReply('That captain has opted out of roasts. Pick on someone who signed up for it.');return true;}
-      if(await redis.set(`banter:roasted:${guildId}:${target.id}`,token,'EX',600,'NX')!=='OK'){await interaction.editReply('They were roasted in the last few minutes. Let the burns heal.');return true;}
-      const guild=interaction.guild,names=await Promise.all([interaction.user.id,target.id].map(async id=>{const m=await guild?.members.fetch(id).catch(()=>null);return (m?.displayName??(id===target.id?target:interaction.user).username).slice(0,45);}));
+      const guild=interaction.guild,targetMember=await guild?.members.fetch(target.id).catch(()=>null);
+      if(targetMember&&roleExcluded([...targetMember.roles.cache.keys()],s)){await interaction.editReply('That captain is off-limits for roasts.');return true;}
+      const lock=`banter:roasted:${guildId}:${target.id}`;
+      if(await redis.set(lock,token,'EX',600,'NX')!=='OK'){await interaction.editReply('They were roasted in the last few minutes. Let the burns heal.');return true;}
+      targetKey=lock;
+      const names=await Promise.all([interaction.user.id,target.id].map(async id=>{const m=await guild?.members.fetch(id).catch(()=>null);return (m?.displayName??(id===target.id?target:interaction.user).username).slice(0,45);}));
       const topic=interaction.options.getString('topic')?.trim()||'their general conduct as a captain';
       input=`${names[0]} asked you to roast their crewmate ${names[1]}. Topic: ${topic}. Address ${names[1]} by name. Keep it playful: a crewmate, not an enemy; no real-life, appearance or personal attacks.`;
     }else{
@@ -229,7 +233,7 @@ export async function handleRoast(interaction:ChatInputCommandInteraction){
     const sent=await interaction.editReply({content:text,allowedMentions:{parse:[]}});delivered=true;
     await rememberConversationReply(sent.id,'banter').catch(()=>{});await counted('roast',interaction.channelId,interaction.user.id);
   }catch(error){console.warn('[banter] roast failed',error);await interaction.editReply('The roast cannon jammed. Please try again.').catch(()=>{});}
-  finally{if(!delivered){if(claimed)await releaseLease(key,token).catch(()=>{});if(reserved)await refundCounters(limits.map(x=>x.key)).catch(()=>{});}}
+  finally{if(!delivered){if(claimed)await releaseLease(key,token).catch(()=>{});if(targetKey)await releaseLease(targetKey,token).catch(()=>{});if(reserved)await refundCounters(limits.map(x=>x.key)).catch(()=>{});}}
   return true;
 }
 
