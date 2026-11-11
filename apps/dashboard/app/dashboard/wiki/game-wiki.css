@@ -11,3 +11,100 @@
 .gameWiki svg.gwItemImage{overflow:hidden}
 
 .gwCraftProduct{display:flex;align-items:center;gap:20px;margin:20px 0}.gwCraftProduct .gwItemImage{width:110px;height:100px}.gwCraftProduct h3{margin:0}
+
+/* ---------------------------------------------------------------------------
+   Theme layer: the wiki follows the dashboard palette (light and dark) instead
+   of its own fixed dark colours. Later rules override the base ones above.
+   --------------------------------------------------------------------------- */
+.gameWiki{--gw-line:var(--cc-border);--gw-muted:var(--cc-muted);--gw-gold:color-mix(in srgb,#c9963c 78%,var(--cc-text));color:var(--cc-text);font-family:var(--cc-font,inherit)}
+.gameWiki .gwEyebrow{color:var(--gw-gold);font-weight:700}
+.gameWiki .gwHero{position:relative;overflow:hidden;isolation:isolate;border-color:var(--cc-border);background:var(--cc-surface);box-shadow:var(--cc-shadow)}
+.gameWiki .gwHero::before{content:'';position:absolute;inset:0;z-index:-1;background:url('/wosb/map/world-map.png') 70% 40%/cover no-repeat;opacity:.32;-webkit-mask-image:linear-gradient(100deg,transparent 22%,#000 70%);mask-image:linear-gradient(100deg,transparent 22%,#000 70%)}
+html[data-theme="light"] .gameWiki .gwHero::before{opacity:.42}
+.gameWiki .gwHero h1{font-family:var(--cc-display,Georgia,serif);color:var(--cc-text)}
+.gameWiki .gwRelease strong{color:var(--cc-text)}
+.gameWiki button{background:var(--cc-surface-2);border-color:var(--cc-border);color:var(--cc-text);transition:background .15s,border-color .15s}
+.gameWiki button:hover{background:var(--cc-surface-3);border-color:var(--cc-border-strong)}
+.gameWiki button[aria-pressed=true],.gameWiki button[aria-current=page],.gameWiki button[aria-selected=true]{background:var(--cc-accent-soft);border-color:var(--cc-accent);color:var(--cc-text)}
+.gameWiki input:not([type=checkbox]),.gameWiki select{background:var(--cc-field);color:var(--cc-text);border-color:var(--cc-border-strong)}
+.gameWiki .gwCards article,.gameWiki .gwNodeMetrics article,.gameWiki .gwNameGrid article{background:var(--cc-surface);border-color:var(--cc-border);transition:border-color .15s,transform .15s}
+.gameWiki .gwCards article:hover{border-color:var(--cc-border-strong);transform:translateY(-1px)}
+.gameWiki .gwEntryLink{color:var(--gw-gold)}
+.gameWiki .gwFacts{background:var(--cc-border);border-color:var(--cc-border);border-radius:var(--cc-radius,10px);overflow:hidden}
+.gameWiki .gwFacts>div{background:var(--cc-surface)}
+.gameWiki th{color:var(--gw-gold)}
+.gameWiki pre{background:var(--cc-surface-2);border:1px solid var(--cc-border);border-radius:8px}
+.gameWiki .gwSidebar summary{color:var(--gw-gold)}
+.gameWiki .gwSidebar button{background:transparent;border-color:transparent}
+.gameWiki .gwSidebar button:hover{background:var(--cc-surface-2)}
+.gameWiki .gwSidebar button[aria-current=page]{background:var(--cc-accent-soft);border-color:transparent}
+.gameWiki .gwError{background:color-mix(in srgb,var(--cc-danger) 14%,transparent);border-color:var(--cc-danger);color:var(--cc-text)}
+.gameWiki .gwMuted{color:var(--cc-muted)}
+.gameWiki a{color:var(--cc-accent)}
+.gameWiki button:focus-visible,.gameWiki input:focus-visible,.gameWiki select:focus-visible,.gameWiki summary:focus-visible,.gameWiki svg:focus-visible{outline:2px solid var(--cc-accent);outline-offset:3px}
+
+/* Tool bar: one scrollable row of pills instead of a wrapping wall of buttons. */
+.gameWiki nav.gwTabs{position:sticky;top:0;z-index:5;flex-wrap:nowrap;overflow-x:auto;padding:10px 2px;margin:18px 0;background:color-mix(in srgb,var(--cc-bg) 88%,transparent);backdrop-filter:blur(6px);scrollbar-width:thin}
+.gameWiki nav.gwTabs button{flex:none;border-radius:999px;padding:7px 14px;font-size:13px;font-weight:600}
+
+/* ---- World atlas ---------------------------------------------------------- */
+.gwAtlasSection{display:grid;gap:14px}
+.gwToolHeader{display:flex;flex-wrap:wrap;gap:14px 24px;align-items:end;justify-content:space-between}
+.gwToolHeader h2{margin:2px 0 4px;font-family:var(--cc-display,Georgia,serif)}
+.gwToolHeader p{margin:0;max-width:70ch;color:var(--cc-text-soft,var(--cc-muted))}
+.gwSegmented{display:inline-flex;padding:3px;gap:3px;border:1px solid var(--cc-border);border-radius:10px;background:var(--cc-surface-2)}
+.gameWiki .gwSegmented button{border:0;background:transparent;border-radius:8px;padding:7px 12px;font-size:13px;font-weight:600}
+.gameWiki .gwSegmented button small{margin-left:4px;opacity:.7;font-weight:500}
+.gameWiki .gwSegmented button.active{background:var(--cc-surface);box-shadow:var(--cc-shadow);color:var(--cc-text)}
+.gwAtlasShell{display:grid;grid-template-columns:minmax(0,1fr) 300px;gap:14px;align-items:start}
+.gwAtlasStage{position:relative;border:1px solid var(--cc-border);border-radius:12px;overflow:hidden;background:#cbb79b;box-shadow:var(--cc-shadow)}
+.gwAtlasMap{display:block;width:100%;aspect-ratio:1863/1551;cursor:grab;touch-action:none;user-select:none}
+.gwAtlasMap:active{cursor:grabbing}
+.gwRouteFaint{fill:none;stroke:#3d2a17;stroke-opacity:.38;stroke-width:1.6px;vector-effect:non-scaling-stroke;cursor:pointer}
+.gwRouteFaint:hover{stroke-opacity:.85;stroke-width:3px}
+.gwRouteHalo{fill:none;stroke:#fff8e6;stroke-width:7px;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke;opacity:.85}
+.gwRouteLine{fill:none;stroke:#0e6b6b;stroke-width:3.5px;stroke-linejoin:round;stroke-linecap:round;vector-effect:non-scaling-stroke}
+.gwWaypoint{fill:#0e6b6b;stroke:#fff8e6;stroke-width:1px;vector-effect:non-scaling-stroke}
+.gwWaypointStart{fill:#f2c94c;stroke:#3d2a17;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.gwWaypointEnd{fill:#c0392b;stroke:#fff8e6;stroke-width:1.5px;vector-effect:non-scaling-stroke}
+.gwObject{fill:#2f8f83;stroke:#fff8e6;stroke-width:.8px;vector-effect:non-scaling-stroke}
+.gwObjectFort{fill:#b8860b;stroke:#fff8e6;stroke-width:.8px;vector-effect:non-scaling-stroke}
+.gwPortPin{cursor:pointer}
+.gwPortPin circle{fill:#d9a441;stroke:#2b1c0c;stroke-width:1.4px;vector-effect:non-scaling-stroke}
+.gwPortPin:hover circle,.gwPortPin.active circle{fill:#ffd36b}
+.gwPortPin .gwPortRing,.gwPortPin.active .gwPortRing,.gwPortPin:hover .gwPortRing{fill:none;stroke:#c0392b;stroke-width:2.2px;stroke-dasharray:4 3}
+.gwPortPin text{fill:#24170a;font-weight:700;paint-order:stroke;stroke:#f6ead2;stroke-width:3px;vector-effect:non-scaling-stroke;font-family:var(--cc-font,system-ui);pointer-events:none}
+.gwMapControls{position:absolute;top:10px;right:10px;display:grid;gap:4px}
+.gameWiki .gwMapControls button{width:34px;height:34px;padding:0;font-size:18px;line-height:1;border-radius:8px;background:rgba(255,250,238,.92);color:#2b1c0c;border:1px solid rgba(43,28,12,.35);box-shadow:0 2px 6px rgba(0,0,0,.18)}
+.gameWiki .gwMapControls button:hover{background:#fff}
+.gwMapHover{position:absolute;top:10px;left:10px;padding:5px 10px;border-radius:7px;background:rgba(27,18,8,.82);color:#fff6e3;font-size:12px;font-weight:600;pointer-events:none}
+.gwMapLegend{position:absolute;left:10px;bottom:10px;display:flex;flex-wrap:wrap;gap:4px 12px;max-width:calc(100% - 20px);padding:6px 10px;border-radius:8px;background:rgba(255,250,238,.88);color:#2b1c0c;font-size:11px;font-weight:600}
+.gwMapLegend span{display:inline-flex;align-items:center;gap:5px}
+.gwMapLegend i{display:inline-block;width:10px;height:10px;border-radius:50%;border:1px solid #2b1c0c}
+.gwMapLegend .lgRoute{width:16px;height:4px;border-radius:2px;background:#0e6b6b;border:0}
+.gwMapLegend .lgObject{background:#2f8f83}.gwMapLegend .lgStart{background:#f2c94c}.gwMapLegend .lgEnd{background:#c0392b}.gwMapLegend .lgPort{background:#d9a441}.gwMapLegend .lgFort{background:#b8860b}
+.gwAtlasPanel{display:grid;gap:12px;padding:12px;border:1px solid var(--cc-border);border-radius:12px;background:var(--cc-surface);max-height:min(78vh,820px);overflow:hidden;grid-template-rows:auto auto auto minmax(0,1fr)}
+.gwAtlasOptions{display:flex;gap:14px;flex-wrap:wrap}
+.gwCheck{display:inline-flex!important;align-items:center;gap:6px;margin:0!important;font-size:13px}
+.gwAtlasDetail{display:grid;gap:8px;padding-bottom:12px;border-bottom:1px solid var(--cc-border)}
+.gwAtlasDetail h3{margin:0;font-size:17px}
+.gwAtlasDetail p{margin:0;font-size:12px}
+.gwMiniFacts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px;margin:0}
+.gwMiniFacts div{padding:7px 9px;border-radius:8px;background:var(--cc-surface-2)}
+.gwMiniFacts dt{font-size:11px;color:var(--cc-muted)}
+.gwMiniFacts dd{margin:2px 0 0;font-weight:700;overflow-wrap:anywhere}
+.gwAtlasActions{display:flex;flex-wrap:wrap;gap:6px}
+.gameWiki .gwAtlasActions button{font-size:12px;padding:6px 10px}
+.gwAtlasSearch{margin:0!important}
+.gwAtlasSearch input{width:100%}
+.gwAtlasList{list-style:none;margin:0;padding:0;overflow:auto;display:grid;gap:2px;align-content:start;min-height:120px}
+.gameWiki .gwAtlasList button{width:100%;display:flex;justify-content:space-between;gap:8px;text-align:left;background:transparent;border-color:transparent;padding:7px 9px;font-size:13px}
+.gameWiki .gwAtlasList button:hover{background:var(--cc-surface-2)}
+.gameWiki .gwAtlasList button.active{background:var(--cc-accent-soft);border-color:transparent}
+.gwAtlasList small{color:var(--cc-muted)}
+.gwAtlasBattle{display:grid;gap:10px;max-width:980px}
+.gwAtlasBattle label{display:grid;gap:6px;max-width:360px}
+.gwAtlasBattle .gwBattleImage{width:100%;border-radius:12px;border:1px solid var(--cc-border)}
+.gwSourceNote{font-size:13px;color:var(--cc-muted)}
+@media(max-width:1000px){.gwAtlasShell{grid-template-columns:1fr}.gwAtlasPanel{max-height:none}.gwAtlasList{max-height:300px}}
+@media(max-width:560px){.gwMapLegend{display:none}.gwSegmented{width:100%}.gameWiki .gwSegmented button{flex:1;padding:7px 6px;font-size:12px}}
