@@ -10,7 +10,18 @@ export function eliteChestGroups(il:string,text:Map<string,string>){
   const groups=chunks.map((chunk,index)=>({id:index,weight:Number(chunk.split(/\s/)[0]),labels:[...new Set([...chunk.matchAll(/Common\.Local::get_(\w+) token/g)].map(m=>text.get(m[1])??m[1].replaceAll('_',' ')))]}));
   return groups.every(g=>Number.isFinite(g.weight)&&g.weight>0&&g.labels.length)&&Math.abs(groups.reduce((n,g)=>n+g.weight,0)-100)<.001?groups:[];
 }
-export async function wikiPlanningData(wiki:GameWiki,images:(table:string,row:any)=>any[]){
+// The bundle reads 18 tables (English_Text alone is large), so build it once per
+// installed release and reuse it for a while instead of on every planner request.
+const cache=new Map<string,{at:number;value:Promise<any>}>();
+export function wikiPlanningData(wiki:GameWiki,images:(table:string,row:any)=>any[]){
+  const hit=cache.get(wiki.directory);
+  if(hit&&Date.now()-hit.at<10*60_000)return hit.value;
+  const value=buildPlanningData(wiki,images);
+  cache.set(wiki.directory,{at:Date.now(),value});
+  value.catch(()=>cache.delete(wiki.directory));
+  return value;
+}
+async function buildPlanningData(wiki:GameWiki,images:(table:string,row:any)=>any[]){
   const names=['Resources','Cannons','CannonBalls','ShipsToPlay','ShipsBasics','ShipUpgradesNew','ShipDesingElements','CaptainSkills','GuildBonuses','Benefit_Levels','EnvDesingElements','Crew_Special','English_Text','WorldPorts','Mines_and_Nodes_Map_References','Factory_Levels','Achievements','Game_Enums'];
   const rows=await Promise.all(names.map(n=>wiki.all(n))),tables=Object.fromEntries(names.map((n,i)=>[n,rows[i]]));
   const text=new Map<string,string>(tables.English_Text.map((r:any)=>[r.Key,r.English]));
