@@ -1,0 +1,21 @@
+0001 ldarg.1 
+0002 ldfld Common.Resources.CannonGameInfo::Category token(0x0400061D)
+0007 brfalse.s 47
+0009 ldarg.1 
+000a ldfld Common.Resources.CannonGameInfo::Category token(0x0400061D)
+000f ldc.i4.1 
+0010 beq.s 40
+0012 ldarg.1 
+0013 ldfld Common.Resources.CannonGameInfo::Category token(0x0400061D)
+0018 ldc.i4.2 
+0019 beq.s 33
+001b newobj System.InvalidOperationException::.ctor token(0x0A000105)
+0020 throw 
+0021 ldc.i4 1000
+0026 br.s 52
+0028 ldc.i4 1000
+002d br.s 52
+002f ldc.i4 600
+0034 conv.r4 
+0035 call TheraEngine.RTIf::op_Implicit token(0x0A000291)
+003a ret 

@@ -4,6 +4,7 @@ import {resolve} from 'node:path';
 import {createHash} from 'node:crypto';
 import {wikiPosition,routeLength} from '@bom/shared';
 import {wikiBattleMaps} from './wikiBattleMaps.js';
+import {wikiPlanningData} from './wikiPlanningData.js';
 const costFile='CodeArchive/Common/0x06002373_Common.Game.WosbCrafting_.cctor.il.txt';
 const nameFile='CodeArchive/Common/0x06002349_Common.Game.NpcShipHelper_.cctor.il.txt';
 export const nodeCostSchedule=[{index:0,gold:500,materials:{}},{index:1,gold:3000,materials:{}},{index:2,gold:9000,materials:{}},{index:3,gold:0,materials:{'29':20,'16':20,'5':1000}}];
@@ -40,7 +41,7 @@ export async function wikiVisualData(wiki:GameWiki,section:string,images:(table:
   if(section==='nodes'){
     const [levels,resources,bytes]=await Promise.all([all('Factory_Levels'),all('Resources'),readFile(resolve(wiki.directory,costFile)).catch(()=>null)]);
     const verified=Boolean(bytes&&createHash('sha256').update(bytes).digest('hex')==='84fd57e54be3f9a15405b9d066d2bf03d3438f0fed0c74f5f0e83a71eeb1eb0e');
-    return {levels,resources:resources.map(r=>({...r,images:images('Resources',r)})),costs:verified?nodeCostSchedule:[],costVerified:verified,costSource:costFile,costNotes:'Base client schedule: initialization uses index 0; LevelUpCost uses its level argument directly. Transition labels assume that argument is the current level. Special island/estate entries are excluded. Live discounts and alternate build methods are separate.'};
+    return {...await wikiPlanningData(wiki,images),levels,resources:resources.map(r=>({...r,images:images('Resources',r)})),costs:verified?nodeCostSchedule:[],costVerified:verified,costSource:costFile,costNotes:'Base client schedule: initialization uses index 0; LevelUpCost uses its level argument directly. Transition labels assume that argument is the current level. Special island/estate entries are excluded. Live discounts and alternate build methods are separate.'};
   }
   if(section==='atlas'){
     const [routes,ports,objects]=await Promise.all([all('TradingRoutesInfo'),all('WorldPorts'),all('Map_Objects')]);
@@ -52,6 +53,6 @@ export async function wikiVisualData(wiki:GameWiki,section:string,images:(table:
     const [ships,types,text,poolText]=await Promise.all([all('ShipsToPlay'),all('NPC_Types'),all('English_Text'),readFile(resolve(wiki.directory,nameFile),'utf8').catch(()=>null)]);
     return {ships:ships.map((s,row)=>({...s,row,images:images('ShipsToPlay',s)})).filter((s:any)=>s.CanBeUsedForNpc===true),types:types.filter(t=>t.Type==='Common.Resources.NpcType'),categoryNames:text.filter(t=>String(t.Key).startsWith('npc_')),namePools:poolText?extractNpcNames(poolText):[],nameSource:nameFile};
   }
-  if(section==='combat')return {weapons:await all('Cannons'),ammunition:await all('CannonBalls'),ships:await all('ShipsToPlay'),damageFormulaVerified:false};
+  if(['combat','range','islands','craft-time','crew','chests','node-production'].includes(section))return wikiPlanningData(wiki,images);
   throw Object.assign(new Error('Unknown wiki tool'),{statusCode:404});
 }

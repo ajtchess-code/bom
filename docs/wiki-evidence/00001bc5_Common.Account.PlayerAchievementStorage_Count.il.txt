@@ -1,0 +1,10 @@
+000c ldsfld Common.Game.Gameplay::AchievementsByEnum token(0x04000C28)
+0011 ldarg.1 
+0012 callvirt System.Collections.Generic.Dictionary`2::get_Item token(0x0A000335)
+0017 stloc.0 
+0018 ldarg.0 
+0019 ldfld Common.Account.PlayerAchievementStorage::A token(0x04000463)
+001e ldloc.0 
+001f callvirt Common.Data.XmlAsset`1::get_ID token(0x0A000336)
+0024 callvirt Common.Game.GSI::get_Item token(0x06002836)
+0029 ret 

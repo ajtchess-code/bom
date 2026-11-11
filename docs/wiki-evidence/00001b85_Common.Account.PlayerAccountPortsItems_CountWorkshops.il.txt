@@ -1,0 +1,26 @@
+000c ldc.i4.0 
+000d stloc.0 
+000e ldc.i4.0 
+000f stloc.1 
+0010 br.s 47
+0012 ldloc.0 
+0013 ldarg.0 
+0014 ldfld Common.Account.PlayerAccountPortsItems::A token(0x04000420)
+0019 ldloc.1 
+001a ldelema ::PortData token(0x0200009D)
+001f ldfld .PortData::OpenedFactory token(0x04000424)
+0024 ldfld TheraEngine.Collections.Tlist`1::Size token(0x0A00031B)
+0029 add 
+002a stloc.0 
+002b ldloc.1 
+002c ldc.i4.1 
+002d add 
+002e stloc.1 
+002f ldloc.1 
+0030 ldarg.0 
+0031 ldfld Common.Account.PlayerAccountPortsItems::A token(0x04000420)
+0036 ldlen 
+0037 conv.i4 
+0038 blt.s 18
+003a ldloc.0 
+003b ret 

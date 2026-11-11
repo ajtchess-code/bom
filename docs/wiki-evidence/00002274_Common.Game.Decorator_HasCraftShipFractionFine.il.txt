@@ -1,0 +1,17 @@
+0001 ldarg.1 
+0002 call Common.Game.FractionDecorator::IsNation token(0x060030B9)
+0007 brfalse.s 39
+0009 ldarg.1 
+000a ldarg.0 
+000b call Common.Game.Decorator::get_NearPortGuild token(0x0600225A)
+0010 ldfld Common.Game.GuildShortInfo::Fraction token(0x0400147B)
+0015 beq.s 39
+0017 ldarg.0 
+0018 ldc.i4.7 
+0019 ldc.i4.0 
+001a call Common.Game.Decorator::A token(0x06002264)
+001f ldc.r4 0.0
+0024 ceq 
+0026 ret 
+0027 ldc.i4.0 
+0028 ret 

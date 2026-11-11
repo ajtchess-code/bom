@@ -1,0 +1,69 @@
+000c ldarg.0 
+000d call Common.Game.Decorator::get_MapMyFraction token(0x06002259)
+0012 stloc.1 
+0013 ldc.i4.0 
+0014 stloc.2 
+0015 ldloca.s local(0x0001)
+0017 call System.Nullable`1::GetValueOrDefault token(0x0A0003F1)
+001c ldloc.2 
+001d ceq 
+001f ldloca.s local(0x0001)
+0021 call System.Nullable`1::get_HasValue token(0x0A000692)
+0026 and 
+0027 brfalse.s 55
+0029 ldarg.1 
+002a call Common.Game.GuildCommon::IsBonusUnavailableForPirates token(0x060023DD)
+002f brfalse.s 55
+0031 ldc.r4 0.0
+0036 ret 
+0037 ldarg.0 
+0038 ldfld Common.Game.Decorator::A token(0x04000BEE)
+003d dup 
+003e brtrue.s 72
+0040 pop 
+0041 ldc.r4 0.0
+0046 br.s 78
+0048 ldarg.1 
+0049 call Common.Game.GuildCommon::a token(0x060023E5)
+004e stloc.0 
+004f ldarg.0 
+0050 ldfld Common.Game.Decorator::A token(0x04000BEB)
+0055 brfalse.s 180
+0057 ldarg.0 
+0058 ldfld Common.Game.Decorator::A token(0x04000BEB)
+005d ldfld Common.Game.Ship::MapInfo token(0x04000FAC)
+0062 ldfld Common.Resources.WorldMapInfo::IsWorldmap token(0x040009C9)
+0067 brfalse.s 180
+0069 ldarg.2 
+006a brfalse.s 123
+006c ldarg.0 
+006d ldfld Common.Game.Decorator::A token(0x04000BEB)
+0072 callvirt Common.Game.Player::get_IsPortEntry token(0x0600268B)
+0077 brtrue.s 123
+0079 ldloc.0 
+007a ret 
+007b ldarg.0 
+007c ldfld Common.Game.Decorator::A token(0x04000BEB)
+0081 callvirt Common.Game.Player::get_IsPortEntry token(0x0600268B)
+0086 brfalse.s 152
+0088 ldarg.0 
+0089 ldfld Common.Game.Decorator::A token(0x04000BEB)
+008e callvirt Common.Game.Player::get_NearPortType token(0x060026A0)
+0093 ldc.i4.1 
+0094 beq.s 152
+0096 ldloc.0 
+0097 ret 
+0098 ldloc.0 
+0099 ldarg.0 
+009a call Common.Game.Decorator::get_NearPortStatus token(0x06002258)
+009f ldfld Common.Game.PortCaptureStatus::Dev token(0x04001787)
+00a4 ldarg.1 
+00a5 ldarg.0 
+00a6 ldarg.0 
+00a7 call Common.Game.Decorator::get_NearPortStatus token(0x06002258)
+00ac ldnull 
+00ad callvirt Common.Game.PortDevelopment::GetAvailableBonus token(0x06002EFB)
+00b2 add 
+00b3 ret 
+00b4 ldloc.0 
+00b5 ret 

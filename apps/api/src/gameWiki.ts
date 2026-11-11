@@ -6,6 +6,7 @@ import {resolve, sep} from 'node:path';
 import {readFileSync} from 'node:fs';
 import {startInstall,nextInstall} from '../../../scripts/wiki-release.mjs';
 import {wikiVisualData} from './gameWikiVisuals.js';
+import {availableRecipes} from '@bom/shared';
 
 type Row = Record<string, any>;
 type Table = {name:string; label:string; rows:number; fields:string[]; group:string; evidence:boolean; bytes:number; categories:Record<string,number>};
@@ -174,7 +175,7 @@ export function registerGameWiki(app:any,{requireMember,requireAdmin}: {requireM
   });
   app.post('/v1/game-wiki/craft',async(req:any,reply:any)=>{
     if(!await guard(req,reply))return;
-    const recipes=await wiki().all('Crafting_Recipes'),resolveImage=await imageLookup(root());
+    const recipes=availableRecipes(await wiki().all('Crafting_Recipes'),req.body?.guildRecipes===true,['port','island'].includes(req.body?.location)?req.body.location:'all'),resolveImage=await imageLookup(root());
     const result=craftingPlan(recipes,await wiki().all('Recipe_Ingredients'),String(req.body?.recipeId??''),Number(req.body?.quantity),req.body?.choices??{});
     const materialImages=(id:any)=>resolveImage('Resources',{ID:`res_${id}`});
     return {...result,rawMaterials:result.rawMaterials.map(r=>({...r,images:materialImages(r.resourceId)})),choicesRequired:result.choicesRequired.map(r=>({...r,images:materialImages(r.resourceId)})),acquisitionOptions:result.acquisitionOptions.map(r=>({...r,images:materialImages(r.resourceId)})),steps:result.steps.map(s=>{const r=recipes.find(r=>r.RecipeID===s.recipeId);return {...s,images:r?.OutputType==='resource'?materialImages(r.OutputID):[]};})};
