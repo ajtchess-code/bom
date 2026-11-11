@@ -8,11 +8,11 @@ Run the normal repository update and startup/build process. PostgreSQL migration
 
 No new environment variables are required. Existing Discord bot, guild, database, internal API and dashboard settings are reused. Back up PostgreSQL before updating.
 
-The retired private channel layout no longer runs. On the next controller startup, stored pre-layout permission snapshots are restored once; the overwritten deployed state is also saved in `channel_layout_restores`. Servers without saved snapshots have no permission rollback. Deleted channels are skipped. Failed restorations log an error and retry at the next restart. Permission presets previously applied manually do not have enough provenance for automatic reversal; their stored batch history remains in the database.
+The retired private channel layout no longer runs, and the bot does not restore or otherwise change category or channel permissions: they stay exactly as they are on the server. Saved snapshots remain in `channel_layout_backups` for reference only.
 
 The bot needs Manage Channels and Move Members for voice creation, plus View Audit Log for recovering a channel created in the brief interval between Discord creation and database persistence. Normal restarts recover from persistent session rows. Empty timers survive restarts; if an occupied channel became empty while offline, the 15-minute grace begins when emptiness is first observed. Reconciliation runs every 30 seconds. Only persisted sessions or channels with the bot's creation audit reason are adopted. No channel is deleted based only on its name.
 
-Existing tracked rooms are normalized to the new names, permissions and placement. Existing application channels are renamed to `app-<captain-name>` and their controls refreshed. The startup permission rollback and subsequent join-channel updates refresh temporary-room permissions too.
+Existing tracked rooms are normalized to the new names, permissions and placement. Existing application channels are renamed to `app-<captain-name>` and their controls refreshed. Join-channel updates refresh temporary-room permissions too.
 
 ## Applications
 

@@ -1,5 +1,4 @@
 import {createPBOperations} from './pbOperations.js';
-import {restoreChannelPermissions} from './restoreChannelPermissions.js';
 import {handleEventDonationRequests} from './eventDonationRequests.js';
 import {ensureEventTrophyEmojis} from './eventEmojis.js';
 import {handleEventDonations} from './eventDonations.js';
@@ -516,7 +515,6 @@ async function roomByVoice(voiceChannelId:string){return oneOrNone<RoomRow>(`SEL
 async function ensureVoiceRoom(voiceChannelId:string):Promise<RoomRow>{
   const existing=await roomByVoice(voiceChannelId);if(existing){await redis.set(voiceRoomKey(voiceChannelId),existing.id,"EX",24*3600);diagDebug("music-session","reusing voice session",{roomId:existing.id,voiceChannelId});return existing;}
   await ensureGuild();
-  await restoreChannelPermissions(client,guildId!).catch(error=>console.warn('[permissions-restore] Will retry on restart',error));
   const guild=client.guilds.cache.get(guildId!);const channel=guild?.channels.cache.get(voiceChannelId)??await guild?.channels.fetch(voiceChannelId).catch(()=>null);
   if(!channel?.isVoiceBased())throw new Error("Join a Discord voice channel before using music.");
   await cacheVoiceChannel(channel);

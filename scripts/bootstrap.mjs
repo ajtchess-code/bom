@@ -35,6 +35,8 @@ const retiredFeaturePaths = [
   "apps/dashboard/components/BattleCoordination.tsx",
   "apps/api/src/permissionPresets.ts", "apps/api/dist/permissionPresets.js",
   "apps/controller/src/channelAccessLayout.ts", "apps/controller/dist/channelAccessLayout.js",
+  // Category/channel permissions are left exactly as they are; nothing restores them.
+  "apps/controller/src/restoreChannelPermissions.ts", "apps/controller/dist/restoreChannelPermissions.js",
   "apps/dashboard/app/dashboard/admin/permission-presets", "apps/dashboard/components/PermissionPresetsDashboard.tsx",
   "apps/dashboard/components/RecruitmentDashboard.tsx", "scripts/tests/permission-presets-437.test.mjs", "scripts/tests/wiki-builder-redesign.test.mjs",
   // Minecraft and Clash of Clans game hubs
