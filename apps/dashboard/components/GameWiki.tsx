@@ -4,13 +4,17 @@ import {useEffect, useMemo, useState, useId} from 'react';
 import {useRouter, useSearchParams} from 'next/navigation';
 import ShipyardTree from './ShipyardTree';
 import GameWikiTools from './GameWikiTools';
+import SpecialCrewGuide from './wiki/SpecialCrewGuide';
+import VolleyRace from './wiki/VolleyRace';
+import PbChecklist from './wiki/PbChecklist';
 import {WikiNav,WikiHome,WikiGuides,ToolsHub,ToolHeader,CompareChart,ToolBoundary,sectionOf} from './wiki/WikiHub';
 import {availableRecipes} from '@bom/shared';
 
 type Entry={row:number;name:string;data:Record<string,any>;images?:any[];related?:any[];table?:string;source?:string;nameSource?:string};
 type Collection={name:string;label:string;group:string;rows:number;fields:string[];parts?:number;evidence:boolean;categories:Record<string,number>};
-const labels:Record<string,string>={ShipsToPlay:'Ships',ShipsBasics:'Hull models',Ship_Construction:'Ship construction',Ship_Materials:'Ship materials',ShipUpgradesNew:'Ship upgrades',ShipDesingElements:'Lanterns, flags & ship designs',EnvDesingElements:'Island decorations',Crew_Sailors:'Sailors',Crew_Boarding:'Boarding crew',Crew_Special:'Special crew',UnitsInfo:'All crew',RangInfo:'Captain ranks',CannonBalls:'Ammunition',PowderKegs:'Powder kegs',Market_Price_Limits:'Market price limits',System_English_Text:'Store & system text',English_Text:'Game text',WorldPorts:'Ports',World:'World definition',StartMap:'Starting world',NPC_Types:'NPC types',Gamepedia:'Game guides',Sailes:'Sails',Satellite:'Lanterns',Factory_Levels:'Resource Nodes'};
-const friendly=(s:string)=>labels[s]||s.replaceAll('_',' ').replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/\bID\b/g,'ID');
+const labels:Record<string,string>={ShipsToPlay:'Ships',ShipsBasics:'Hull models',Ship_Construction:'Ship construction',Ship_Materials:'Ship materials',ShipUpgradesNew:'Ship upgrades',ShipDesingElements:'Lanterns, flags & ship designs',EnvDesingElements:'Island decorations',Crew_Sailors:'Sailors',Crew_Boarding:'Boarding crew',Crew_Special:'Special crew',UnitsInfo:'All crew',RangInfo:'Captain ranks',CannonBalls:'Ammunition',PowderKegs:'Powder kegs',Market_Price_Limits:'Market price limits',System_English_Text:'Store & system text',English_Text:'Game text',WorldPorts:'Ports',World:'World definition',StartMap:'Starting world',NPC_Types:'NPC types',Gamepedia:'Game guides',Sailes:'Sails',Satellite:'Lanterns',Factory_Levels:'Mines & farms'};
+const fieldWords:Record<string,string>={EnglishName:'Name',EnglishDescription:'Description',Desc:'Description',HP:'Health',Hp:'Health',Distance:'Range',CannonsDistance:'Gun range',Maneuverability:'Turning',Displacement:'Weight',HoldCapacity:'Storage',ReloadTime:'Reload (s)',Penetration:'Penetration',Rang:'Rank',Lvl:'Level',Cnt:'Count',Qty:'Quantity'};
+const friendly=(s:string)=>labels[s]||fieldWords[s]||(/^[PM][A-Z][a-z]/.test(s)?`${s.slice(1).replace(/([a-z0-9])([A-Z])/g,'$1 $2')} (${s[0]==='P'?'+%':'+'})`:s.replaceAll('_',' ').replace(/^English/,'').replace(/([a-z0-9])([A-Z])/g,'$1 $2').replace(/\bID\b/g,'ID').trim()||s);
 const display=(v:any):string=>v===null||v===undefined||v===''?'Unknown / not supplied':typeof v==='boolean'?(v?'Yes':'No'):typeof v==='object'?JSON.stringify(v):String(v);
 const imageUrl=(path:string)=>`/api/internal/game-wiki/asset?path=${encodeURIComponent(path)}`;
 const mainImage=(images:any[]=[])=>images.find(i=>!i.Relationship?.includes('candidate')&&!i.PNGPath?.includes('_gray'))??images.find(i=>!i.PNGPath?.includes('_gray'));
@@ -79,7 +83,10 @@ export default function GameWiki({catalog,admin=false}:{catalog:any;admin?:boole
     {tab==='tools'&&<ToolsHub go={go}/>}
     {sectionOf(tab)==='tools'&&tab!=='tools'&&<ToolHeader tab={tab} go={go}/>}
     {error&&<p className="gwError" role="alert">{error}</p>}{busy&&<p role="status">Loading encyclopedia…</p>}
-    {['atlas','wind','nodes','npcs','combat','range','islands','craft-time','crew','chests'].includes(tab)&&<ToolBoundary tool={tab}><GameWikiTools tool={tab} open={pick}/></ToolBoundary>}
+    {['atlas','wind','nodes','npcs','combat','range','islands','craft-time','chests'].includes(tab)&&<ToolBoundary tool={tab}><GameWikiTools tool={tab} open={pick}/></ToolBoundary>}
+    {tab==='crew'&&<ToolBoundary tool={tab}><SpecialCrewGuide open={pick}/></ToolBoundary>}
+    {tab==='volleys'&&<ToolBoundary tool={tab}><VolleyRace/></ToolBoundary>}
+    {tab==='pb-ready'&&<ToolBoundary tool={tab}><PbChecklist/></ToolBoundary>}
     {tab==='browse'&&<div className="gwLayout"><aside className="gwSidebar"><button onClick={()=>{router.push('/dashboard/wiki');setMatches(null);setQuery('');}}>All categories</button>{catalog.groups.map((group:string)=><details key={group} open={current?.group===group||(!table&&group==='Ships & shipyard')}><summary>{group}</summary>{collections.filter(t=>t.group===group).map(t=><button key={t.name} aria-current={table===t.name?'page':undefined} onClick={()=>pick(t.name)}>{friendly(t.name)} <small>{t.rows.toLocaleString()}</small></button>)}</details>)}</aside><div className="gwContent">
       <form className="gwSearch" onSubmit={search}><label className="gwSrOnly" htmlFor="gw-search">Search game entries</label><input id="gw-search" value={query} onChange={e=>{setQuery(e.target.value);setPage(0);}} placeholder="Search ships, lanterns, crew, ports, recipes…"/><button type="submit">Search all</button></form>
       {current?.name==='Factory_Levels'&&record===null?<GameWikiTools tool="nodes" open={pick}/>:matches!==null?<section><h2>Search results</h2><p>{matches.length===100?'First 100':matches.length} matching game entries. Technical evidence is browsed in its own collections.</p>{matches.map(m=><button className="gwResult" key={`${m.table}:${m.row}`} onClick={()=>pick(m.table,m.row)}><strong>{m.name}</strong><small>{friendly(m.table)}</small></button>)}</section>:detail?<article><button onClick={()=>pick(table)}>← {friendly(table)}</button><div className="gwEntryHeading">{mainImage(detail.images)&&<EntryImage image={mainImage(detail.images)} label={detail.name}/>}<div><p className="gwEyebrow">{current?.group}</p><h2>{detail.name}</h2><p>{detail.data.EnglishDescription}</p></div></div>

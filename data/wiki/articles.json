@@ -1,49 +1,139 @@
 {
-  "version": 6,
+  "version": 7,
   "categories": [
     {
+      "id": "start",
+      "label": "New Player Guide",
+      "description": "Start here. Everything a new captain needs, in order."
+    },
+    {
       "id": "ships",
-      "label": "Ships & Fitting",
-      "description": "Ships, fittings, weapons, combat roles, and practical build-planning information."
+      "label": "Ships",
+      "description": "Ships, their stats and how to build them."
     },
     {
       "id": "combat",
-      "label": "Combat & Weapons",
-      "description": "Weapons, ammunition, boarding, consumables, and the mechanics that shape combat."
+      "label": "Combat",
+      "description": "Guns, ammo, boarding and consumables."
     },
     {
       "id": "economy",
-      "label": "Trading & Economy",
-      "description": "Trading, resources, crafting, storage, mines, production, and profit planning."
+      "label": "Trading & Money",
+      "description": "Trading, resources, crafting, storage and mines."
     },
     {
       "id": "world",
       "label": "World & Ports",
-      "description": "Ports, map locations, factions, tension, and Port Battle information."
+      "description": "Ports, the map, factions, tension and port battles."
     },
     {
       "id": "captain",
       "label": "Captain & Crew",
-      "description": "Captain skills, crew, specialists, and the systems that affect your ship and progression."
+      "description": "Captain skills, crew and specialists."
     },
     {
       "id": "guides",
       "label": "BOM Guides",
-      "description": "BOM-written guides, tactics, explanations, and practical reference material."
+      "description": "Guides and plans written by BOM."
     },
     {
       "id": "discord",
       "label": "BOM & Discord",
-      "description": "Member procedures and tools provided by the BOM bot."
+      "description": "How to use the BOM bot and dashboard."
+    },
+    {
+      "id": "community",
+      "label": "Community Notes",
+      "description": "Older notes collected from community guides and patch notes. Some may be out of date."
     }
   ],
   "articles": [
+    {
+      "slug": "new-player-welcome",
+      "title": "1. Welcome aboard",
+      "category": "start",
+      "type": "guide",
+      "order": 1,
+      "summary": "What World of Sea Battle is, and what to do in your first few hours.",
+      "content": "World of Sea Battle is a sailing game set in an archipelago cut off from the rest of the world. You sail, fight, trade and build, on your own or with a guild like BOM.\n\nThis guide takes you from your first ship to your first port battle. Read it in order, or jump to what you need.\n\n## Your first few hours\n1. **Sail your starter ship.** Everyone starts with small ships like the **Pickle** and the **Friede**. They're cheap to lose, so use them to learn.\n2. **Pick things up.** Floating loot, island searches and charting the map all pay, and they're safe.\n3. **Fight NPC ships** your size. Sinking them earns gold and resources. Avoid ships with a **red spyglass** over their name until you're confident; they'll attack you.\n4. **Try the arena.** It's a safe place to learn combat and it pays Battle Marks.\n5. **Join us in Discord** and sign up for a port battle when you're ready. See [Playing with BOM](guide:new-player-bom).\n\n## Words you'll hear a lot\n- **Rate**: a ship's size class, from **1st** (biggest) to **7th** (smallest).\n- **Broadside**: all the guns on one side of the ship firing together.\n- **Tension**: pressure on a port. At 100% a port battle can start.\n- **PB**: port battle, a big fight to capture or defend a port.\n\nThe [Glossary](guide:glossary) explains every other term, and you can hover any underlined word in a guide to see what it means.\n\n![Pickle](/wosb/ships/mPickle.png) ![Friede](/wosb/ships/mFriede.png)"
+    },
+    {
+      "slug": "new-player-sailing",
+      "title": "2. Sailing and the wind",
+      "category": "start",
+      "type": "guide",
+      "order": 2,
+      "summary": "How to go fast, stay safe in storms and read the danger level of the sea.",
+      "content": "## Using the wind\n- Full sails for a while gives you a **cruise mode** speed bonus. Sailing straight into the wind gives none.\n- Fast ships build up cruise mode quicker.\n- River and canal currents push you along even against the wind.\n\n> Tip: Open the [Wind & sailing tool](tool:wind) to see which angles are fastest.\n\n## Storms and cold seas\n- Storms give extra speed but big waves can tip you over. **Take in sail early.**\n- In cold regions your crew needs extra food or they'll die. Nothing spoils there, though, and fishing is better.\n\n## Dangerous water\nThe sea has danger levels. More danger means bigger NPCs and better loot. Shallows keep out big ships, and **reefs** damage you more the faster you hit them.\n\n![World map](/wosb/map/world-map.png \"The atlas shows ports, routes and danger zones.\")\n\n> Tip: The [World atlas](tool:atlas) shows trade routes and every port."
+    },
+    {
+      "slug": "new-player-ships",
+      "title": "3. Choosing ships",
+      "category": "start",
+      "type": "guide",
+      "order": 3,
+      "summary": "Ship rates and classes in plain words, and which kind to aim for.",
+      "content": "## Rates\nShips go from **7th rate** (smallest) to **1st rate** (biggest). Bigger isn't always better: better guns, upgrades and skills often help more than jumping to a bigger hull.\n\n## Classes\n- **Heavy**: tough, lots of guns, slow. The best choice for most players in big fights.\n- **Combat**: all-rounders for fighting in the line or quick attacks.\n- **Siege**: carry mortars to knock down forts and towers. Fragile.\n- **Fast**: quick ships for scouting, chasing and long-range fighting. Not good in port battles.\n- **Transport**: built to carry cargo.\n\n## Build in the right port\nMost ships belong to a **shipbuilding school**. Build one in a port of that school and it needs **25% fewer materials**.\n\n## Know your stats\n- **Durability**: how much damage it takes to sink.\n- **Armor**: blocks cannon damage. Angled armor blocks more; the stern is weakest.\n- **Speed** and **Turning** (maneuverability).\n- **Hold**: how much weight you can carry.\n- **Crew**: people to sail, load guns and board.\n\n![Pickle, a small ship](/wosb/ships/mPickle.png) ![Bellona, a 3rd rate](/wosb/ships/mBellona.png) ![Victory, a 1st rate](/wosb/ships/mVictory.png)\n\n> Tip: Browse every ship in the [Shipyard](tool:shipyard), and compare any two in [Game data](guide:ships)."
+    },
+    {
+      "slug": "new-player-money",
+      "title": "4. Making gold",
+      "category": "start",
+      "type": "guide",
+      "order": 4,
+      "summary": "The easiest ways to earn early on, and how mines and crafting pay later.",
+      "content": "## Early on\n- **Pick up loot** at sea and search islands.\n- **Sink NPCs** your size for gold and resources.\n- **Fish** for food you can eat or sell.\n- **Do tavern quests** and deliveries for scrolls and reputation.\n- **Play the arena** for Battle Marks.\n\n## Once you're settled\n- **Trade**: buy cheap, sell where it's dear. Prices show on the map.\n- **Buy a mine** and collect its ore. Keep it stocked with food from level 3.\n- **Craft** ships, guns or parts that sell well at the auction.\n- **Capture and scrap ships** for wood and cloth.\n\n> Tip: Don't sink NPC traders in daylight too often. It raises your [notoriety](guide:notoriety) and brings bounty hunters.\n\nCalculators that help: [Crafting calculator](tool:crafting), [Mines & farms](tool:nodes), [Personal islands](tool:islands)."
+    },
+    {
+      "slug": "new-player-combat",
+      "title": "5. Fighting at sea",
+      "category": "start",
+      "type": "guide",
+      "order": 5,
+      "summary": "Aiming, angling, repairing and when to back off: the basics that keep you alive.",
+      "content": "## Firing\n- **Left click** fires a full broadside.\n- **Right click** fires at a targeted bow or stern, which gets through armor better there.\n- **Swivel guns** fire with **Q**.\n\n## Angling\nShots that hit at a slant do less damage. Turning your ship slightly away (around **40°**) makes you much harder to hurt, but you can fire fewer guns. **Your stern is your weakest point.** Never turn it to the enemy.\n\n## Repairing\n- Repair whenever you're not reloading, firing or being shot.\n- Back off at about **40% health**, not 10%.\n\n## Boarding\nIf ships touch after a fight you can **board**. Bring enough sailors to run the ship, then soldiers and a few musketeers. [Boarding](guide:boarding) has the full detail.\n\n> Tip: Practise in the arena. It's the safest way to learn."
+    },
+    {
+      "slug": "new-player-crew",
+      "title": "6. Crew and specialists",
+      "category": "start",
+      "type": "guide",
+      "order": 6,
+      "summary": "Ordinary crew, boarding crew and the special crew that give your ship bonuses.",
+      "content": "## Ordinary crew\n- **Sailors** sail the ship and load the guns. Too few and everything is slower.\n- **Musketeers**, **soldiers** and **mercenaries** fight in boarding.\n\n## Special crew\nSpecial crew each give your ship one bonus. They're grouped in the game into four kinds:\n\n- **Military**: gunnery and fighting, e.g. Gunner (+4% reload) and Armorer (faster next reload after a single shot).\n- **Sailors**: speed, turning and repairs, e.g. Sail Handler (+4% speed) and Carpenter.\n- **Pirates**: boarding, loot and spotting things, e.g. Harpooner and Mastman.\n- **Adventurers**: finding rare items and crew at sea.\n\nFind them in taverns, by rescuing them at sea, from captives, or on your personal island.\n\n![Armorer](/wosb/builds/specialist-armorer.png \"The Armorer is a favourite for port battles.\")\n\n> Tip: The [Special crew tool](tool:crew) lists every specialist the same way the game's menu does."
+    },
+    {
+      "slug": "new-player-port-battles",
+      "title": "7. Port battles",
+      "category": "start",
+      "type": "guide",
+      "order": 7,
+      "summary": "How port battles work and how to fight well in one: ammo, guns, upgrades, consumables, positioning and loadouts.",
+      "content": "Port battles (PBs) are the big fights where guilds capture and defend ports. This chapter covers how they work and how to play your part.\n\n## How a port battle works\n- A port's **tension** has to reach 100% during the owner's battle window. Then the battle opens.\n- **Attackers** destroy the towers and fort and land troops. **Defenders** hold out until time runs out.\n- Each side has **respawn points** (tickets). Every ship sunk costs some. **Not getting sunk is the most useful thing a new player can do.**\n- Up to 20 ships per side, and your ship **doesn't lose integrity**, so don't hold back on ammo.\n\n## Pick the right ship type\n| Type | In port battles |\n| --- | --- |\n| **Heavy** | Most damage, health and armor. Best for most players. |\n| **Combat** | For skilled players who fight on the flanks. |\n| **Siege** | For patient players who focus on towers and forts. |\n| **Fast** | No real place in port battles. |\n\n### Good ships by rate\n| Rate | Ships to aim for |\n| --- | --- |\n| 1st | Huracan, Santisima Trinidad, 12 Apostolov, La Royale, Sovereign, De Zeven Provincien |\n| 2nd | St. Pavel, Redoubtable, Vasa, Adventure or Shen, Montanes |\n| 3rd | Azov, Bellona, San Juan Nepomuceno, Shen, Le Saint Louis, Kobukson |\n| 4th | Three Hierarchs, Constitution, Sparrow, Red Arrow, Devourer |\n| 5th | San Martin, Kwee Song, Eagle, Tie Long, Black Prince |\n| 6th | Shunsen, Golden Apostle, Phoenix |\n\nAt 1st rate: **12 Apostolov** if you're new to heavies (stay in the main line), **Santisima Trinidad** once you're experienced (line or flank), **De Zeven Provincien** to flank, **Sovereign** for the end of the line, and **La Royale** for siege.\n\n![12 Apostolov](/wosb/ships/m12Apostolov.png) ![Santisima Trinidad](/wosb/ships/mSantisimaTrinidad.png) ![La Royale](/wosb/ships/mLaRoyale.png)\n\n> BOM: Our own ship preferences for each rate are in [BOM Port Battle Preparation](guide:bom-port-battle-preparation). Officers have the final say on the roster.\n\n## Ammo\n![Saxon shot](/wosb/builds/ammunition-saxon-shots.png) ![Heavy shot](/wosb/builds/ammunition-heavy-shots.png)\n\n- **Saxon shot** for broadsides. Its fires add extra damage over time.\n- **Heavy shot** for the bow or stern, or to finish a ship that's almost sunk.\n- Only swap ammo **right after a volley**, so you don't waste reload time.\n\n## Guns: Long cannons or Jerichos?\nRange matters most, so long-range guns are the usual choice.\n\n![32-pdr Long cannon](/wosb/builds/weapon-32-pdr-long-cannon.png) ![38-pdr Jericho](/wosb/builds/weapon-38-pdr-jericho.png)\n\n- **Long cannons** reload faster, so they win long fights.\n- **Jerichos** hit harder per shot, so they win the first volley or two, which suits hit-and-run.\n\nThe guide this chapter is based on worked it through: Jerichos lead after the first volley, but Longs take the lead for good by about the third, and finish ten volleys roughly two minutes sooner.\n\n> Tip: Try it yourself in the [Cannon showdown](tool:volleys). It uses the current game numbers.\n\n## Upgrades\nA common heavy-ship setup:\n- **Tacking sails**: keeps your speed up while turning.\n- **Ammunition cradles**: reload about 12% faster.\n- **Fortified gun ports**: more range.\n- **Repair arsenal**: repairs about 20% stronger.\n- **Combat arsenal** (optional last slot): consumables come back about 20% faster, but you give up some turning and health.\n\n## Consumables\nPopular sets of three:\n1. **Phosphorus + Large plates + Bronze patches** (the most common)\n2. **Large smoke + Large plates + Bronze patches**\n3. **Large smoke + Large plates + Berserk's patch**\n\n![Phosphorus](/wosb/builds/consumable-phosphorus.png) ![Large plates](/wosb/builds/consumable-large-plates.png) ![Smoke screen](/wosb/builds/consumable-smoke-screen.png) ![Bronze patches](/wosb/builds/consumable-bronze-patches.png)\n\n- **Phosphorus**: +2 penetration and slows the ships you hit. Good for chasing and for escaping.\n- **Large plates**: +4 armor and you put fires out faster, but you turn about 10% slower.\n- **Smoke screen**: the only one that cuts fire, mortar and stern-shot damage. It takes off a quarter of the damage you'd have taken.\n- **Bronze patches**: your main heal. Use them a lot, just not at full health.\n\n## Aiming\n- **Left click** for broadsides. **Right click** for targeted bow and stern shots, which get a big penetration bonus there (not on broadsides).\n- Firing a **single cannon** gets +2 penetration.\n- Right-click firing **pauses the reload on your other guns**. The **Armorer** specialist helps by pre-loading your guns by 20%.\n\n![Armorer](/wosb/builds/specialist-armorer.png)\n\n## Positioning (the most important skill)\nMost deaths come from being in the wrong place. Stay with your team and keep to your role:\n- The **main line** pushes the objective (towers and fort) or holds the enemy line.\n- **Flankers** on the edges deal with enemy flankers.\n\n![Port battle map](/prep-review/maps/aruba-ii.png \"Plan your lines on the real map in Battle Prep.\")\n\n### Angling\nShots that hit at a slant do less damage. About **40°** away from the enemy is the best defensive angle, but you can fire fewer guns. Use it when you're taking a beating.\n\n### Backing off\n- If you can angle and soak damage near the edge of enemy range, **reverse** out.\n- If you're deep in their range but still healthy, **turn away**.\n- **Never sail straight away.** It shows them your stern, your weakest spot.\n\n## Repairing\n- Pull back at about **40% health**. Start leaving before you get there.\n- Repair whenever you're not reloading, firing or being hit.\n- Repair at **speed 1** while backing up, creeping behind the line, or turning around.\n\n## Range\nLook through the spyglass: the aim marker is **orange** when the target is out of range and **white** when it's in range. Stay at **maximum range** unless your team is charging in together.\n\n## Stay in the fight\n- While you have health, **keep firing**. Damage wins battles.\n- Hit **towers** when you can; they don't heal.\n- Don't get stuck chasing a weak ship that's dragging you out of position.\n- Every sinking costs the team points. Leave those points for teammates who need to take risks.\n\n## Pack your hold\nYou get about **9 minutes** to check your loadout before the battle. For a 1st rate, roughly:\n| Item | How much |\n| --- | --- |\n| Wood | about 3,000 |\n| Fabric | about 500 |\n| Food (provisions) | about 400 |\n| Ammo | about 80% Saxon, 20% Heavy |\n| Fire ships | 4 to 6 |\n| Mines | any kind |\n\n**Hold insurance** costs 40 scrolls from the port shop and protects your cargo.\n\n> Tip: Use the [Port battle checklist](tool:pb-ready) to tick off your loadout and BOM's stockpile targets.\n\n## Lanterns\n![Red lantern](/wosb/builds/lantern-red-lantern.png) ![Golden lantern](/wosb/builds/lantern-golden-lantern.png)\n\n- **Red**: good everywhere; a popular pick for better turning.\n- **Golden**: a favourite for port battles among top players.\n\nYou can win lanterns in tournaments and the arena.\n\n## Keep practising\nUse the minimap and look around often. The arena is the best place to practise, and starting in a heavy is the easiest way to learn before trying other roles."
+    },
+    {
+      "slug": "new-player-bom",
+      "title": "8. Playing with BOM",
+      "category": "start",
+      "type": "guide",
+      "order": 8,
+      "summary": "Signing up for port battles, using the dashboard and asking Misfit for help.",
+      "content": "## Signing up for port battles\n1. On the dashboard, open **Port Battles → Preferred Ships** and tick the ships you can sail.\n2. On a battle card, choose **Attending**, **Running Late** or **Waitlist**.\n3. Use **Detailed Signup** to pick ships or volunteer for horn and flare duties.\n\nOfficers confirm the roster and give out ships and duties. [Port Battle Signups](guide:pb-signups) has more.\n\n## Before the battle\n- Check **Battle Prep** for the plan on the real port map.\n- Stock up using our [stockpile targets](guide:bom-port-battle-preparation) and the [Port battle checklist](tool:pb-ready).\n\n## Getting help\nMention **Misfit** in Discord with any game question, or use **Ask Wiki**. If an answer is wrong, you can correct it; see [Ask Questions & Correct Answers](guide:ask-and-corrections).\n\nWelcome to the Band of Misfits."
+    },
+    {
+      "slug": "glossary",
+      "title": "Glossary",
+      "category": "start",
+      "type": "glossary",
+      "order": 99,
+      "summary": "Every game term on this wiki, explained in one line."
+    },
     {
       "slug": "ships",
       "title": "Ships",
       "category": "ships",
       "type": "ships",
-      "summary": "Browse the fleet, compare important stats, and open a dedicated page for each ship."
+      "summary": "Every ship, with its main stats side by side."
     },
     {
       "slug": "ship-building",
@@ -51,28 +141,31 @@
       "category": "ships",
       "type": "guide",
       "guideEntity": "guide:ship-building",
-      "summary": "Learn how rates, classes, core ship stats, shipbuilding schools, and the school-port crafting discount work together."
+      "summary": "Ship rates and classes explained, and why where you build matters."
     },
     {
       "slug": "cannons-and-weapons",
       "title": "Cannons & Weapons",
       "category": "combat",
       "type": "weapons",
-      "summary": "Compare cannon families and special weapons by the stats that matter in combat."
+      "summary": "The main gun types in plain words, how to get better guns, and what the stats mean.",
+      "content": "Your guns decide how hard you hit and from how far.\n\n## Gun types\n- **Cannons**: all-rounders for short to medium range.\n- **Long cannons**: reach further and are more accurate.\n- **Carronades**: short range but heavy hitting.\n- **Bombards**: fit the bow and stern.\n- **Mortars**: lob shells; best against forts and towers.\n- **Special weapons**: unusual guns with their own tricks.\n\n## Getting better guns\n1. **Basic** guns are bought with gold and need no crafting. Good for starting out.\n2. **Advanced** guns are crafted from materials and have better stats.\n3. **Pirate** guns are the strongest. Buy them with Pirate Tokens, or get them from weapon convoys and special modes.\n\n## What the numbers mean\n- **Penetration**: how well a shot gets through armor. Higher means more damage gets through.\n- **Reload**: seconds between shots. Lower is faster.\n- **Range**: how far it can fire.\n- **Max angle**: how far you can swing the guns left or right.\n- **Spread** (accuracy): how much shots scatter. Lower is tighter.\n\n> Tip: Not sure which gun wins? The [Cannon showdown](tool:volleys) shows how much damage two guns deal over time, and the [Combat lab](tool:combat) compares full loadouts."
     },
     {
       "slug": "ammunition",
       "title": "Ammunition",
       "category": "combat",
       "type": "ammunition",
-      "summary": "A practical reference for ammunition types, intended roles, and known effects."
+      "summary": "What each kind of shot is for, and when to use barrels, mines and fire ships.",
+      "content": "Different shot does different jobs. The two you'll use most in big fights:\n\n![Saxon shot](/wosb/builds/ammunition-saxon-shots.png) ![Heavy shot](/wosb/builds/ammunition-heavy-shots.png)\n\n- **Saxon shot**: the everyday choice for broadsides. It can start fires, which keep doing damage after the hit.\n- **Heavy shot**: hits harder through armor. Use it on the bow or stern, or to finish a ship that's nearly sunk.\n\n> Tip: Only switch ammo right after you fire. Switching mid-reload wastes time.\n\n## Swivel guns\nSwivel guns have their own fire button (**Q** by default). You can't aim them precisely, so fire roughly in the right direction.\n\n## Barrels, mines and fire ships\n- **Barrels and mines** are for close range, mostly to shake off ships chasing you. Handle them carelessly and they can hurt you too.\n- **Fire ships** are small boats packed with powder that sail at the ship you target. Enemy fire can blow them up, even as you launch them, and then your own ship takes the full blast. Pick your moment."
     },
     {
       "slug": "consumables",
       "title": "Consumables",
       "category": "combat",
       "type": "consumables",
-      "summary": "Browse consumables by effect, cooldown, duration, and practical use."
+      "summary": "Repair kits, plates, smoke and more: what they do and how to combine them.",
+      "content": "Consumables **repair** your ship, **boost** its stats for a while, or help your allies.\n\nBeating NPCs or players can drop a random consumable into an extra temporary slot.\n\n> Tip: Like upgrades, consumables work best in **combinations**. See the port battle setups in the [New Player Guide](guide:new-player-port-battles)."
     },
     {
       "slug": "boarding",
@@ -80,105 +173,110 @@
       "category": "combat",
       "type": "guide",
       "guideEntity": "guide:boarding",
-      "summary": "Learn boarding damage, crew roles, attack and defend decisions, and practical risk management."
+      "summary": "How boarding fights work and which crew to bring."
     },
     {
       "slug": "nutrition",
       "title": "Nutrition",
       "category": "captain",
       "type": "nutrition",
-      "summary": "Compare known food efficiency by nutrition per unit of weight, with modifiers kept separate."
+      "summary": "Which foods feed your crew best for their weight."
     },
     {
       "slug": "captain-skills",
       "title": "Captain Skills",
       "category": "captain",
       "type": "captain_skills",
-      "summary": "Browse captain skills by tree and rank, including their known effects and costs."
+      "summary": "Every captain skill by tree, with what it does and costs."
     },
     {
       "slug": "crew-and-specialists",
       "title": "Crew & Specialists",
       "category": "captain",
       "type": "crew",
-      "summary": "Understand ordinary crew, specialists, and the shipboard roles they support."
+      "summary": "Who's on your ship, what they do, and how to get the special crew that give bonuses.",
+      "content": "Your crew does three jobs: **loading the guns**, **working the sails** and **fighting when ships board each other**.\n\n## Two kinds of ordinary crew\n- **Sailors** run the ship. If you don't have enough, your guns reload slower and your sails handle worse.\n- **Boarding crew** (musketeers, soldiers and mercenaries) fight when you board or get boarded. See [Boarding](guide:boarding) for which to bring.\n\nYou can hire them in any mix, but always keep enough sailors. Crew die during fights, so top them up in port.\n\n## Special crew\nSpecial crew (also called specialists) each give your whole ship one bonus, such as faster reloads or faster repairs. They work for a limited time and want extra pay.\n\nYou **can't hire them at the port's crew screen**. Instead you get them by:\n- visiting **taverns** (cities have soldiers and sailors, pirate coves and pirate cities have pirates),\n- **rescuing** them at sea,\n- recruiting them from **captives**,\n- recruiting them on your **personal island**, which finds rarer ones than taverns.\n\n> Tip: Use the [Special crew tool](tool:crew) to browse every specialist the way the game's menu lays them out."
     },
     {
       "slug": "trade-goods",
       "title": "Trade Goods",
       "category": "economy",
       "type": "trade_goods",
-      "summary": "Compare trade goods, price ranges, weight, and useful port-price observations without creating a page for every port/good pair."
+      "summary": "Trade goods, their price ranges and weight."
     },
     {
       "slug": "resources",
       "title": "Resources",
       "category": "economy",
       "type": "resources",
-      "summary": "Reference resource weight, value, purpose, and known crafting uses."
+      "summary": "What each resource weighs, is worth and is used for."
     },
     {
       "slug": "crafting",
       "title": "Crafting",
       "category": "economy",
       "type": "crafting",
-      "summary": "Find recipes, required materials, base costs, and configured discounts for production planning."
+      "summary": "Recipes, materials and crafting discounts."
     },
     {
       "slug": "warehouses-and-hold",
       "title": "Warehouses & Hold",
       "category": "economy",
       "type": "warehouses",
-      "summary": "Understand warehouse levels, temporary storage, cargo capacity, and hold-related planning."
+      "summary": "How much your ship and warehouses can hold, and what's shared between ports.",
+      "content": "Ammo and resources both have **weight**, so pick what you carry with care.\n\n- **Ammo and equipment** go in a **shared warehouse** you can reach from any port.\n- **Resources** are stored **in the port where you left them** and take up space there.\n\nResource warehouses have a **weight limit**. Upgrading them raises it, but you can only upgrade a limited number, so choose which ports to build in (or dismantle) carefully."
     },
     {
       "slug": "guilds-and-factions",
       "title": "Guilds & Factions",
       "category": "world",
       "type": "factions",
-      "summary": "An overview of the guild and faction systems, their benefits, and how they affect play."
+      "summary": "The game's factions and how guilds fit inside them.",
+      "content": "A **guild** is a big group of players inside a **faction**, with its own ranks.\n\n## The factions\n- **Kai & Severia** (military, eastern). Capital: Tsurograd.\n- **The Dominion of Antilia** (military, allied). Capital: New Britannia.\n- **The Viceroyalty of Espaniol** (military, imperial). Capital: Nueva Castella.\n- **Trade Union** (the Khanfar Caliphate, neutral). Capital: Al-Khalif.\n- **Pirates**: no capital, just pirate coves and independent captains."
     },
     {
       "slug": "trade-missions",
       "title": "Trade Missions",
       "category": "economy",
       "type": "trade_missions",
-      "summary": "Trade Mission costs, timing, discounts, and production-related effects in one reference."
+      "summary": "What trade missions cost, how long they run and what they give."
     },
     {
       "slug": "ports-and-port-battles",
       "title": "Ports & Port Battles",
       "category": "world",
       "type": "ports",
-      "summary": "Browse Port Battle ports, rates, team sizes, tension information, and related capture mechanics."
+      "summary": "Why ports matter, how a port battle opens, and how it's won.",
+      "content": "Owning ports grows your faction's territory and earns money from production and taxes.\n\n## How a port battle opens\n1. Raise the port's **tension** to 100%. Outside the owner's battle window it stops at 50%.\n2. When it hits 100% during the window, the battle opens and shows on the map.\n\n## How it's won\n- **Attackers** must destroy all the **towers** and the **fort**, then land troops before time runs out. Each object or ship destroyed adds time.\n- **Defenders** win by running out the clock, or by sinking every attacker once their points are gone.\n\n## Respawn points (tickets)\nEach side has a pool of respawn points. Every ship sunk costs points: **2 to 7** depending on rate, and **4 to 9** for heavy ships. When a side runs out, its ships are removed. When attackers hit zero, the timer drops to 5 minutes.\n\nUp to **20 ships** per side. Ships **don't lose integrity** in port battles, so bring plenty of ammo.\n\n> Tip: New to port battles? Read the [Port battles chapter](guide:new-player-port-battles) of the New Player Guide."
     },
     {
       "slug": "map-and-world",
       "title": "Map & World",
       "category": "world",
       "type": "map",
-      "summary": "Explore ports, mines, forts, lighthouses, resources, and other useful world locations."
+      "summary": "Ports, mines, forts, lighthouses and more on the world map."
     },
     {
       "slug": "pirate-weapons-and-tokens",
       "title": "Pirate Weapons & Tokens",
       "category": "combat",
       "type": "pirate",
-      "summary": "Pirate weapons, token costs, and the information useful for planning Pirate Shop purchases."
+      "summary": "Pirate guns and what they cost in Pirate Tokens."
     },
     {
       "slug": "transport-ships",
       "title": "Transport Ships",
       "category": "ships",
       "type": "transport",
-      "summary": "Compare transport capacity, cargo-fitting scenarios, lantern choices, and overweight behavior."
+      "summary": "How much each transport carries and what happens when you overload."
     },
     {
       "slug": "flags-pvp-and-tension",
       "title": "Flags, PvP & Tension",
       "category": "world",
       "type": "flags",
-      "summary": "Understand flags, PvP reputation, tension, and the mechanics that connect them."
+      "summary": "What your flag does, which players you can safely attack, and how tension leads to port battles.",
+      "content": "## Flags\nYour flag sets how you play. Flags can turn **PvP protection** on or off, give XP and loot bonuses, and let you into certain ports.\n\nPvP protection **doesn't work** in the middle of the map (inside the red circle) or in the Endless Sea.\n\n## Who's safe to attack\n- **Red** players are pirates or enemies of your faction. Sinking them is fine and pays rewards.\n- **Yellow** players are neutral. Sinking them can get you penalised.\n- **Green** players are allies. Sinking them brings heavy penalties.\n\nSinkings in port battles, in the Endless Sea, or when they attacked you first don't affect your reputation. Sinking neutrals or much lower-ranked ships gives you **Black Marks** (military faction players lose reputation instead).\n\n## Tension\nTension measures how much pressure a port is under. It rises when ships fight near it under faction flags.\n- At **15%** the owning guild can't issue decrees, like protection or changing the battle window.\n- At **30%** the port produces less, and above that it stops paying taxes.\n- At **100%**, during the owner's battle window, a **port battle** opens.\n\nTo lower tension, sink pirate NPCs under flags, or sink the players raising it. If a city runs short of resources, tension slowly climbs to 100% and the city **revolts**, and the guild loses it."
     },
     {
       "slug": "trading",
@@ -186,7 +284,8 @@
       "category": "economy",
       "type": "guide",
       "guideEntity": "guide:trading",
-      "summary": "How player trade, ports, and resources fit together."
+      "summary": "How buying and selling between ports works, and how the auction helps.",
+      "content": "Nearly everything in the game, from building wood to food, is gathered or made by players.\n\n## Trade houses\nYou can sell resources to ports. A port's price depends on **how much it already has**, and only players change that amount. Buy where it's cheap, sail it to where it's dear, and keep the difference.\n\n## The auction\nPlayers sell goods, ships and guns to each other at the **Auction**. Whoever owns the port takes a small cut of each sale.\n\n## Goods\n**Goods** are special trade items. They sell for more in regions that don't make them.\n\n> Tip: Items have their own traits. Look around for the best buyer instead of selling at the first port."
     },
     {
       "slug": "trading-at-sea",
@@ -194,7 +293,8 @@
       "category": "economy",
       "type": "guide",
       "guideEntity": "guide:trading-at-sea",
-      "summary": "Daily offers from trading ships and settlements."
+      "summary": "Trading ships and settlements at sea, with offers that change every day.",
+      "content": "Out at sea you'll meet **trading ships** and **settlements**. Their offers change daily. They sell ammo and food and often have good buy and sell deals.\n\nTraders in the **Endless Sea** have even better offers."
     },
     {
       "slug": "mines-and-factories",
@@ -202,7 +302,8 @@
       "category": "economy",
       "type": "guide",
       "guideEntity": "guide:mines-and-factories",
-      "summary": "Production sites, provisions, resource output, and production management."
+      "summary": "How to buy a mine, keep it running and collect what it makes.",
+      "content": "Mines sit on islands around the map and are a main source of ore for building ships, crafting and trading. Any captain can buy one.\n\n## The four mines\n- **Coal mine**: coal, used for smelting and trading.\n- **Copper mine**: copper, used for guns and to make bronze.\n- **Iron mine**: iron ore, used for ships and crafting.\n- **Ice mine**: ice, needed for port upgrades.\n\n## Owning a mine\nSail to the island and **pay for level 1**. The mine is then yours and starts producing on its own.\n\nEach mine has **four levels**. Higher levels make more and store more, but cost extra materials to upgrade.\n\n## Keeping it running\n- From **level 3**, a mine **uses provisions (food)**. If it runs out, it stops until you restock it.\n- Assigning **workers** makes it produce faster.\n- **Collect regularly.** When its storage is full, it stops producing.\n\n> Tip: Own different types of mine so you always have what you need for ships and port upgrades. The [Mines & farms tool](tool:nodes) shows output and storage at each level."
     },
     {
       "slug": "workshops",
@@ -210,7 +311,8 @@
       "category": "economy",
       "type": "guide",
       "guideEntity": "guide:workshop",
-      "summary": "Processing materials and crafting through workshops."
+      "summary": "Turning raw materials into ship parts, and what crafting time is.",
+      "content": "Crafting turns **raw materials** (like ore) into **resources**, and resources into **parts** such as bulkheads, sailcloth, plates and bronze. Those parts build ships and upgrades.\n\n## Crafting time\nCrafting uses **crafting time**, which refills on its own in real time. Your skills raise how much you can store and how fast it refills.\n\n## Specialty workshops\nSome parts need a **Specialty Workshop**. As your skills and warehouses grow you can have **up to two**.\n\nYou can also open one on your **personal island**. It's more efficient than in port and doesn't use your normal crafting time (it uses the island's own resources instead).\n\n> Tip: The [Crafting calculator](tool:crafting) works out every step for you, and [Crafting time](tool:craft-time) shows your limits."
     },
     {
       "slug": "earning-gold",
@@ -218,7 +320,8 @@
       "category": "economy",
       "type": "guide",
       "guideEntity": "guide:earning-gold",
-      "summary": "Reference methods for gathering, trading, combat, and income."
+      "summary": "Every main way to make money, in one list.",
+      "content": "Ways to grow your gold and resources:\n\n- **Gathering**: pick up items at sea, explore islands and chart the map.\n- **Sinking ships**: earns gold and resources.\n- **Boarding**: earns extra resources on top.\n- **Capturing and scrapping ships**: gives lots of wood and cloth.\n- **Fishing**: catch fish to eat, sell or trade.\n- **Trading**: buy low, sell high. Prices show on the map and in trade houses.\n- **Sea traders**: often have very good deals.\n- **Auction**: hunt for bargains or sell your resources.\n- **Crafting**: make ships, guns or goods people want and sell them.\n- **Arena**: earn Battle Marks, and sell any you don't need.\n- **Quests and missions**: tavern quests and deliveries give scrolls and reputation."
     },
     {
       "slug": "guild-development",
@@ -226,7 +329,8 @@
       "category": "world",
       "type": "guide",
       "guideEntity": "guide:guild-development",
-      "summary": "Influence points, upgrades, and city development."
+      "summary": "Influence points: how guilds earn them and what they're spent on.",
+      "content": "**Influence points** are what guilds spend to grow: guild upgrades, improving captured cities and raising the member limit.\n\nYou earn them mainly from **influence missions**. Every member's actions count toward them. The bigger the guild gets, the harder the missions become.\n\nPoints earned in a season show in the rankings, and **spending them doesn't lower your ranking**."
     },
     {
       "slug": "guild-vault-and-treasury",
@@ -234,7 +338,8 @@
       "category": "world",
       "type": "guide",
       "guideEntity": "guide:vault-and-treasury",
-      "summary": "Guild storage, treasury, and contributions."
+      "summary": "The difference between your guild's vault and treasury, and where the gold comes from.",
+      "content": "Every guild has two pots of money.\n\n## The vault\nMembers put **chests** into the vault by choice. The guild spends it on things like fort upgrades, contracts and investments.\n\n## The treasury\nThe treasury **pays members**. Only the leader or first mate can manage it (by clicking a member's name, including their own).\n\n## Where the gold comes from\nCaptured cities pay **taxes**. Part is paid straight out as wages; the rest is stored in that port's **fort**. It only moves to the treasury **after the port battle window closes**. Until then, enemies can take it by capturing or robbing the port.\n\nIn Arab cities, the gold goes straight into the treasury."
     },
     {
       "slug": "headquarters-and-city-bonuses",
@@ -242,7 +347,8 @@
       "category": "world",
       "type": "guide",
       "guideEntity": "guide:headquarters-and-city-bonuses",
-      "summary": "Reference information about developed cities and their benefits."
+      "summary": "How developing a city gives bonuses to its owner and allies.",
+      "content": "As a city is developed it grows and gives **more bonuses** to the guild that owns it and to its allies.\n\n- For **military factions**, every guild in the faction counts as an ally.\n- For **pirates**, only trusted guilds do.\n\nA **trading guild** can open a trade mission in a city to get its bonuses. It pays a fee based on the city's level, and must keep paying to keep the mission.\n\nAllied guilds have to contribute to get the bonuses, so factions develop cities together."
     },
     {
       "slug": "wind-and-speed",
@@ -250,7 +356,8 @@
       "category": "world",
       "type": "guide",
       "guideEntity": "guide:seafaring-wind-and-speed",
-      "summary": "Cruise mode, sail settings, and wind direction."
+      "summary": "How the wind, full sails and currents change your speed, and how far you can see.",
+      "content": "## Cruise mode\nSail with full sails for a while and your ship builds up a **speed bonus** called cruise mode. Fast ships build it up quicker. Sailing **into the wind** gives no bonus.\n\n## Seeing further\nUse the **spyglass** to watch ships far away. You see less at night and in bad weather, and bigger ships are easier to spot.\n\n## Rivers and canals\nCurrents in rivers and canals push you along, even against the wind.\n\n> Tip: The [Wind & sailing tool](tool:wind) shows which angles to the wind are fast for your ship."
     },
     {
       "slug": "weather-and-storms",
@@ -258,7 +365,8 @@
       "category": "world",
       "type": "guide",
       "guideEntity": "guide:weather-and-storms",
-      "summary": "Storms, squalls, and sailing hazards."
+      "summary": "What storms do, why cold regions need more food, and how to stay upright.",
+      "content": "## Storms\nStorms are the biggest danger. The closer you get to the middle, the worse the squalls, rain and waves. Storm winds do give you **extra speed**.\n\nBig waves can tip your ship over (listing). **Take in your sails in time**, or fit upgrades that help, to avoid it.\n\n## Cold regions\nIn the cold your crew needs **extra food** or they'll start dying. On the plus side, nothing spoils there, and you'll find more resources and fish.\n\nElsewhere, hunger never gets dangerous, but extra food still gives a small bonus."
     },
     {
       "slug": "travel-and-hazards",
@@ -266,15 +374,17 @@
       "category": "world",
       "type": "guide",
       "guideEntity": "guide:travel-and-hazards",
-      "summary": "Hazard levels, exploration, and travel."
+      "summary": "Why dangerous waters pay more, and what shallows and reefs do.",
+      "content": "Every stretch of sea has a **danger level**. More dangerous water has bigger NPC ships, better mission rewards and more loot, but it's riskier.\n\n- **Shallow water** keeps out ships above a certain rate. That limits you in a big ship, but protects you in a small one.\n- **Reefs** damage ships that sail over them. The faster you go, the more damage you take."
     },
     {
       "slug": "nps-ships",
-      "title": "NPS Ships",
+      "title": "NPC Ships",
       "category": "world",
       "type": "guide",
       "guideEntity": "guide:nps",
-      "summary": "Non-player ships and their roles in the archipelago."
+      "summary": "The computer-controlled ships you meet at sea, and which ones will attack you.",
+      "content": "NPC ships are the game's own computer-controlled ships. Like players, they trade, gather, rob and explore.\n\n- A **red spyglass** over a name means that ship may attack you if you get close.\n- Many NPCs keep the economy running. Sinking them can raise your [notoriety](guide:notoriety), and then even ships without a red spyglass may attack you.\n\n> Tip: The [NPC ships tool](tool:npcs) lists the ships NPCs sail."
     },
     {
       "slug": "notoriety",
@@ -282,7 +392,8 @@
       "category": "captain",
       "type": "guide",
       "guideEntity": "guide:notoriety-level",
-      "summary": "Reference information about notoriety and its effects."
+      "summary": "Why sinking NPC traders makes NPCs and bounty hunters come after you.",
+      "content": "Lots of NPC ships keep the economy going, even though players sink them for loot.\n\nSinking NPC ships **in daylight**, especially **traders**, raises your **notoriety**. It drops again over time.\n\nThe higher it gets, the more often NPC ships attack you, and eventually **bounty hunters** come looking for you."
     },
     {
       "slug": "ship-capturing",
@@ -290,7 +401,8 @@
       "category": "combat",
       "type": "guide",
       "guideEntity": "guide:ship-capturing",
-      "summary": "Boarding, capture, and captured ships."
+      "summary": "Taking enemy NPC ships into your own fleet, and what they're good for.",
+      "content": "Win a boarding and you can **capture NPC ships** into your fleet. They're useful as **escorts**, as **extra guns** in a fight, and for **carrying cargo**.\n\n- Give your fleet orders from the menu with **Z**.\n- Repair them in port, or **scrap** them for wood and cloth.\n- They wait in port while you're in the arena, in other modes, or offline.\n- If you sink or sail too far away, they stop following orders until you come back."
     },
     {
       "slug": "port-robberies",
@@ -298,14 +410,15 @@
       "category": "world",
       "type": "guide",
       "guideEntity": "guide:port-robberies",
-      "summary": "Fort robberies and their relationship to Port Battles."
+      "summary": "Robbing a port's fort instead of capturing it, and why it can backfire.",
+      "content": "Once a port battle opens, the attacking guild can **rob** the fort by destroying it, without having to destroy the towers first.\n\nYou get to take resources from storage and a **construction license** (only one when robbing bays).\n\n> Warning: Robbing costs your team **respawn points**, and every player who takes resources **leaves the battle**. If you have a real chance to capture the port, robbing can cost you the win."
     },
     {
       "slug": "custom-roles",
       "title": "Request a Custom Role",
       "category": "discord",
       "type": "guide",
-      "summary": "BOM bot procedures and dashboard instructions.",
+      "summary": "Design your own Discord role and send it for approval.",
       "body": "## Open the role designer\n\nUse `/role-request` in Discord, or open **Members → Custom Role** in the dashboard.\n\n## Choose the appearance\n\nEnter a role name. Choose a solid color, a two-color gradient, or the holographic preset. An icon or Unicode emoji is optional. The preview shows the name color; message bodies keep their normal color.\n\nGradient and holographic colors require Discord Enhanced Role Colors in the server. Submit the request for Admiralty approval. If requests are disabled, contact Admiralty."
     },
     {
@@ -313,7 +426,7 @@
       "title": "Request Guild Media",
       "category": "discord",
       "type": "guide",
-      "summary": "BOM bot procedures and dashboard instructions.",
+      "summary": "Turn your images and sounds into server emoji, stickers and soundboard clips.",
       "body": "## Choose the outputs\n\nOpen **Members → Guild Media**. Select Emoji, Animated Emoji, Sticker, Soundboard Clip, or multiple compatible outputs. One static image can become both an emoji and a sticker.\n\nUpload a file, provide a name, and send the request for approval. Animated emoji requires a GIF. Soundboard clips use a separate MP3 upload under 512 KiB and five seconds.\n\nAdmiralty reviews and publishes each output separately."
     },
     {
@@ -321,7 +434,7 @@
       "title": "Port Battle Signups",
       "category": "discord",
       "type": "guide",
-      "summary": "BOM bot procedures and dashboard instructions.",
+      "summary": "Save the ships you can sail and sign up for port battles.",
       "body": "## Save your fleet\n\nOpen **Port Battles → Preferred Ships** and select ships you can play. Mark your preferred ships and Horn capabilities.\n\n## Join a battle\n\nUse **Attending**, **Running Late**, or **Waitlist** on the battle card. **Detailed Signup** lets you choose playable ships and volunteer for Horn or signal flare duties. Officers confirm the roster and assign ships and duties.\n\nShip eligibility comes from the port rate and officer settings. An allowed ship is not automatically a required ship; current ship targets and confirmed rosters show the live fleet plan."
     },
     {
@@ -329,7 +442,7 @@
       "title": "Ask Questions & Correct Answers",
       "category": "discord",
       "type": "guide",
-      "summary": "BOM bot procedures and dashboard instructions.",
+      "summary": "Ask Misfit game questions and fix wrong answers.",
       "body": "## Ask Misfit\n\nMention Misfit with a game question or use Ask Wiki. Supported requests also include personal leave and Port Battle signup; officer duties and signing up another member remain permission checked. Misfit asks for missing details and confirms proposed actions before committing.\n\n## Correct a fact\n\nReply to an answer with the configured **No** role, the entity, field and corrected value; for example, an Anson cargo capacity correction. Authorized correctors can apply a supported change to shared Wiki knowledge. Other members submit suggestions for review. Ambiguous changes need clarification.\n\n## Source and version differences\n\nCorrections are auditable and reversible. Imported historical snapshots retain their original values. Include a source or game version when you know it. Never treat a dated guild fleet preference as a current ship balance statistic."
     },
     {
@@ -338,463 +451,577 @@
       "category": "guides",
       "type": "guide",
       "guideEntity": "guide:bom-pb-preparation",
-      "summary": "Recovered BOM stockpile checklists, tension fleet preferences and heavy-fleet doctrine. Dated guild guidance."
+      "summary": "BOM's stockpile targets and which ships we want you to bring."
     },
     {
       "slug": "source-guide-crew",
-      "title": "Crew — Source Guide",
-      "category": "guides",
+      "title": "Crew",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:crew",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     },
     {
       "slug": "source-guide-ammunition",
-      "title": "Ammunition — Source Guide",
-      "category": "guides",
+      "title": "Ammunition",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:ammunition",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     },
     {
       "slug": "source-guide-barrels-swivel-guns-and-special-weapons",
-      "title": "Barrels, Swivel Guns & Special Weapons — Source Guide",
-      "category": "combat",
+      "title": "Barrels, Swivel Guns & Special Weapons",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:barrels-swivel-guns-and-special-weapons",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-flags",
-      "title": "Flags — Source Guide",
-      "category": "world",
+      "title": "Flags",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:flags",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-ports",
-      "title": "Ports — Source Guide",
-      "category": "world",
+      "title": "Ports",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:ports",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-port-battles-and-capturing",
-      "title": "Port Battles & Capturing — Source Guide",
-      "category": "world",
+      "title": "Port Battles & Capturing",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:port-battles-and-capturing",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-reputation-and-pvp",
-      "title": "Reputation & PvP — Source Guide",
-      "category": "guides",
+      "title": "Reputation & PvP",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:reputation-and-pvp",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     },
     {
       "slug": "source-guide-tension",
-      "title": "Tension — Source Guide",
-      "category": "world",
+      "title": "Tension",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:tension",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-factions-and-guilds",
-      "title": "Factions & Guilds — Source Guide",
-      "category": "world",
+      "title": "Factions & Guilds",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:factions-and-guilds",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-factions",
-      "title": "Factions — Source Guide",
-      "category": "world",
+      "title": "Factions",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:factions",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-map-gazetteer",
-      "title": "Map Gazetteer — Source Guide",
-      "category": "world",
+      "title": "Map Gazetteer",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:map-gazetteer",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-consumable-items",
-      "title": "Consumable Items — Source Guide",
-      "category": "combat",
+      "title": "Consumable Items",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:consumable-items",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-holds-and-warehouses",
-      "title": "Holds & Warehouses — Source Guide",
-      "category": "economy",
+      "title": "Holds & Warehouses",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:holds-and-warehouses",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "economy"
     },
     {
       "slug": "source-guide-adventures-and-cataclysm",
-      "title": "Adventures & Cataclysm — Source Guide",
-      "category": "guides",
+      "title": "Adventures & Cataclysm",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:adventures-and-cataclysm",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     },
     {
       "slug": "source-guide-social-menu",
-      "title": "Social Menu — Source Guide",
-      "category": "guides",
+      "title": "Social Menu",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:social-menu",
-      "summary": "Source-backed reference guide. Check the source/version notes before applying it to the current game."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     },
     {
       "slug": "source-guide-boarding-crew",
-      "title": "Boarding — Crew setup — Source Guide",
-      "category": "combat",
+      "title": "Boarding — Crew setup",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:boarding:crew",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-boarding-fundamentals",
-      "title": "Boarding — Fundamentals — Source Guide",
-      "category": "combat",
+      "title": "Boarding — Fundamentals",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:boarding:fundamentals",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-boarding-strategy",
-      "title": "Boarding — Basic strategy — Source Guide",
-      "category": "combat",
+      "title": "Boarding — Basic strategy",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:boarding:strategy",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-build-upgrade-categories",
-      "title": "Build Creation — Upgrade categories — Source Guide",
-      "category": "ships",
+      "title": "Build Creation — Upgrade categories",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:build:upgrade-categories",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "ships"
     },
     {
       "slug": "source-guide-build-process",
-      "title": "Build Creation — Build process — Source Guide",
-      "category": "ships",
+      "title": "Build Creation — Build process",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:build:process",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "ships"
     },
     {
       "slug": "source-guide-build-consumables",
-      "title": "Build Creation — Consumables — Source Guide",
-      "category": "combat",
+      "title": "Build Creation — Consumables",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:build:consumables",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-build-crew",
-      "title": "Build Creation — Crew — Source Guide",
-      "category": "ships",
+      "title": "Build Creation — Crew",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:build:crew",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "ships"
     },
     {
       "slug": "source-guide-basic-flags",
-      "title": "Flags — Source Guide",
-      "category": "world",
+      "title": "Flags",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:flags",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-basic-port-battles-tension",
-      "title": "Port Battles — Tension — Source Guide",
-      "category": "world",
+      "title": "Port Battles — Tension",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:port-battles-tension",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-basic-port-battles-start",
-      "title": "Port Battles — Starting a battle — Source Guide",
-      "category": "world",
+      "title": "Port Battles — Starting a battle",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:port-battles-start",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-basic-port-battles-instance",
-      "title": "Port Battles — In the battle — Source Guide",
-      "category": "world",
+      "title": "Port Battles — In the battle",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:port-battles-instance",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-basic-ship-repairs",
-      "title": "Ship Repairs — Source Guide",
-      "category": "guides",
+      "title": "Ship Repairs",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:ship-repairs",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     },
     {
       "slug": "source-guide-basic-economy-crafting",
-      "title": "Economy and Crafting — Source Guide",
-      "category": "economy",
+      "title": "Economy and Crafting",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:economy-crafting",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "economy"
     },
     {
       "slug": "source-guide-basic-private-island",
-      "title": "Private Island buildings — Source Guide",
-      "category": "economy",
+      "title": "Private Island buildings",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:private-island",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "economy"
     },
     {
       "slug": "source-guide-basic-port-crafting",
-      "title": "Port Crafting — Source Guide",
-      "category": "economy",
+      "title": "Port Crafting",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:port-crafting",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "economy"
     },
     {
       "slug": "source-guide-basic-resource-mines",
-      "title": "Resource Mines — Source Guide",
-      "category": "economy",
+      "title": "Resource Mines",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:resource-mines",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "economy"
     },
     {
       "slug": "source-guide-basic-cannon-archetypes",
-      "title": "Cannons — Archetypes — Source Guide",
-      "category": "combat",
+      "title": "Cannons — Archetypes",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:cannon-archetypes",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-basic-cannon-acquisition",
-      "title": "Cannons — Crafted and Pirate — Source Guide",
-      "category": "combat",
+      "title": "Cannons — Crafted and Pirate",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:cannon-acquisition",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-basic-mortars-special",
-      "title": "Mortars and Special Weapons — Source Guide",
-      "category": "combat",
+      "title": "Mortars and Special Weapons",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:mortars-special",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-basic-ship-roles",
-      "title": "Ships — Roles by water/rate — Source Guide",
-      "category": "guides",
+      "title": "Ships — Roles by water/rate",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:ship-roles",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     },
     {
       "slug": "source-guide-basic-boarding",
-      "title": "Boarding overview — Source Guide",
-      "category": "combat",
+      "title": "Boarding overview",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:boarding",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-basic-fort",
-      "title": "The Fort — Source Guide",
-      "category": "guides",
+      "title": "The Fort",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:fort",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     },
     {
       "slug": "source-guide-basic-stealing-gold",
-      "title": "Stealing Gold — Source Guide",
-      "category": "guides",
+      "title": "Stealing Gold",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:stealing-gold",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     },
     {
       "slug": "source-guide-basic-arena",
-      "title": "Arena / Daily Quests — Source Guide",
-      "category": "combat",
+      "title": "Arena / Daily Quests",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:arena",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "combat"
     },
     {
       "slug": "source-guide-basic-map-tips",
-      "title": "Map — Useful Tips / FAQ — Source Guide",
-      "category": "world",
+      "title": "Map — Useful Tips / FAQ",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:basic:map-tips",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-shipyard",
-      "title": "B21 — Shipyard and factions — Source Guide",
-      "category": "world",
+      "title": "Update B21: Shipyard and factions",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:shipyard",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-new-ships",
-      "title": "B21 — New ships — Source Guide",
-      "category": "world",
+      "title": "Update B21: New ships",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:new-ships",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-elite",
-      "title": "B21 — Elite status — Source Guide",
-      "category": "world",
+      "title": "Update B21: Elite status",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:elite",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-repairs",
-      "title": "B21 — Integrity and repairs — Source Guide",
-      "category": "world",
+      "title": "Update B21: Integrity and repairs",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:repairs",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-wind",
-      "title": "B21 — Unique wind rose — Source Guide",
-      "category": "world",
+      "title": "Update B21: Unique wind rose",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:wind",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-balance",
-      "title": "B21 — Ship and weapon balance overview — Source Guide",
-      "category": "world",
+      "title": "Update B21: Ship and weapon balance overview",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:balance",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-consumables",
-      "title": "B21 — Consumable changes — Source Guide",
-      "category": "world",
+      "title": "Update B21: Consumable changes",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:consumables",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-pb",
-      "title": "B21 — Port Battle and tension changes — Source Guide",
-      "category": "world",
+      "title": "Update B21: Port Battle and tension changes",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:pb",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-guilds",
-      "title": "B21 — Guild/faction benefits — Source Guide",
-      "category": "world",
+      "title": "Update B21: Guild/faction benefits",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:guilds",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-b21-event",
-      "title": "B21 — Holiday event — Source Guide",
-      "category": "world",
+      "title": "Update B21: Holiday event",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:b21:event",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-port-warehouses",
-      "title": "Port Warehouses — Source Guide",
-      "category": "economy",
+      "title": "Port Warehouses",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:port-warehouses",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "economy"
     },
     {
       "slug": "source-guide-guild-pirates",
-      "title": "Pirate faction guilds — Source Guide",
-      "category": "world",
+      "title": "Pirate faction guilds",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:guild:pirates",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-guild-trade",
-      "title": "Trade Union guilds — Source Guide",
-      "category": "economy",
+      "title": "Trade Union guilds",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:guild:trade",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "economy"
     },
     {
       "slug": "source-guide-guild-military",
-      "title": "Military guilds — Source Guide",
-      "category": "world",
+      "title": "Military guilds",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:guild:military",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-guild-neutral",
-      "title": "Neutral guilds / Flotillas — Source Guide",
-      "category": "world",
+      "title": "Neutral guilds / Flotillas",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:guild:neutral",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "world"
     },
     {
       "slug": "source-guide-trade-mission",
-      "title": "Trade Mission — community guide — Source Guide",
-      "category": "economy",
+      "title": "Trade Mission",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:trade-mission",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "economy"
     },
     {
       "slug": "source-guide-pirate-token-farming",
-      "title": "Pirate weapons and Pirate Token farming — Source Guide",
-      "category": "guides",
+      "title": "Pirate weapons and Pirate Token farming",
+      "category": "community",
       "type": "guide",
       "guideEntity": "guide:pirate-token-farming",
-      "summary": "Recovered source guide. Check its source and game version before applying this advice."
+      "summary": "From an older community guide or patch notes. Some details may have changed since.",
+      "community": true,
+      "origCategory": "guides"
     }
   ]
 }

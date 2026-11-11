@@ -3,6 +3,8 @@
 // a grouped calculators hub, a tool switcher, and comparison charts. The detailed
 // game data stays one click away in the encyclopedia.
 import { Component, useEffect, useMemo, useState, type FormEvent, type ReactNode } from "react";
+import Prose, { tidy } from "./Prose";
+import { GLOSSARY } from "./glossary";
 
 export type WikiSection = "home" | "guides" | "tools" | "browse" | "admin";
 
@@ -30,6 +32,25 @@ export const TOOL_GROUPS: Group[] = [
         icon: "range",
       },
       { id: "wind", title: "Wind & sailing", blurb: "Your speed at every angle to the wind.", icon: "wind" },
+      {
+        id: "volleys",
+        title: "Cannon showdown",
+        blurb: "Race two guns and see which deals more damage over time.",
+        icon: "cannon",
+      },
+    ],
+  },
+  {
+    id: "pb",
+    title: "Port battles",
+    blurb: "Get your ship and hold ready for the fight.",
+    tools: [
+      {
+        id: "pb-ready",
+        title: "Port battle checklist",
+        blurb: "Your loadout and BOM's stockpile targets, ticked off.",
+        icon: "flag",
+      },
     ],
   },
   {
@@ -52,7 +73,7 @@ export const TOOL_GROUPS: Group[] = [
       {
         id: "nodes",
         title: "Mines & farms",
-        blurb: "What your resource nodes produce and store.",
+        blurb: "What your mines and farms make and store.",
         icon: "pick",
       },
       {
@@ -68,7 +89,12 @@ export const TOOL_GROUPS: Group[] = [
     title: "Crew & rewards",
     blurb: "Who to hire and what chests really give.",
     tools: [
-      { id: "crew", title: "Special crew", blurb: "All 51 specialists and how to get them.", icon: "crew" },
+      {
+        id: "crew",
+        title: "Special crew",
+        blurb: "Every specialist, sorted like the in-game menu.",
+        icon: "crew",
+      },
       {
         id: "chests",
         title: "Chest simulator",
@@ -314,7 +340,15 @@ export function ToolHeader({ tab, go }: { tab: string; go: (tab: string) => void
 
 // ---- Guides ---------------------------------------------------------------
 
-type Article = { slug: string; title: string; category: string; type: string; summary?: string };
+type Article = {
+  slug: string;
+  title: string;
+  category: string;
+  type: string;
+  summary?: string;
+  community?: boolean;
+  order?: number;
+};
 type Category = { id: string; label: string; description: string };
 
 async function portal(path: string) {
@@ -323,14 +357,19 @@ async function portal(path: string) {
   if (!r.ok) throw new Error(body.message || body.error || "Guides are unavailable right now.");
   return body;
 }
-const isSourceGuide = (a: Article) => / — Source Guide$/.test(a.title);
+const isCommunity = (a: Article) =>
+  !!a.community || a.category === "community" || / — Source Guide$/.test(a.title);
 const cleanTitle = (t: string) => t.replace(/ — Source Guide$/, "");
+const chapters = (articles: Article[]) =>
+  articles
+    .filter((a) => a.category === "start" && a.type !== "glossary")
+    .sort((a, b) => (a.order ?? 0) - (b.order ?? 0));
 
 /** Which calculator goes with a guide. */
 const GUIDE_TOOL: Record<string, string> = {
   ships: "shipyard",
   transport: "shipyard",
-  weapons: "combat",
+  weapons: "volleys",
   ammunition: "combat",
   consumables: "combat",
   crafting: "crafting",
@@ -343,6 +382,13 @@ const GUIDE_TOOL: Record<string, string> = {
   "mines-and-factories": "nodes",
   workshops: "craft-time",
   "nps-ships": "npcs",
+  "bom-port-battle-preparation": "pb-ready",
+  "new-player-sailing": "wind",
+  "new-player-ships": "shipyard",
+  "new-player-money": "crafting",
+  "new-player-combat": "combat",
+  "new-player-crew": "crew",
+  "new-player-port-battles": "pb-ready",
   "source-guide-basic-private-island": "islands",
   "source-guide-basic-port-crafting": "craft-time",
   "source-guide-basic-resource-mines": "nodes",
@@ -350,64 +396,32 @@ const GUIDE_TOOL: Record<string, string> = {
 };
 export const guideTool = (a: { slug: string; type: string }) => GUIDE_TOOL[a.slug] ?? GUIDE_TOOL[a.type];
 
-/** Featured "start here" guides for new captains. */
-const START_HERE = [
-  "wind-and-speed",
-  "earning-gold",
-  "crafting",
-  "boarding",
+/** Popular reference guides shown on the home page after the New Player Guide. */
+const POPULAR = [
   "ports-and-port-battles",
+  "boarding",
+  "earning-gold",
+  "mines-and-factories",
+  "flags-pvp-and-tension",
   "bom-port-battle-preparation",
 ];
 
+let guideCache: Promise<{ categories: Category[]; articles: Article[] }> | null = null;
 export function useGuides() {
   const [data, setData] = useState<{ categories: Category[]; articles: Article[] } | null>(null);
   const [error, setError] = useState("");
   useEffect(() => {
     let live = true;
-    portal("")
-      .then((d) => live && setData(d))
-      .catch((e) => live && setError(e.message));
+    guideCache ??= portal("").catch((e) => {
+      guideCache = null;
+      throw e;
+    });
+    guideCache.then((d) => live && setData(d)).catch((e) => live && setError(e.message));
     return () => {
       live = false;
     };
   }, []);
   return { data, error };
-}
-
-/** Tiny, safe text renderer: headings, bullet lists and paragraphs from plain text. */
-function Prose({ text }: { text: string }) {
-  const blocks: ReactNode[] = [];
-  let list: string[] = [];
-  const flush = () => {
-    if (list.length)
-      blocks.push(
-        <ul key={`l${blocks.length}`}>
-          {list.map((l, i) => (
-            <li key={i}>{l}</li>
-          ))}
-        </ul>,
-      );
-    list = [];
-  };
-  for (const raw of String(text).split(/\r?\n/)) {
-    const line = raw.trim();
-    if (!line) {
-      flush();
-      continue;
-    }
-    const bullet = line.match(/^[-*•]\s+(.*)/);
-    if (bullet) {
-      list.push(bullet[1]);
-      continue;
-    }
-    flush();
-    const heading = line.match(/^#{1,4}\s+(.*)/);
-    if (heading) blocks.push(<h3 key={`h${blocks.length}`}>{heading[1]}</h3>);
-    else blocks.push(<p key={`p${blocks.length}`}>{line}</p>);
-  }
-  flush();
-  return <div className="whProse">{blocks}</div>;
 }
 
 const human = (k: string) =>
@@ -426,15 +440,55 @@ const show = (v: any) =>
           ? "Yes"
           : "No"
         : String(v);
+const COLUMN_NAMES: Record<string, string> = {
+  weightClass: "Size",
+  goldCost: "Gold cost",
+  tokenCost: "Token cost",
+  maxAngle: "Max angle",
+  arc: "Max angle",
+  asOf: "Checked",
+  durability: "Health",
+  maneuverability: "Turning",
+  dpm: "Damage per minute",
+};
+const column = (k: string) => COLUMN_NAMES[k] ?? human(k);
+const LIST_NAMES: Record<string, string> = {
+  ships: "All ships",
+  weapons: "All guns",
+  consumables: "All consumables",
+  foods: "Food, best first",
+  skills: "Captain skills",
+  goods: "Trade goods",
+  resources: "Resources",
+  levels: "Warehouse levels",
+  transports: "Transport ships",
+  recipes: "Recipes",
+  discounts: "Crafting discounts",
+  costReferences: "Example costs",
+  factions: "Factions",
+  benefits: "Guild benefits",
+  missions: "Faction missions",
+  ports: "Ports",
+  markers: "Map locations",
+  shop: "Pirate shop",
+  flags: "Flags",
+  items: "Ammunition",
+  boardingCrew: "Boarding crew",
+  specialistSkills: "Special crew",
+  crew: "Crew",
+};
 
-/** A readable table for the first list of records a data guide carries. */
+/** A readable table for a list of records a data guide carries. */
 function GuideTable({ rows, title }: { rows: any[]; title: string }) {
   const [all, setAll] = useState(false);
   const cols = useMemo(() => {
     const counts = new Map<string, number>();
     for (const r of rows.slice(0, 60))
       for (const [k, v] of Object.entries(r ?? {}))
-        if (scalar(v) && !/^(entityKey|entity_key|id|source|sourceRef|recordKey)$/i.test(k))
+        if (
+          scalar(v) &&
+          !/^(entityKey|entity_key|id|source|sourceRef|recordKey|codexPath|sourceId)$/i.test(k)
+        )
           counts.set(k, (counts.get(k) ?? 0) + 1);
     return [...counts.entries()]
       .sort((a, b) => b[1] - a[1])
@@ -446,13 +500,13 @@ function GuideTable({ rows, title }: { rows: any[]; title: string }) {
   const shown = all ? rows : rows.slice(0, 25);
   return (
     <section className="whGuideTable">
-      <h2>{human(title)}</h2>
+      <h2>{LIST_NAMES[title] ?? human(title)}</h2>
       <div className="gwOverflow">
         <table>
           <thead>
             <tr>
               {cols.map((c) => (
-                <th key={c}>{human(c)}</th>
+                <th key={c}>{column(c)}</th>
               ))}
             </tr>
           </thead>
@@ -476,14 +530,58 @@ function GuideTable({ rows, title }: { rows: any[]; title: string }) {
   );
 }
 
+/** Every glossary term, searchable and grouped. */
+function Glossary() {
+  const [q, setQ] = useState("");
+  const term = q.trim().toLowerCase();
+  const list = GLOSSARY.filter(
+    (t) => !term || `${t.term} ${t.meaning} ${(t.aliases ?? []).join(" ")}`.toLowerCase().includes(term),
+  );
+  const groups = [...new Set(GLOSSARY.map((t) => t.group))];
+  return (
+    <div className="whGlossary">
+      <input
+        type="search"
+        value={q}
+        onChange={(e) => setQ(e.target.value)}
+        placeholder="Look up a word…"
+        aria-label="Search the glossary"
+      />
+      {groups.map((g) => {
+        const items = list.filter((t) => t.group === g).sort((a, b) => a.term.localeCompare(b.term));
+        if (!items.length) return null;
+        return (
+          <section key={g}>
+            <h2>{g}</h2>
+            <dl>
+              {items.map((t) => (
+                <div key={t.term}>
+                  <dt>
+                    {t.term}
+                    {t.aliases?.length ? <small> also: {t.aliases.slice(0, 3).join(", ")}</small> : null}
+                  </dt>
+                  <dd>{t.meaning}</dd>
+                </div>
+              ))}
+            </dl>
+          </section>
+        );
+      })}
+      {!list.length && <p className="gwMuted">No words match.</p>}
+    </div>
+  );
+}
+
 function GuideArticle({
   slug,
   go,
   openGuide,
+  articles,
 }: {
   slug: string;
   go: (tab: string) => void;
   openGuide: (s: string) => void;
+  articles: Article[];
 }) {
   const [a, setA] = useState<any>(null),
     [error, setError] = useState("");
@@ -500,65 +598,126 @@ function GuideArticle({
   }, [slug]);
   if (error) return <p className="gwError">{error}</p>;
   if (!a) return <p role="status">Loading guide…</p>;
+  const nav = { onGuide: openGuide, onTool: go };
   const data = a.data ?? {};
   const guides = [data.guide, data.development, data.treasury, data.tension, data.pvp].filter(
-    (g: any) => g?.body,
+    (g: any) => g?.body || g?.text,
   );
   const lists = Object.entries(data).filter(
     ([k, v]) => Array.isArray(v) && v.length && typeof v[0] === "object" && !["notes"].includes(k),
   ) as [string, any[]][];
   const tool = guideTool(a);
+  const path = chapters(articles),
+    at = path.findIndex((c) => c.slug === slug);
+  const original = guides.map((g: any, i: number) => (
+    <section key={i}>
+      {guides.length > 1 && g.title && <h2>{g.title}</h2>}
+      <Prose text={tidy(String(g.body ?? g.text))} nav={nav} terms={!a.content} />
+    </section>
+  ));
   return (
     <article className="whArticle">
       <header>
-        <p className="gwEyebrow">{a.categoryLabel ?? "Guide"}</p>
-        <h1>{cleanTitle(a.title)}</h1>
+        <p className="gwEyebrow">
+          {a.category === "start" && at >= 0
+            ? `NEW PLAYER GUIDE · CHAPTER ${at + 1} OF ${path.length}`
+            : (a.categoryLabel ?? "Guide")}
+        </p>
+        <h1>{cleanTitle(a.title).replace(/^\d+\.\s*/, "")}</h1>
         {a.summary && <p className="whLead">{a.summary}</p>}
+        {isCommunity(a) && (
+          <p className="whNote">
+            From an older community guide or patch notes. Some details may have changed since.
+          </p>
+        )}
         {tool && (
           <button type="button" className="whCta" onClick={() => go(tool)}>
             Open the {ALL_TOOLS.find((t) => t.id === tool)?.title} →
           </button>
         )}
       </header>
-      {a.content && <Prose text={a.content} />}
-      {guides.map((g: any, i: number) => (
-        <section key={i}>
-          {guides.length > 1 && g.title && <h2>{g.title}</h2>}
-          <Prose text={g.body} />
-          {g.reference && (
-            <p className="whNote">
-              From a community guide{g.asOf ? ` (${String(g.asOf).slice(0, 10)})` : ""}. Some details may have
-              changed since.
-            </p>
+      {a.type === "glossary" ? (
+        <Glossary />
+      ) : (
+        <>
+          {a.content && <Prose text={a.content} nav={nav} />}
+          {a.content && guides.length > 0 ? (
+            <details className="whOriginal">
+              <summary>Original game text</summary>
+              {original}
+            </details>
+          ) : (
+            original
           )}
-        </section>
-      ))}
-      {(data.notes ?? []).length > 0 && (
-        <ul className="whNotes">
-          {data.notes.map((n: string, i: number) => (
-            <li key={i}>{n}</li>
+          {(data.notes ?? []).length > 0 && (
+            <ul className="whNotes">
+              {data.notes.map((n: string, i: number) => (
+                <li key={i}>{n}</li>
+              ))}
+            </ul>
+          )}
+          {lists.map(([k, rows]) => (
+            <GuideTable key={k} title={k} rows={rows} />
           ))}
-        </ul>
+          {!guides.length && !a.content && !lists.length && (
+            <p className="gwMuted">There's no written text for this guide yet.</p>
+          )}
+        </>
       )}
-      {lists.map(([k, rows]) => (
-        <GuideTable key={k} title={k} rows={rows} />
-      ))}
-      {!guides.length && !a.content && !lists.length && (
-        <p className="gwMuted">There's no written text for this guide yet.</p>
+      {at >= 0 && (
+        <nav className="whChapterNav" aria-label="Chapters">
+          {at > 0 ? (
+            <button type="button" onClick={() => openGuide(path[at - 1].slug)}>
+              <small>← Previous</small>
+              {path[at - 1].title}
+            </button>
+          ) : (
+            <span />
+          )}
+          {at < path.length - 1 && (
+            <button type="button" className="next" onClick={() => openGuide(path[at + 1].slug)}>
+              <small>Next →</small>
+              {path[at + 1].title}
+            </button>
+          )}
+        </nav>
       )}
-      {a.related?.length > 0 && (
+      {at < 0 && a.related?.length > 0 && (
         <section className="whRelated">
           <h2>Related guides</h2>
           <div>
-            {a.related.map((r: any) => (
-              <button key={r.slug} type="button" onClick={() => openGuide(r.slug)}>
-                {cleanTitle(r.title)}
-              </button>
-            ))}
+            {a.related
+              .filter((r: any) => !isCommunity(r))
+              .map((r: any) => (
+                <button key={r.slug} type="button" onClick={() => openGuide(r.slug)}>
+                  {cleanTitle(r.title)}
+                </button>
+              ))}
           </div>
         </section>
       )}
     </article>
+  );
+}
+
+/** The New Player Guide as a numbered path. */
+function ChapterPath({ articles, openGuide }: { articles: Article[]; openGuide: (s: string) => void }) {
+  const path = chapters(articles);
+  if (!path.length) return null;
+  return (
+    <ol className="whPath">
+      {path.map((c, i) => (
+        <li key={c.slug}>
+          <button type="button" onClick={() => openGuide(c.slug)}>
+            <span className="whPathNum">{i + 1}</span>
+            <span>
+              <b>{c.title.replace(/^\d+\.\s*/, "")}</b>
+              {c.summary && <small>{c.summary}</small>}
+            </span>
+          </button>
+        </li>
+      ))}
+    </ol>
   );
 }
 
@@ -588,24 +747,30 @@ export function WikiGuides({
           <span aria-hidden="true">›</span>
           <span>{label(data.articles.find((a) => a.slug === slug)?.category ?? "")}</span>
         </nav>
-        <GuideArticle slug={slug} go={go} openGuide={openGuide} />
+        <GuideArticle slug={slug} go={go} openGuide={openGuide} articles={data.articles} />
       </div>
     );
   const term = q.trim().toLowerCase();
   const list = data.articles.filter(
     (a) =>
       (cat === "all" || a.category === cat) &&
-      (community || !isSourceGuide(a)) &&
+      (community || cat === "community" || !isCommunity(a)) &&
       (!term || `${a.title} ${a.summary ?? ""}`.toLowerCase().includes(term)),
   );
-  const communityCount = data.articles.filter(isSourceGuide).length;
+  const communityCount = data.articles.filter(isCommunity).length;
+  const cats = data.categories.filter((c) => c.id !== "community" || community || cat === "community");
   return (
     <section className="whHub">
       <header className="whPageHead">
         <p className="gwEyebrow">GUIDES</p>
         <h1>How things work, in plain English</h1>
         <p>
-          Short guides to every part of the game, written for players. Each links to the matching calculator.
+          Short guides to every part of the game. Underlined words explain themselves when you hover or tap
+          them, and the{" "}
+          <button type="button" className="whLink" onClick={() => openGuide("glossary")}>
+            Glossary
+          </button>{" "}
+          has the rest.
         </p>
       </header>
       <div className="whFilters">
@@ -631,13 +796,26 @@ export function WikiGuides({
           aria-label="Filter guides"
         />
         <label className="gwCheck">
-          <input type="checkbox" checked={community} onChange={(e) => setCommunity(e.target.checked)} />{" "}
-          Include community source guides ({communityCount})
+          <input type="checkbox" checked={community} onChange={(e) => setCommunity(e.target.checked)} /> Show
+          older community notes ({communityCount})
         </label>
       </div>
-      {(cat === "all" ? data.categories : data.categories.filter((c) => c.id === cat)).map((c) => {
+      {(cat === "all" ? cats : cats.filter((c) => c.id === cat)).map((c) => {
         const items = list.filter((a) => a.category === c.id);
         if (!items.length) return null;
+        if (c.id === "start" && !term)
+          return (
+            <section key={c.id} className="whGroup">
+              <div className="whGroupHead">
+                <h2>{c.label}</h2>
+                <p>{c.description}</p>
+              </div>
+              <ChapterPath articles={data.articles} openGuide={openGuide} />
+              <button type="button" className="whMore" onClick={() => openGuide("glossary")}>
+                Glossary of game terms →
+              </button>
+            </section>
+          );
         return (
           <section key={c.id} className="whGroup">
             <div className="whGroupHead">
@@ -650,7 +828,7 @@ export function WikiGuides({
                   <b>{cleanTitle(a.title)}</b>
                   {a.summary && <small>{a.summary}</small>}
                   <span className="whTags">
-                    {isSourceGuide(a) && <em>Community guide</em>}
+                    {isCommunity(a) && <em>Older notes</em>}
                     {guideTool(a) && <em className="tool">Has a calculator</em>}
                   </span>
                 </button>
@@ -681,7 +859,7 @@ export function WikiHome({
 }) {
   const { data } = useGuides();
   const [q, setQ] = useState("");
-  const start = START_HERE.map((s) => data?.articles.find((a) => a.slug === s)).filter(Boolean) as Article[];
+  const popular = POPULAR.map((s) => data?.articles.find((a) => a.slug === s)).filter(Boolean) as Article[];
   return (
     <div className="whHome">
       <section className="whHero">
@@ -710,14 +888,24 @@ export function WikiHome({
         </form>
       </section>
 
-      {start.length > 0 && (
+      {data && chapters(data.articles).length > 0 && (
         <section className="whGroup">
           <div className="whGroupHead">
-            <h2>Start here</h2>
-            <p>The guides most captains ask about first.</p>
+            <h2>New to the game? Start here</h2>
+            <p>The New Player Guide, from your first ship to your first port battle.</p>
+          </div>
+          <ChapterPath articles={data.articles} openGuide={openGuide} />
+        </section>
+      )}
+
+      {popular.length > 0 && (
+        <section className="whGroup">
+          <div className="whGroupHead">
+            <h2>Popular guides</h2>
+            <p>What captains look up most.</p>
           </div>
           <div className="whGuideGrid">
-            {start.map((a) => (
+            {popular.map((a) => (
               <button key={a.slug} type="button" className="whGuideCard" onClick={() => openGuide(a.slug)}>
                 <b>{cleanTitle(a.title)}</b>
                 {a.summary && <small>{a.summary}</small>}
@@ -758,7 +946,7 @@ export function WikiHome({
         <section className="whGroup">
           <div className="whGroupHead">
             <h2>Game data</h2>
-            <p>Every record from the game client, with filters, comparisons and downloads.</p>
+            <p>Every number from the game, with filters, comparisons and downloads.</p>
           </div>
           <div className="whDataGrid">
             {groups.map((g) => (

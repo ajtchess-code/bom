@@ -227,3 +227,103 @@ html[data-theme="light"] .gameWiki .gwHero::before{opacity:.42}
 .whBar small.top{color:var(--cc-text);font-weight:700}
 @media(max-width:700px){.whHeader{margin:-4px -4px 16px;padding:10px}.whStats{display:none}.whJump{margin-left:0;width:100%}.gameWiki .whJump select{width:100%}.whBarRow{grid-template-columns:1fr;gap:4px}.whHeroSearch{padding-left:12px}.gameWiki .whHeroSearch button{padding:9px 14px}}
 .commandContent .gameWiki :is(.whSearch,.whHeroSearch) input{border:0!important;background:transparent!important;box-shadow:none!important;outline:none!important;padding-left:0!important;padding-right:0!important}
+
+/* Guide reader: glossary hints, links, callouts, pictures and chapter navigation. */
+.whTerm{position:relative;text-decoration:underline dotted color-mix(in srgb,var(--cc-accent) 70%,transparent);text-underline-offset:3px;cursor:help;border-radius:3px}
+.whTerm:focus-visible{outline:2px solid var(--cc-accent);outline-offset:1px}
+.whTerm::after{content:attr(data-tip);display:none;position:absolute;left:0;bottom:calc(100% + 8px);width:max-content;max-width:min(280px,70vw);padding:8px 11px;border-radius:9px;background:var(--cc-text);color:var(--cc-bg);font-size:13px;line-height:1.4;font-weight:500;text-align:left;white-space:normal;box-shadow:var(--cc-shadow);pointer-events:none;z-index:30}
+.whTerm:hover::after,.whTerm:focus::after{display:block}
+.gameWiki .whLink{display:inline;padding:0;border:0;background:none;color:var(--cc-accent);font:inherit;font-weight:600;text-decoration:underline;text-underline-offset:3px;cursor:pointer}
+.gameWiki .whLink.tool::before{content:'⚙ ';font-size:.85em;text-decoration:none}
+.whProse h2{font-size:22px;margin:30px 0 10px}
+.whProse ol{margin:0 0 14px;padding-left:24px}
+.whCallout{display:flex;gap:10px;align-items:baseline;margin:16px 0;padding:12px 14px;border-radius:10px;border-left:4px solid var(--cc-accent);background:var(--cc-accent-soft);font-size:15px;line-height:1.6;max-width:72ch}
+.whCallout b{flex:0 0 auto;font-size:12px;letter-spacing:1px;text-transform:uppercase}
+.whCallout.warning{border-left-color:var(--cc-danger);background:color-mix(in srgb,var(--cc-danger) 12%,transparent)}
+.whCallout.bom{border-left-color:#9a68d8;background:color-mix(in srgb,#9a68d8 14%,transparent)}
+.whFigures{display:grid;gap:12px;margin:16px 0 20px;grid-template-columns:repeat(var(--n,1),minmax(0,1fr));max-width:760px}
+.whFigures.n2{--n:2}.whFigures.n3{--n:3}.whFigures.n4{--n:4}
+.whFigures figure{margin:0;display:grid;gap:6px;justify-items:center;padding:10px;border:1px solid var(--cc-border);border-radius:12px;background:var(--cc-surface-2)}
+.whFigures img{max-width:100%;max-height:220px;object-fit:contain}
+.whFigures.n1 img{max-height:360px;border-radius:8px}
+.whFigures figcaption{font-size:12px;color:var(--cc-muted);text-align:center}
+.whTable{margin:12px 0 18px;max-width:860px}
+.whTable table{font-size:14px}
+.whOriginal{margin:24px 0;padding:12px 16px;border:1px solid var(--cc-border);border-radius:12px;background:var(--cc-surface-2)}
+.whOriginal summary{cursor:pointer;font-weight:600;color:var(--cc-muted)}
+.whOriginal .whProse{font-size:14px;line-height:1.65;margin-top:10px}
+.whChapterNav{display:flex;justify-content:space-between;gap:12px;margin:34px 0 10px;padding-top:18px;border-top:1px solid var(--cc-border)}
+.gameWiki .whChapterNav button{display:grid;gap:2px;text-align:left;max-width:48%;padding:12px 16px;border-radius:12px;background:var(--cc-surface);font-weight:700}
+.gameWiki .whChapterNav button.next{text-align:right;margin-left:auto}
+.whChapterNav small{color:var(--cc-muted);font-weight:500}
+.whPath{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:10px;counter-reset:none}
+.gameWiki .whPath button{display:flex;align-items:flex-start;gap:12px;width:100%;height:100%;text-align:left;padding:14px;border-radius:12px;background:var(--cc-surface);line-height:1.4}
+.gameWiki .whPath button:hover{border-color:var(--cc-accent)}
+.whPath b{display:block;font-size:15px}
+.whPath small{display:block;font-size:13px;margin-top:2px}
+.whPathNum{display:grid;place-items:center;flex:0 0 32px;height:32px;border-radius:50%;background:var(--cc-accent);color:#fff;font-weight:800}
+.whGlossary input[type=search]{max-width:420px;margin:6px 0 10px}
+.whGlossary h2{font-size:18px;margin:22px 0 8px}
+.whGlossary dl{display:grid;gap:0;margin:0;border:1px solid var(--cc-border);border-radius:12px;overflow:hidden}
+.whGlossary dl>div{display:grid;grid-template-columns:minmax(140px,220px) 1fr;gap:12px;padding:10px 14px;border-top:1px solid var(--cc-border);background:var(--cc-surface)}
+.whGlossary dl>div:first-child{border-top:0}
+.whGlossary dt{font-weight:700}
+.whGlossary dt small{display:block;font-weight:400;color:var(--cc-muted)}
+.whGlossary dd{margin:0}
+@media(max-width:620px){.whGlossary dl>div{grid-template-columns:1fr;gap:2px}.whFigures.n3,.whFigures.n4{--n:2}.whChapterNav{flex-direction:column}.gameWiki .whChapterNav button{max-width:none}}
+
+/* Special crew. */
+.scTabs{display:flex;gap:4px;flex-wrap:wrap;margin:14px 0 6px;padding:4px;border:1px solid var(--cc-border);border-radius:12px;background:var(--cc-surface-2);width:fit-content;max-width:100%}
+.gameWiki .scTabs button{border:0;background:transparent;border-radius:9px;padding:8px 16px;font-weight:700}
+.gameWiki .scTabs button.active{background:var(--cc-accent);color:#fff}
+.scTabs small{opacity:.8;font-weight:500;margin-left:3px;color:inherit}
+.scCard{align-content:start}
+.scActions{align-self:end}
+.scBlurb{color:var(--cc-muted);margin:4px 0 10px}
+.scGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,300px),1fr));gap:10px;margin:8px 0 16px}
+.scCard{display:grid;grid-template-columns:56px 1fr;gap:4px 12px;padding:12px;border:1px solid var(--cc-border);border-radius:12px;background:var(--cc-surface)}
+.scCard.picked{border-color:var(--cc-accent);box-shadow:inset 0 0 0 1px var(--cc-accent)}
+.scPic{grid-row:span 2;width:56px;height:56px;display:grid;place-items:center;border-radius:10px;background:var(--cc-surface-2);overflow:hidden}
+.scPic img{width:100%;height:100%;object-fit:contain}
+.scPic span{font-size:24px;font-weight:800;color:var(--cc-muted)}
+.scPic figure{margin:0}
+.scBody strong{font-size:15px}
+.scBody p{margin:3px 0 4px;font-size:14px;line-height:1.45}
+.scGame{display:block;color:var(--cc-muted);font-size:12px}
+.scTags{display:flex;gap:4px;flex-wrap:wrap;margin-top:6px}
+.scTags em{font-style:normal;font-size:11px;padding:2px 8px;border-radius:999px;background:var(--cc-surface-2);color:var(--cc-muted)}
+.scActions{grid-column:2;display:flex;gap:6px;flex-wrap:wrap}
+.gameWiki .scActions button{font-size:12px;padding:5px 10px;border-radius:999px}
+.gameWiki .scActions button[aria-pressed=true]{background:var(--cc-accent-soft);border-color:var(--cc-accent)}
+.scList{margin:18px 0;padding:14px 16px;border:1px solid var(--cc-border);border-radius:12px;background:var(--cc-surface-2)}
+.scList h3{margin-top:0}
+.scList ul{padding-left:18px}
+.gameWiki .scList li button{padding:0 7px;border-radius:999px;font-size:12px}
+.scPresets{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-bottom:6px}
+.gameWiki .scPresets button{font-size:12px;border-radius:999px;padding:5px 11px}
+
+/* Cannon showdown and port battle checklist. */
+.vrQuick{margin:4px 0 12px;font-size:13px}
+.gameWiki .vrQuick button{font-size:12px;border-radius:999px;padding:4px 10px}
+.vrChart{width:100%;max-width:760px;height:auto;display:block;margin:6px 0 10px;border:1px solid var(--cc-border);border-radius:12px;background:var(--cc-surface)}
+.vrGrid{stroke:var(--cc-border);stroke-width:1}
+.vrAxis{fill:var(--cc-muted);font-size:11px}
+.vrStory{margin:6px 0 14px;padding-left:22px;line-height:1.7}
+.pbCheck h3{margin:0}
+.pbSteps,.pbTable{margin:14px 0;padding:14px 16px;border:1px solid var(--cc-border);border-radius:12px;background:var(--cc-surface)}
+.pbSteps header,.pbTable header{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+.pbSteps ul{list-style:none;margin:0;padding:0;display:grid;gap:6px}
+.pbShort{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,var(--cc-danger) 15%,transparent);color:var(--cc-danger)}
+.pbOk{font-size:12px;font-weight:700;padding:3px 10px;border-radius:999px;background:color-mix(in srgb,#53b96e 18%,transparent);color:#3f9d58}
+.pbItem{display:inline-flex;align-items:center;gap:8px}
+.pbItem img,.pbItem i{width:26px;height:26px;object-fit:contain;flex:0 0 26px}
+.gameWiki .pbTable input{width:100px;padding:5px 8px}
+.pbTable tr.pbDone td{color:var(--cc-muted)}
+.pbSplit{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap;margin:8px 0}
+.pbSplit label{display:grid;gap:4px;font-size:13px}
+.gameWiki .pbSplit input{width:130px}
+.pbSplit p{margin:0;flex:1;min-width:220px}
+.pbSection{margin-top:26px!important}
+.gameWiki .pbReset{margin-top:10px}
+.pbTable td{vertical-align:middle}
+@media(max-width:560px){.gameWiki .pbTable input{width:72px}.pbItem img,.pbItem i{display:none}.pbTable th,.pbTable td{padding-left:6px;padding-right:6px}}
