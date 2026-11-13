@@ -36,6 +36,13 @@ export const ADMIN_SECTION_LIST: Section[] = [
     ],
   },
   {
+    key: "roles",
+    title: "Assign Roles",
+    description: "Add or remove Discord roles for a member",
+    group: "Members & community",
+    keywords: ["assign role", "give role", "remove role", "member roles", "promote"],
+  },
+  {
     key: "recruitment",
     title: "Recruitment",
     description: "Applications, trials, recruiter roles and templates",
