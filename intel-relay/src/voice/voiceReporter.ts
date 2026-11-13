@@ -37,7 +37,8 @@ export class VoiceReporter{
   if(!force&&serialized===previousRaw&&ids.length&&this.db.getSetting('voice_status_mode')===mode&&now-lastDelivery<policy.staleAfterSeconds*1000)return;
   const changes=voiceChanges(previous,snapshot),total=snapshot.reduce((n,c)=>n+c.members.length,0),lastObserved=this.db.getSetting('voice_last_sample_at');
   const footer={text:`${available?'Observed':'STALE · source unavailable'} ${lastObserved??'unknown'} · ${total} in voice`};
-  const common={allowedMentions:{parse:[] as never[]},attachments:[]};
+  // Each payload gets its own attachments array; a shared one is filled in by discord.js and breaks later pages.
+  const common={allowedMentions:{parse:[] as never[]}},fresh=(p:any)=>({...p,attachments:[]});
   const payloads:any[]=[];
   if(!snapshot.length)payloads.push({...common,content:null,embeds:[{title:available?'No One In Voice':'Voice data unavailable',description:available?undefined:'Source connection is unavailable. This does not mean everyone disconnected.',color:available?0x2C313A:0xED4245,footer,author:{name:username}}]});
   else{
@@ -52,8 +53,8 @@ export class VoiceReporter{
    }
   }
   for(let page=0;page<payloads.length;page++){
-   const id=ids[page];if(id){try{await this.webhook.edit(id,payloads[page]);continue}catch(error){if(!missingMessage(error))throw error;}}
-   ids[page]=(await this.webhook.send({...payloads[page],username})).id;this.saveIds(ids);
+   const id=ids[page];if(id){try{await this.webhook.edit(id,fresh(payloads[page]));continue}catch(error){if(!missingMessage(error))throw error;}}
+   ids[page]=(await this.webhook.send({...fresh(payloads[page]),username})).id;this.saveIds(ids);
   }
   for(const id of ids.slice(payloads.length)){try{await this.webhook.delete(id)}catch(error){if(!missingMessage(error))throw error;}}
   ids=ids.slice(0,payloads.length);this.saveIds(ids);this.db.setSetting('voice_status_snapshot',serialized);this.db.setSetting('voice_status_identity',identity);this.db.setSetting('voice_status_mode',mode);this.db.setSetting('voice_last_delivery_at',String(now));

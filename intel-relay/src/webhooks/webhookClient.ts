@@ -29,8 +29,8 @@ export class ManagedWebhook{
    this.health={...this.health,state:this.health.lastSuccess?'ok':'verified',error:null,guildId:String(body.guild_id),channelId:String(body.channel_id)};
   }catch(error:any){const status=statusFromError(error),temporary=status===null&&!String(error?.message??'').startsWith('Destination blocked')||status===429||Boolean(status&&status>=500);this.health={...this.health,state:this.invalidWebhook?'error':temporary?'delayed':'blocked',error:this.invalidWebhook?'Unknown webhook: replace this route’s destination URL.':temporary?'Destination validation temporarily unavailable; delivery is waiting.':status===403?'Destination permission missing: check destination webhook access.':'Destination validation failed. Confirm the webhook belongs to the approved BOM server.'};throw error;}
  }
- public send(options:WebhookMessageCreateOptions,priority=0):Promise<WebhookMessageRef>{return this.enqueue(()=>this.retry(async()=>{await this.verifyDestination();return this.client.send(options)}),priority);}
- public edit(id:string,options:WebhookMessageEditOptions,priority=0):Promise<WebhookMessageRef>{return this.enqueue(()=>this.retry(async()=>{await this.verifyDestination();return this.client.editMessage(id,options)}),priority);}
+ public send(options:WebhookMessageCreateOptions,priority=0):Promise<WebhookMessageRef>{const fresh=freshOptions(options);return this.enqueue(()=>this.retry(async()=>{await this.verifyDestination();return this.client.send(fresh())}),priority);}
+ public edit(id:string,options:WebhookMessageEditOptions,priority=0):Promise<WebhookMessageRef>{const fresh=freshOptions(options);return this.enqueue(()=>this.retry(async()=>{await this.verifyDestination();return this.client.editMessage(id,fresh())}),priority);}
  public async delete(id:string):Promise<void>{await this.enqueue(()=>this.retry(async()=>{await this.verifyDestination();return this.client.deleteMessage(id)}),1);}
  public destroy(){this.destroyed=true;this.client.destroy();}
  private enqueue<T>(task:()=>Promise<T>,priority=0):Promise<T>{
@@ -57,3 +57,6 @@ export class ManagedWebhook{
   throw lastError;
  }
 }
+
+/** discord.js appends uploaded files to options.attachments in place, so a retried or reused payload would list files twice (ATTACHMENT_NOT_FOUND). Give every attempt its own copy. */
+function freshOptions<T>(options:T):()=>T{const o:any=options,base=Array.isArray(o.attachments)?[...o.attachments]:o.attachments;return ()=>({...o,...(base!==undefined?{attachments:Array.isArray(base)?[...base]:base}:{})}) as T;}
