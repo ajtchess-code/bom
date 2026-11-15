@@ -7,8 +7,11 @@ export async function publicFetch(path: string) {
   });
 }
 /** Public site settings from .env, with BOM's defaults. */
+// BOM's AdSense publisher ID (public, safe to commit). PUBLIC_ADSENSE_CLIENT overrides it.
+export const DEFAULT_AD_CLIENT = "ca-pub-6442579332215350";
+
 export function publicSettings() {
-  const client = (process.env.PUBLIC_ADSENSE_CLIENT ?? "").trim();
+  const client = (process.env.PUBLIC_ADSENSE_CLIENT || DEFAULT_AD_CLIENT).trim();
   return {
     adClient: /^ca-pub-\d{10,20}$/.test(client) ? client : "",
     adSlots: {

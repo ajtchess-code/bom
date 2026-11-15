@@ -1,5 +1,4 @@
 import type { Metadata } from "next";
-import Script from "next/script";
 import PublicShell from "@/components/wiki/PublicShell";
 import { publicSettings } from "@/lib/publicApi";
 import "../dashboard/wiki/game-wiki.css";
@@ -24,10 +23,9 @@ export default function PublicWikiLayout({ children }: { children: React.ReactNo
   return (
     <>
       {settings.adClient && (
-        <Script
-          id="adsense"
+        // React 19 moves this async script into <head>, where AdSense looks for it.
+        <script
           async
-          strategy="afterInteractive"
           crossOrigin="anonymous"
           src={`https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${settings.adClient}`}
         />
