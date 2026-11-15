@@ -16,10 +16,10 @@ import {
 import TacticsPanel from "./prep/TacticsPanel";
 import { PrepDock, PrepPalette, isTacticTool, type PrepTool } from "./prep/PrepDock";
 
-type Kind = "PREP" | "REVIEW";
-type Tool = "arrow" | "line" | "dots" | "ship" | "eraser";
-type Point = [number, number];
-type Shape = {
+export type Kind = "PREP" | "REVIEW";
+export type Tool = "arrow" | "line" | "dots" | "ship" | "eraser";
+export type Point = [number, number];
+export type Shape = {
   id: string;
   tool: Exclude<Tool, "eraser">;
   points: Point[];
@@ -28,7 +28,7 @@ type Shape = {
   label: string;
   layer: string;
 };
-type Port = {
+export type Port = {
   name: string;
   rate: string;
   size: number;
@@ -60,12 +60,12 @@ type Session = {
   updated_at: string;
 };
 type Props = { initialKind?: Kind; initialPorts: Port[]; initialSessions: SessionSummary[] };
-type ToolState = { tool: Tool; color: string; width: number; label: string; layer: string };
+export type ToolState = { tool: Tool; color: string; width: number; label: string; layer: string };
 
 const LABELS = ["Mainline", "Flank", "Siege", "Heavy", "Friend", "Foe", "Ally", "Edge"];
 const LAYERS = ["Main", "Flank", "Siege", "Enemy", "Notes"];
 const COLORS = ["#dc4b45", "#53b96e", "#e1bf43", "#f1f2ee", "#4f8edb", "rainbow"];
-const defaultTools: ToolState = {
+export const defaultTools: ToolState = {
   tool: "arrow",
   color: "#53b96e",
   width: 4,
@@ -214,7 +214,7 @@ function ShapeMarks({ shapes, hiddenLayers }: { shapes: Shape[]; hiddenLayers: S
   );
 }
 
-function DrawingToolbar({
+export function DrawingToolbar({
   state,
   onState,
   shapes,
@@ -324,7 +324,7 @@ function DrawingToolbar({
   );
 }
 
-function AnnotationSurface({
+export function AnnotationSurface({
   background,
   missing,
   shapes,
@@ -526,7 +526,7 @@ function AnnotationSurface({
   );
 }
 
-function VideoSurface({
+export function VideoSurface({
   url,
   shapes,
   onShapes,

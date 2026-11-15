@@ -66,6 +66,14 @@ app.get("/health",async(_req,reply)=>{
 
 
 const userId=(req:any)=>String(req.headers["x-discord-user-id"]??"");
+/** Read-only wiki paths the public wiki (no login) may use, through the dashboard's public proxy. */
+const PUBLIC_WIKI_PATHS=[/^\/v1\/game-wiki\/(catalog|search|asset|changes|evidence)$/,/^\/v1\/game-wiki\/(visuals|table|download)\/[\w.-]+$/,/^\/v1\/game-wiki\/record\/[\w.-]+\/\d+$/,/^\/v1\/wiki\/portal$/,/^\/v1\/wiki\/portal\/articles\/[^/]+$/,/^\/v1\/wiki\/portal\/ports(\/[^/]+)?$/];
+app.addHook('onRequest',async(req:any,reply:any)=>{
+  if(req.headers['x-bom-public']!=='1')return;
+  const path=String(req.url).split('?')[0];
+  if(req.method!=='GET'||!PUBLIC_WIKI_PATHS.some(re=>re.test(path)))return reply.code(403).send({error:'not_public',message:'That part of the wiki needs a BOM login.'});
+  delete req.headers['x-discord-user-id'];req._publicWiki=true;
+});
 const userVoiceKey=(uid:string)=>`music:user-voice:${uid}`;
 const voiceChannelKey=(channelId:string)=>`music:voice-channel:${channelId}`;
 const voiceRoomKey=(channelId:string)=>`music:voice-room:${channelId}`;
@@ -106,6 +114,7 @@ async function requirePermission(req:any,reply:any,p:any="MANAGE_MUSIC"){
   return true;
 }
 async function requireMember(req:any,reply:any){
+  if(req._publicWiki)return {member:true,public:true,owner:false,manageGuild:false,roles:[] as string[],guild:null};
   const uid=userId(req);if(!uid){reply.code(401).send({error:"unauthenticated"});return false;}
   if(req._pbMemberAccess)return req._pbMemberAccess;
   if(req._dashboardScope?.allianceOnly||req._dashboardScope?.guestOnly)return req._pbMemberAccess=req._dashboardScope;

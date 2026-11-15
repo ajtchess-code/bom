@@ -93,7 +93,7 @@ export default function TradeRoutes() {
   return (
     <section className="wpPlanner trRoutes">
       <p className="gwEyebrow">TRADE ROUTE FINDER</p>
-      <h2>Where to buy, where to sell</h2>
+      <h2>Where to Buy, Where to Sell</h2>
       <p>
         The best run for each good with a full hold, from the wiki's price list of {goods.length} goods across{" "}
         {ports.length} ports.
@@ -142,8 +142,8 @@ export default function TradeRoutes() {
             <thead>
               <tr>
                 <th>Good</th>
-                <th>Buy at</th>
-                <th>Sell at</th>
+                <th>Buy At</th>
+                <th>Sell At</th>
                 <th>Units</th>
                 <th>Profit</th>
                 {hasDistance && <th>Distance</th>}

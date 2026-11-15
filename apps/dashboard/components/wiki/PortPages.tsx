@@ -3,6 +3,7 @@
 // there and links to every Battle Prep plan made for it.
 import { useState } from "react";
 import ReportMistake from "./ReportMistake";
+import { prepHref, wikiMode } from "@/lib/wikiMode";
 import { useLoad } from "./wikiData";
 
 const when = (d: string | null) =>
@@ -19,7 +20,7 @@ function PortIndex({ openPort }: { openPort: (n: string) => void }) {
   return (
     <section className="wpPlanner ppIndex">
       <p className="gwEyebrow">PORT BATTLE PORTS</p>
-      <h2>Know the battlefield</h2>
+      <h2>Know the Battlefield</h2>
       <p>Every port battle port with its map, team size and BOM's history there.</p>
       <div className="whChips" role="tablist" aria-label="Rate">
         {["all", ...rates].map((r) => (
@@ -70,7 +71,7 @@ export default function PortPages({
     <article className="wpPlanner ppPage">
       <nav className="whCrumbs" aria-label="Breadcrumb">
         <button type="button" onClick={() => openPort(null)}>
-          Port battle ports
+          Port Battle Ports
         </button>
         <span aria-hidden="true">›</span>
         <span>{port.rate}</span>
@@ -89,6 +90,8 @@ export default function PortPages({
             <small>Ship rate</small>
             <b>{port.rate}</b>
           </div>
+          {!data.public && (
+          <>
           <div>
             <small>BOM battles here</small>
             <b>{battles.length}</b>
@@ -101,6 +104,8 @@ export default function PortPages({
                 : "No results yet"}
             </b>
           </div>
+          </>
+          )}
         </div>
       </header>
       {port.mapUrl ? (
@@ -108,14 +113,16 @@ export default function PortPages({
           <img src={port.mapUrl} alt={`Tactical map of ${port.name}`} />
           <figcaption>
             Tactical map. Plan your lines on it in{" "}
-            <a href={`/dashboard/battle-prep?port=${encodeURIComponent(port.name)}`}>Battle Prep</a>.
+            <a href={`${prepHref()}?port=${encodeURIComponent(port.name)}`}>Battle Prep</a>.
           </figcaption>
         </figure>
       ) : (
         <p className="gwMuted">We don't have a tactical map for this port yet.</p>
       )}
+      {!data.public && (
+      <>
       <section>
-        <h2>BOM's plans for {port.name}</h2>
+        <h2>BOM's Plans for {port.name}</h2>
         {plans.length ? (
           <ul className="ppPlans">
             {plans.map((p: any) => (
@@ -132,7 +139,7 @@ export default function PortPages({
         )}
       </section>
       <section>
-        <h2>Past battles</h2>
+        <h2>Past Battles</h2>
         {battles.length ? (
           <div className="gwOverflow">
             <table>
@@ -164,7 +171,9 @@ export default function PortPages({
           <p className="gwMuted">BOM hasn't fought here yet.</p>
         )}
       </section>
-      <ReportMistake page={`port:${port.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} label={port.name} />
+      </>
+      )}
+      {!wikiMode.public && <ReportMistake page={`port:${port.name.toLowerCase().replace(/[^a-z0-9]+/g, "-")}`} label={port.name} />}
     </article>
   );
 }

@@ -1,4 +1,5 @@
 "use client";
+import { apiRoot, wikiMode } from "@/lib/wikiMode";
 // Wiki structure: one navigation bar, a plain-language home page, written guides,
 // a grouped calculators hub, a tool switcher, and comparison charts. The detailed
 // game data stays one click away in the encyclopedia.
@@ -17,33 +18,33 @@ type Group = { id: string; title: string; blurb: string; tools: Tool[] };
 export const TOOL_GROUPS: Group[] = [
   {
     id: "ships",
-    title: "Ships & combat",
+    title: "Ships & Combat",
     blurb: "Pick a ship, fit its guns and know your angles.",
     tools: [
       {
         id: "ship",
-        title: "Ship profiles",
+        title: "Ship Profiles",
         blurb: "One page per ship: stats, role and BOM's view.",
         icon: "ship",
       },
-      { id: "ship-compare", title: "Ship vs ship", blurb: "Two or three ships side by side.", icon: "data" },
+      { id: "ship-compare", title: "Ship vs Ship", blurb: "Two or three ships side by side.", icon: "data" },
       { id: "shipyard", title: "Shipyard", blurb: "Every ship by rate, with its full stats.", icon: "ship" },
       {
         id: "combat",
-        title: "Combat lab",
+        title: "Combat Lab",
         blurb: "Compare guns, ammo and armour, volley by volley.",
         icon: "cannon",
       },
       {
         id: "range",
-        title: "Range lab",
+        title: "Range Lab",
         blurb: "See which guns reach which targets, and from where.",
         icon: "range",
       },
-      { id: "wind", title: "Wind & sailing", blurb: "Your speed at every angle to the wind.", icon: "wind" },
+      { id: "wind", title: "Wind & Sailing", blurb: "Your speed at every angle to the wind.", icon: "wind" },
       {
         id: "volleys",
-        title: "Cannon showdown",
+        title: "Cannon Showdown",
         blurb: "Race two guns and see which deals more damage over time.",
         icon: "cannon",
       },
@@ -51,24 +52,24 @@ export const TOOL_GROUPS: Group[] = [
   },
   {
     id: "pb",
-    title: "Port battles",
+    title: "Port Battles",
     blurb: "Get your ship and hold ready for the fight.",
     tools: [
       {
         id: "pb-ready",
-        title: "Port battle checklist",
+        title: "Port Battle Checklist",
         blurb: "Your loadout and BOM's stockpile targets, ticked off.",
         icon: "flag",
       },
       {
         id: "ports",
-        title: "Port battle ports",
+        title: "Port Battle Ports",
         blurb: "Maps, team sizes and BOM's record at each port.",
         icon: "map",
       },
       {
         id: "cheatsheet",
-        title: "Cheat sheet",
+        title: "Cheat Sheet",
         blurb: "Everything for the fight on one printable page.",
         icon: "guide",
       },
@@ -76,36 +77,36 @@ export const TOOL_GROUPS: Group[] = [
   },
   {
     id: "economy",
-    title: "Crafting & economy",
+    title: "Crafting & Economy",
     blurb: "Plan what to build, what it costs and how long it takes.",
     tools: [
       {
         id: "crafting",
-        title: "Crafting calculator",
+        title: "Crafting Calculator",
         blurb: "Everything you need to make an item, step by step.",
         icon: "hammer",
       },
       {
         id: "craft-time",
-        title: "Crafting time",
+        title: "Crafting Time",
         blurb: "How long your workshops take, with every bonus.",
         icon: "clock",
       },
       {
         id: "nodes",
-        title: "Mines & farms",
+        title: "Mines & Farms",
         blurb: "What your mines and farms make and store.",
         icon: "pick",
       },
       {
         id: "islands",
-        title: "Personal islands",
+        title: "Personal Islands",
         blurb: "Plan buildings, decorations and their costs.",
         icon: "island",
       },
       {
         id: "trade",
-        title: "Trade route finder",
+        title: "Trade Route Finder",
         blurb: "The most profitable runs for your hold.",
         icon: "chest",
       },
@@ -113,18 +114,18 @@ export const TOOL_GROUPS: Group[] = [
   },
   {
     id: "crew",
-    title: "Crew & rewards",
+    title: "Crew & Rewards",
     blurb: "Who to hire and what chests really give.",
     tools: [
       {
         id: "crew",
-        title: "Special crew",
+        title: "Special Crew",
         blurb: "Every specialist, sorted like the in-game menu.",
         icon: "crew",
       },
       {
         id: "chests",
-        title: "Chest simulator",
+        title: "Chest Simulator",
         blurb: "Odds and test rolls for the big chests.",
         icon: "chest",
       },
@@ -132,13 +133,13 @@ export const TOOL_GROUPS: Group[] = [
   },
   {
     id: "world",
-    title: "World & navigation",
+    title: "World & Navigation",
     blurb: "Where everything is on the map.",
     tools: [
-      { id: "atlas", title: "World atlas", blurb: "Trade routes and ports on the real map.", icon: "map" },
+      { id: "atlas", title: "World Atlas", blurb: "Trade routes and ports on the real map.", icon: "map" },
       {
         id: "npcs",
-        title: "NPC ships",
+        title: "NPC Ships",
         blurb: "The ships you'll meet at sea, and their names.",
         icon: "flag",
       },
@@ -146,18 +147,18 @@ export const TOOL_GROUPS: Group[] = [
   },
   {
     id: "reference",
-    title: "About the data",
+    title: "About the Data",
     blurb: "Where the numbers come from, and what's new.",
     tools: [
       {
         id: "changes",
-        title: "What changed",
+        title: "What Changed",
         blurb: "Every change in the latest game update.",
         icon: "clock",
       },
       {
         id: "coverage",
-        title: "Coverage & sources",
+        title: "Coverage & Sources",
         blurb: "What the wiki knows, and how sure it is.",
         icon: "book",
       },
@@ -228,8 +229,8 @@ export function WikiNav({
   const items: [WikiSection, string, keyof typeof ICONS][] = [
     ["home", "Home", "home"],
     ["guides", "Guides", "guide"],
-    ["tools", "Calculators & tools", "hammer"],
-    ["browse", "Game data", "data"],
+    ["tools", "Calculators & Tools", "hammer"],
+    ["browse", "Game Data", "data"],
   ];
   return (
     <header className="whHeader">
@@ -278,7 +279,7 @@ export function WikiNav({
             aria-current={section === "admin" ? "page" : undefined}
             onClick={() => go("manage")}
           >
-            Manage wiki
+            Manage Wiki
           </button>
         )}
         {stats && <small className="whStats">{stats}</small>}
@@ -307,7 +308,7 @@ export function ToolsHub({ go }: { go: (tab: string) => void }) {
     <section className="whHub">
       <header className="whPageHead">
         <p className="gwEyebrow">CALCULATORS & TOOLS</p>
-        <h1>Plan it before you sail it</h1>
+        <h1>Plan It Before You Sail It</h1>
         <p>Calculators and planners built on the game's own data. Pick what you're trying to do.</p>
       </header>
       {TOOL_GROUPS.map((g) => (
@@ -336,7 +337,7 @@ export function ToolHeader({ tab, go }: { tab: string; go: (tab: string) => void
     <div className="whToolBar">
       <nav className="whCrumbs" aria-label="Breadcrumb">
         <button type="button" onClick={() => go("tools")}>
-          Calculators & tools
+          Calculators & Tools
         </button>
         <span aria-hidden="true">›</span>
         <span>{tool.group.title}</span>
@@ -387,7 +388,7 @@ type Article = {
 type Category = { id: string; label: string; description: string };
 
 async function portal(path: string) {
-  const r = await fetch(`/api/internal/wiki/portal${path}`, { cache: "no-store" });
+  const r = await fetch(`${apiRoot()}/wiki/portal${path}`, { cache: "no-store" });
   const body = await r.json().catch(() => ({}));
   if (!r.ok) throw new Error(body.message || body.error || "Guides are unavailable right now.");
   return body;
@@ -613,6 +614,7 @@ export function useProgress() {
   const [done, setDone] = useState<string[]>([]);
   useEffect(() => {
     let live = true;
+    if (wikiMode.public) return;
     progressCache ??= fetch("/api/internal/wiki/portal/progress", { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : { done: [] }))
       .then((b) => (Array.isArray(b.done) ? b.done : []))
@@ -732,7 +734,7 @@ function GuideArticle({
           {a.content && <Prose text={a.content} nav={nav} />}
           {a.content && guides.length > 0 ? (
             <details className="whOriginal">
-              <summary>Original game text</summary>
+              <summary>Original Game Text</summary>
               {original}
             </details>
           ) : (
@@ -753,7 +755,7 @@ function GuideArticle({
           )}
         </>
       )}
-      {at >= 0 && (
+      {at >= 0 && !wikiMode.public && (
         <label className="whRead gwCheck">
           <input
             type="checkbox"
@@ -783,7 +785,7 @@ function GuideArticle({
       )}
       {at < 0 && a.related?.length > 0 && (
         <section className="whRelated">
-          <h2>Related guides</h2>
+          <h2>Related Guides</h2>
           <div>
             {a.related
               .filter((r: any) => !isCommunity(r))
@@ -795,7 +797,7 @@ function GuideArticle({
           </div>
         </section>
       )}
-      {a.type !== "glossary" && <ReportMistake page={slug} label={cleanTitle(a.title)} />}
+      {a.type !== "glossary" && !wikiMode.public && <ReportMistake page={slug} label={cleanTitle(a.title)} />}
     </article>
   );
 }
@@ -889,7 +891,7 @@ export function WikiGuides({
     <section className="whHub">
       <header className="whPageHead">
         <p className="gwEyebrow">GUIDES</p>
-        <h1>How things work, in plain English</h1>
+        <h1>How Things Work, in Plain English</h1>
         <p>
           Short guides to every part of the game. Underlined words explain themselves when you hover or tap
           them, and the{" "}
@@ -901,7 +903,7 @@ export function WikiGuides({
       </header>
       <div className="whFilters">
         <div className="whChips" role="tablist" aria-label="Guide topics">
-          {[["all", "All topics"], ...data.categories.map((c) => [c.id, c.label])].map(([id, l]) => (
+          {[["all", "All Topics"], ...data.categories.map((c) => [c.id, c.label])].map(([id, l]) => (
             <button
               key={id}
               type="button"
@@ -938,7 +940,7 @@ export function WikiGuides({
               </div>
               <ChapterPath articles={data.articles} openGuide={openGuide} />
               <button type="button" className="whMore" onClick={() => openGuide("glossary")}>
-                Glossary of game terms →
+                Glossary of Game Terms →
               </button>
             </section>
           );
@@ -990,7 +992,7 @@ export function WikiHome({
     <div className="whHome">
       <section className="whHero">
         <p className="gwEyebrow">WORLD OF SEA BATTLE · BAND OF MISFITS</p>
-        <h1>Everything you need to know at sea</h1>
+        <h1>Everything You Need to Know at Sea</h1>
         <p>
           Plain-English guides, calculators that do the maths for you, and every number from the game when you
           want it.
@@ -1017,7 +1019,7 @@ export function WikiHome({
       {data && chapters(data.articles).length > 0 && (
         <section className="whGroup">
           <div className="whGroupHead">
-            <h2>New to the game? Start here</h2>
+            <h2>New to the Game? Start Here</h2>
             <p>The New Player Guide, from your first ship to your first port battle.</p>
           </div>
           <ChapterPath articles={data.articles} openGuide={openGuide} />
@@ -1027,7 +1029,7 @@ export function WikiHome({
       {popular.length > 0 && (
         <section className="whGroup">
           <div className="whGroupHead">
-            <h2>Popular guides</h2>
+            <h2>Popular Guides</h2>
             <p>What captains look up most.</p>
           </div>
           <div className="whGuideGrid">
@@ -1039,14 +1041,14 @@ export function WikiHome({
             ))}
           </div>
           <button type="button" className="whMore" onClick={() => go("guides")}>
-            All guides →
+            All Guides →
           </button>
         </section>
       )}
 
       <section className="whGroup">
         <div className="whGroupHead">
-          <h2>Calculators & tools</h2>
+          <h2>Calculators & Tools</h2>
           <p>Let the wiki do the maths.</p>
         </div>
         <div className="whGroupCards">
@@ -1071,7 +1073,7 @@ export function WikiHome({
       {groups.length > 0 && (
         <section className="whGroup">
           <div className="whGroupHead">
-            <h2>Game data</h2>
+            <h2>Game Data</h2>
             <p>Every number from the game, with filters, comparisons and downloads.</p>
           </div>
           <div className="whDataGrid">
@@ -1116,7 +1118,7 @@ export function CompareChart({
   return (
     <section className="whCompare">
       <header>
-        <h3>At a glance</h3>
+        <h3>At a Glance</h3>
         <label className="gwCheck">
           <input type="checkbox" checked={only} onChange={(e) => setOnly(e.target.checked)} /> Only show
           differences
@@ -1180,7 +1182,7 @@ export class ToolBoundary extends Component<{ tool: string; children: ReactNode 
         pick another tool. <small>({this.state.error})</small>
         <div>
           <button type="button" onClick={() => this.setState({ error: "" })}>
-            Try again
+            Try Again
           </button>
         </div>
       </div>
@@ -1330,7 +1332,7 @@ export function WikiSearch({
       {(t.length > 0 || p.length > 0) && (
         <section className="whGroup">
           <div className="whGroupHead">
-            <h2>Tools & ports</h2>
+            <h2>Tools & Ports</h2>
           </div>
           <div className="whToolGrid">
             {t.map((x) => (
@@ -1354,7 +1356,7 @@ export function WikiSearch({
       )}
       <section className="whGroup">
         <div className="whGroupHead">
-          <h2>Game data</h2>
+          <h2>Game Data</h2>
           <p>Exact records from the game.</p>
         </div>
         {records === null ? (

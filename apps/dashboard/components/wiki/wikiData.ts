@@ -1,22 +1,24 @@
 "use client";
+import { apiRoot } from "@/lib/wikiMode";
 // Shared, cached loaders for wiki pages so moving between pages doesn't refetch.
 import { useEffect, useState } from "react";
 
 const cache = new Map<string, Promise<any>>();
 export function load(path: string): Promise<any> {
-  let p = cache.get(path);
+  const key = `${apiRoot()}|${path}`;
+  let p = cache.get(key);
   if (!p) {
-    p = fetch(`/api/internal/${path}`, { cache: "no-store" }).then(async (r) => {
+    p = fetch(`${apiRoot()}/${path}`, { cache: "no-store" }).then(async (r) => {
       const b = await r.json().catch(() => ({}));
       if (!r.ok) throw new Error(b.message || b.error || "This part of the wiki isn't available right now.");
       return b;
     });
-    cache.set(path, p);
-    p.catch(() => cache.delete(path));
+    cache.set(key, p);
+    p.catch(() => cache.delete(key));
   }
   return p;
 }
-export const forget = (path: string) => cache.delete(path);
+export const forget = (path: string) => cache.delete(`${apiRoot()}|${path}`);
 
 export function useLoad<T = any>(path: string | null) {
   const [data, setData] = useState<T | null>(null),

@@ -1,4 +1,5 @@
 "use client";
+import { apiRoot } from "@/lib/wikiMode";
 // Cannon showdown: how much damage two or three guns deal over time, volley by
 // volley. Uses each gun's damage and reload from the wiki's weapon list.
 import { useEffect, useMemo, useState } from "react";
@@ -25,7 +26,7 @@ export default function VolleyRace() {
     [bonus, setBonus] = useState(0),
     [seconds, setSeconds] = useState(180);
   useEffect(() => {
-    fetch("/api/internal/wiki/portal/articles/cannons-and-weapons", { cache: "no-store" })
+    fetch(`${apiRoot()}/wiki/portal/articles/cannons-and-weapons`, { cache: "no-store" })
       .then(async (r) => {
         const b = await r.json().catch(() => ({}));
         if (!r.ok) throw new Error(b.message || "The gun list isn't available right now.");
@@ -96,7 +97,7 @@ export default function VolleyRace() {
   return (
     <section className="wpPlanner vrRace">
       <p className="gwEyebrow">CANNON SHOWDOWN</p>
-      <h2>Which gun deals more damage over time?</h2>
+      <h2>Which Gun Deals More Damage Over Time?</h2>
       <p>
         Pick two or three guns. Guns that hit hard but reload slowly win the first shot; faster-reloading guns
         catch up and pull ahead. This shows when that happens.
@@ -158,7 +159,7 @@ export default function VolleyRace() {
       <div className="vrQuick">
         Add a reload bonus:{" "}
         <button type="button" onClick={() => setBonus(bonus + 12)}>
-          Ammunition cradles (+12%)
+          Ammunition Cradles (+12%)
         </button>{" "}
         <button type="button" onClick={() => setBonus(bonus + 4)}>
           Gunner (+4%)

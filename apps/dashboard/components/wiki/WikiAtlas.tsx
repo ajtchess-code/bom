@@ -226,7 +226,7 @@ export default function WikiAtlas({
       <header className="gwToolHeader">
         <div>
           <p className="gwEyebrow">WORLD ATLAS</p>
-          <h2>Trade routes & ports</h2>
+          <h2>Trade Routes & Ports</h2>
           <p>
             Every recorded trade route and port, drawn on the game's world map. Drag to move around, scroll or
             pinch to zoom, and pick a route or port to fly to it.
@@ -235,9 +235,9 @@ export default function WikiAtlas({
         <div className="gwSegmented" role="tablist" aria-label="Atlas view">
           {(
             [
-              ["routes", "Trade routes", routes.length],
+              ["routes", "Trade Routes", routes.length],
               ["ports", "Ports", ports.length],
-              ["battles", "Port-battle maps", battleMaps.length],
+              ["battles", "Port-Battle Maps", battleMaps.length],
             ] as const
           ).map(([id, label, n]) => (
             <button
@@ -491,7 +491,7 @@ export default function WikiAtlas({
                     Next ›
                   </button>
                   <button type="button" onClick={() => open("TradingRoutesInfo", selectedRoute.row)}>
-                    Source record
+                    Source Record
                   </button>
                 </div>
                 <p className="gwMuted">
@@ -521,7 +521,7 @@ export default function WikiAtlas({
                 </dl>
                 <div className="gwAtlasActions">
                   <button type="button" onClick={() => open("WorldPorts", selectedPort.row)}>
-                    Port details
+                    Port Details
                   </button>
                 </div>
                 <p className="gwMuted">
@@ -572,7 +572,7 @@ export default function WikiAtlas({
         </div>
       )}
       <details className="gwSourceNote">
-        <summary>About this map</summary>
+        <summary>About This Map</summary>
         <p>
           {routes.length} trade-route records ({routes.reduce((n, r) => n + (r.points?.length ?? 0), 0)}{" "}
           waypoints) and {ports.length} ports from the game client. Game coordinates are placed on the world

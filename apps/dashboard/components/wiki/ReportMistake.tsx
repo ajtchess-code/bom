@@ -33,7 +33,7 @@ export default function ReportMistake({ page, label }: { page: string; label: st
   if (!open)
     return (
       <button type="button" className="rmOpen" onClick={() => setOpen(true)}>
-        ⚑ Report a mistake
+        ⚑ Report a Mistake
       </button>
     );
   return (

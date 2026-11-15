@@ -462,3 +462,35 @@ html[data-theme="light"] .gameWiki .gwHero::before{opacity:.42}
 .wmProgress td:first-child,.wmProgress th:first-child{text-align:left}
 .wmProgress tr.pbReady td{background:color-mix(in srgb,#53b96e 12%,transparent)}
 @media(max-width:800px){.wmSplit,.wmFields{grid-template-columns:1fr}}
+
+/* Public wiki shell (wiki.bandofmisfits.org). */
+.pwShell{min-height:100dvh;display:flex;flex-direction:column;background:var(--cc-bg);color:var(--cc-text);font-family:var(--cc-font,system-ui)}
+.pwBar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:10px clamp(12px,3vw,28px);border-bottom:1px solid var(--cc-border);background:var(--cc-surface)}
+.pwBrand{display:flex;align-items:center;gap:10px;color:inherit;text-decoration:none}
+.pwBrand span{display:grid;line-height:1.1}
+.pwBrand b{font-family:var(--cc-display,Georgia,serif);font-size:19px}
+.pwBrand small{font-size:11px;color:var(--cc-muted);letter-spacing:.5px}
+.pwBar nav{display:flex;gap:4px;flex-wrap:wrap}
+.pwBar nav a{padding:7px 12px;border-radius:999px;color:var(--cc-text-soft,var(--cc-text));text-decoration:none;font-weight:600;font-size:14px}
+.pwBar nav a:hover{background:var(--cc-surface-2)}
+.pwBarEnd{margin-left:auto;display:flex;align-items:center;gap:8px}
+.pwIconBtn{width:34px;height:34px;border-radius:50%;border:1px solid var(--cc-border);background:var(--cc-surface-2);color:var(--cc-text);cursor:pointer}
+.pwLogin{padding:7px 14px;border-radius:999px;border:1px solid var(--cc-border);color:var(--cc-text);text-decoration:none;font-size:13px;font-weight:600}
+.pwContent{flex:1;width:100%;max-width:1440px;margin:0 auto;padding:16px clamp(10px,2.5vw,24px) 24px}
+.pwAd{max-width:1100px;margin:14px auto;padding:0 12px;text-align:center}
+.pwAd small{display:block;font-size:10px;letter-spacing:1px;text-transform:uppercase;color:var(--cc-muted);margin-bottom:4px}
+.pwFooter{display:grid;grid-template-columns:1fr auto;gap:10px 24px;align-items:center;padding:22px clamp(12px,3vw,28px);border-top:1px solid var(--cc-border);background:var(--cc-surface)}
+.pwFooter p{margin:4px 0 0;color:var(--cc-muted);font-size:14px}
+.pwFooter small{grid-column:1/-1;color:var(--cc-muted);font-size:12px}
+.pwDonate{display:inline-flex;align-items:center;gap:8px;padding:11px 20px;border-radius:999px;background:#0070ba;color:#fff;font-weight:700;text-decoration:none;box-shadow:var(--cc-shadow)}
+.pwDonate:hover{background:#005ea6}
+@media(max-width:700px){.pwBar nav{order:3;width:100%;overflow-x:auto;flex-wrap:nowrap}.pwFooter{grid-template-columns:1fr}.pwBrand small{display:none}}
+.pwShell .gameWiki .whHeader{top:0}
+.pwShell .whWordmark{display:none}
+.ppPublic .prSidebar{padding:16px}
+.wpHint{font-size:13px;color:var(--cc-muted);display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.gameWiki .wpHint button{font-size:12px;padding:4px 10px;border-radius:999px}
+.wpShip:active{cursor:grabbing}
+td.wpGood{color:#3f9d58;font-weight:600}
+td.wpBad{color:var(--cc-danger);font-weight:600}
+.pwLogin{white-space:nowrap}

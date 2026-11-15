@@ -79,7 +79,7 @@ function Reports({ openGuide }: { openGuide: (s: string) => void }) {
             <div className="wmActions">
               {!/:/.test(r.article_slug) && (
                 <button type="button" onClick={() => openGuide(r.article_slug)}>
-                  Open page
+                  Open Page
                 </button>
               )}
               {r.status === "OPEN" ? (
@@ -171,7 +171,7 @@ function Editor({ categories }: { categories: { id: string; label: string }[] })
       <section className="wmEditor">
         <div className="wmEditorBar">
           <button type="button" onClick={() => setDraft(null)}>
-            ← All guides
+            ← All Guides
           </button>
           <span role="status">{msg}</span>
           <button type="button" className="whCta" disabled={!draft.title.trim()} onClick={save}>
@@ -215,7 +215,7 @@ function Editor({ categories }: { categories: { id: string; label: string }[] })
               rows={24}
             />
             <details>
-              <summary>Formatting help</summary>
+              <summary>Formatting Help</summary>
               <pre>{HELP}</pre>
             </details>
           </label>
@@ -245,7 +245,7 @@ function Editor({ categories }: { categories: { id: string; label: string }[] })
                       })
                     }
                   >
-                    Load this version
+                    Load This Version
                   </button>
                 </li>
               ))}
@@ -260,7 +260,7 @@ function Editor({ categories }: { categories: { id: string; label: string }[] })
         Write BOM guides here. They appear in Guides straight away and use the same format as the built-in
         guides.{" "}
         <button type="button" className="whCta" onClick={() => setDraft({ ...blank })}>
-          + New guide
+          + New Guide
         </button>
       </p>
       {msg && <p className="gwError">{msg}</p>}
@@ -274,7 +274,7 @@ function Editor({ categories }: { categories: { id: string; label: string }[] })
                 <th>Guide</th>
                 <th>Section</th>
                 <th>Status</th>
-                <th>Last edited</th>
+                <th>Last Edited</th>
               </tr>
             </thead>
             <tbody>
@@ -326,7 +326,7 @@ function Progress({ chapters }: { chapters: { slug: string; title: string }[] })
                 </th>
               ))}
               <th>Read</th>
-              <th>Last read</th>
+              <th>Last Read</th>
             </tr>
           </thead>
           <tbody>
@@ -376,13 +376,13 @@ export default function WikiManage({
   return (
     <section className="wpPlanner wmManage">
       <p className="gwEyebrow">MANAGE THE WIKI</p>
-      <h2>Officer tools</h2>
+      <h2>Officer Tools</h2>
       <div className="scTabs" role="tablist" aria-label="Manage">
         {[
-          ["reports", "Mistake reports"],
-          ["editor", "Write guides"],
-          ["progress", "New player progress"],
-          ["data", "Game data"],
+          ["reports", "Mistake Reports"],
+          ["editor", "Write Guides"],
+          ["progress", "New Player Progress"],
+          ["data", "Game Data"],
         ].map(([k, l]) => (
           <button
             key={k}
@@ -406,10 +406,10 @@ export default function WikiManage({
             changed.
           </p>
           <button type="button" className="whCta" onClick={() => go("install")}>
-            Update game data
+            Update Game Data
           </button>{" "}
           <button type="button" onClick={() => go("changes")}>
-            See what changed
+            See What Changed
           </button>
         </section>
       )}

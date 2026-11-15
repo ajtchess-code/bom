@@ -8,10 +8,10 @@ export default function CheatSheet() {
       <div className="cheatBar">
         <div>
           <p className="gwEyebrow">PORT BATTLE CHEAT SHEET</p>
-          <h2>Port battle cheat sheet</h2>
+          <h2>Port Battle Cheat Sheet</h2>
         </div>
         <button type="button" className="whCta" onClick={() => window.print()}>
-          Print or save as PDF
+          Print or Save as PDF
         </button>
       </div>
       <div className="cheatSheet">
@@ -48,7 +48,7 @@ export default function CheatSheet() {
           </ul>
         </article>
         <article>
-          <h3>Staying alive</h3>
+          <h3>Staying Alive</h3>
           <ul>
             <li>
               Angle about <b>40°</b> when taking fire
@@ -78,7 +78,7 @@ export default function CheatSheet() {
           </ul>
         </article>
         <article>
-          <h3>Hold (1st rate)</h3>
+          <h3>Hold (1St Rate)</h3>
           <table>
             <tbody>
               <tr>
@@ -110,7 +110,7 @@ export default function CheatSheet() {
           <p>Hold insurance: 40 scrolls (port shop). You get ~9 minutes to check.</p>
         </article>
         <article>
-          <h3>Upgrades (heavy)</h3>
+          <h3>Upgrades (Heavy)</h3>
           <ul>
             <li>Tacking sails</li>
             <li>Ammunition cradles (~12% faster reload)</li>
@@ -120,7 +120,7 @@ export default function CheatSheet() {
           </ul>
         </article>
         <article>
-          <h3>Ship types</h3>
+          <h3>Ship Types</h3>
           <ul>
             <li>
               <b>Heavy</b>: best for most players

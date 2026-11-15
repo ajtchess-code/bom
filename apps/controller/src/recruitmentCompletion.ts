@@ -17,7 +17,8 @@ export async function sweepRecruitmentCompletion(client:any,guildId:string){
   const s=await oneOrNone<any>('SELECT * FROM recruitment_settings WHERE guild_id=$1',[guildId]);const guild=await client.guilds.fetch(guildId);
   if(claim.role_state!=='COMPLETE'){
    const member=await guild.members.fetch(String(a.user_id)).catch((e:any)=>{if(Number(e.code)===10007)return null;throw e;});
-   if(!member&&a.status==='ACCEPTED')throw new Error('Applicant has left Discord; membership cannot be assigned.');
+   // An applicant who left can't get roles; still close the ticket.
+   if(!member&&a.status==='ACCEPTED')console.warn(`[recruitment] ${a.id}: applicant left Discord before acceptance; skipping roles.`);
    if(member){
     if(a.status==='ACCEPTED'){
      const m=await oneOrNone<any>('SELECT member_role_id FROM membership_settings WHERE guild_id=$1',[guildId]);const target=a.target_guild_tag==='BoM'?s?.accepted_second_guild_role_id:s?.accepted_role_id??m?.member_role_id;
@@ -37,10 +38,13 @@ export async function sweepRecruitmentCompletion(client:any,guildId:string){
    let state='SENT';try{if(await canDiscordDm(String(a.user_id),'recruitment')){const u=await client.users.fetch(a.user_id);await sendBotDm(u,`**Application ${a.status.toLowerCase()}**\n${a.status==='ACCEPTED'?`Welcome to ${a.target_guild_tag==='BoM'?'BoM 2':'BOM'}!\n`:''}${a.decision_reason??''}\n${process.env.PUBLIC_DASHBOARD_URL??'https://dashboard.bandofmisfits.org'}/dashboard/recruitment`);}else state='SUPPRESSED';}catch(e){state='FAILED';await db.query(`INSERT INTO recruitment_application_events(application_id,event_type,visibility,message) VALUES($1,'delivery.failed','INTERNAL',$2)`,[a.id,fail(e)]);}
    await step(a.id,'dm_state=$2',[state]);
   }
+  // Remove any interview voice rooms for this application.
+  for(const i of await many<any>(`SELECT id,voice_channel_id FROM recruitment_interviews WHERE application_id=$1 AND voice_channel_id IS NOT NULL`,[a.id])){const v=await channel(guild,String(i.voice_channel_id)).catch(()=>null);if(v)await v.delete('Application finished').catch(()=>{});await db.query(`UPDATE recruitment_interviews SET status='COMPLETED',voice_channel_id=NULL,updated_at=now() WHERE id=$1`,[i.id]);}
   const ch=a.ticket_channel_id?await channel(guild,String(a.ticket_channel_id)):null;
   if(claim.transcript_state!=='COMPLETE'){
    if(ch){
-    if(ch.type!==0||!String(ch.name).startsWith('application-'))throw new Error('Refusing to delete a room that is not a dedicated application ticket.');
+    // Tickets are named app-<captain> (older ones application-<captain>); never delete any other room.
+    if(ch.type!==0||!/^(app|application)-/.test(String(ch.name)))throw new Error('Refusing to delete a room that is not a dedicated application ticket.');
     // Freeze applicant writes while archival runs so no messages escape the transcript.
     await ch.permissionOverwrites.edit(a.user_id,{SendMessages:false,AttachFiles:false},'Application completed; transcript being archived');
     const batch=await ch.messages.fetch({limit:100,...(claim.transcript_cursor?{before:claim.transcript_cursor}:{})});

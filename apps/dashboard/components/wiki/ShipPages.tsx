@@ -2,6 +2,7 @@
 // Ship profiles (one page per ship) and the ship-vs-ship comparison.
 import { useMemo, useState } from "react";
 import ReportMistake from "./ReportMistake";
+import { wikiMode } from "@/lib/wikiMode";
 import {
   STAT_LABELS,
   bomPick,
@@ -47,7 +48,7 @@ function ShipIndex({ ships, openShip }: { ships: Ship[]; openShip: (n: string) =
   return (
     <section className="wpPlanner spIndex">
       <p className="gwEyebrow">SHIPS</p>
-      <h2>Every ship, one page each</h2>
+      <h2>Every Ship, One Page Each</h2>
       <p>
         Pick a ship for its stats compared with others of its rate, what it's good at, and BOM's view on it.
       </p>
@@ -107,7 +108,7 @@ export function ShipPage({
   compare: (names: string[]) => void;
 }) {
   const { ships, error } = useShips();
-  const { data: library } = useLoad<any>(name ? "wosb/build-library" : null);
+  const { data: library } = useLoad<any>(name && !wikiMode.public ? "wosb/build-library" : null);
   if (error) return <p className="gwError">{error}</p>;
   if (!ships) return <p role="status">Loading ships…</p>;
   if (!name) return <ShipIndex ships={ships} openShip={openShip} />;
@@ -117,7 +118,7 @@ export function ShipPage({
       <p className="gwError">
         No ship called “{name}”.{" "}
         <button type="button" className="whLink" onClick={() => openShip(null)}>
-          See all ships
+          See All Ships
         </button>
       </p>
     );
@@ -158,7 +159,7 @@ export function ShipPage({
               className="whCta"
               onClick={() => compare([ship.name, ...similar.slice(0, 1).map((s) => s.name)])}
             >
-              Compare with another ship →
+              Compare with Another Ship →
             </button>
             <button type="button" onClick={() => go("shipyard")}>
               Open in the Shipyard
@@ -168,7 +169,7 @@ export function ShipPage({
       </header>
 
       <section>
-        <h2>How it stacks up</h2>
+        <h2>How It Stacks Up</h2>
         <p className="gwMuted">
           Each bar is compared with the best {rateName(ship.rate)} ship ({peers.length} ships). The tick shows
           the average for its rate.
@@ -204,14 +205,14 @@ export function ShipPage({
 
       {ship.historicalInspiration && (
         <section>
-          <h2>The real ship</h2>
+          <h2>The Real Ship</h2>
           <p>{String(ship.historicalInspiration)}</p>
         </section>
       )}
 
       {builds.length > 0 && (
         <section>
-          <h2>BOM builds for this ship</h2>
+          <h2>BOM Builds for This Ship</h2>
           <ul className="spBuilds">
             {builds.slice(0, 8).map((b: any) => (
               <li key={b.id}>
@@ -227,7 +228,7 @@ export function ShipPage({
 
       {similar.length > 0 && (
         <section>
-          <h2>Similar ships</h2>
+          <h2>Similar Ships</h2>
           <div className="whRelated">
             <div>
               {similar.map((s) => (
@@ -239,7 +240,7 @@ export function ShipPage({
           </div>
         </section>
       )}
-      <ReportMistake page={`ship:${shipSlug(ship.name)}`} label={ship.name} />
+      {!wikiMode.public && <ReportMistake page={`ship:${shipSlug(ship.name)}`} label={ship.name} />}
     </article>
   );
 }
@@ -269,7 +270,7 @@ export function ShipCompare({
   return (
     <section className="wpPlanner scmp">
       <p className="gwEyebrow">SHIP VS SHIP</p>
-      <h2>Compare ships side by side</h2>
+      <h2>Compare Ships Side by Side</h2>
       <p>Pick two or three ships. Longer bars are higher numbers; the best in each row is marked.</p>
       <div className="gwToolControls">
         {[0, 1, 2].map((i) => (

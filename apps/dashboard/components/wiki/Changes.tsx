@@ -58,7 +58,7 @@ export default function Changes({ open }: { open?: (table: string, row?: number)
   return (
     <section className="wpPlanner chg">
       <p className="gwEyebrow">WHAT CHANGED</p>
-      <h2>What changed in the latest game update</h2>
+      <h2>What Changed in the Latest Game Update</h2>
       {!data.previous ? (
         <p>
           There's only one game-data release on the server, so there's nothing to compare yet. After the next

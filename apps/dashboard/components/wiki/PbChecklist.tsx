@@ -93,8 +93,8 @@ export default function PbChecklist() {
               <tr>
                 <th>Item</th>
                 <th>Target</th>
-                <th>I have</th>
-                <th>Still need</th>
+                <th>I Have</th>
+                <th>Still Need</th>
               </tr>
             </thead>
             <tbody>
@@ -137,12 +137,12 @@ export default function PbChecklist() {
   return (
     <section className="wpPlanner pbCheck">
       <p className="gwEyebrow">PORT BATTLE CHECKLIST</p>
-      <h2>Ready for the port battle?</h2>
+      <h2>Ready for the Port Battle?</h2>
       <p>Tick off your prep and fill in what you have. Everything saves in this browser.</p>
 
       <section className="pbSteps">
         <header>
-          <h3>Before the battle</h3>
+          <h3>Before the Battle</h3>
           <span className={steps === STEPS.length ? "pbOk" : "pbShort"}>
             {steps} of {STEPS.length} done
           </span>
@@ -182,7 +182,7 @@ export default function PbChecklist() {
       </div>
       <p className="gwMuted">Smaller ships need less. Ask an officer if you're unsure.</p>
 
-      <h3 className="pbSection">BOM stockpile targets</h3>
+      <h3 className="pbSection">BOM Stockpile Targets</h3>
       <p className="gwMuted">
         Our minimums from the BOM Port Battle Preparation guide. Officers may change them.
       </p>
@@ -203,7 +203,7 @@ export default function PbChecklist() {
       </div>
       {table("port", "Food & materials", PER_PORT, s.ports)}
       <button type="button" className="pbReset" onClick={() => update({ ...blank })}>
-        Clear everything
+        Clear Everything
       </button>
     </section>
   );

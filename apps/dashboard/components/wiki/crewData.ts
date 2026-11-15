@@ -463,7 +463,7 @@ export const SPECIALISTS: Specialist[] = [
 export const CREW_PRESETS: { id: string; label: string; names: string[] }[] = [
   {
     id: "pb-heavy",
-    label: "Port battle heavy",
+    label: "Port Battle Heavy",
     names: [
       "Gunner",
       "Armorer",
@@ -477,7 +477,7 @@ export const CREW_PRESETS: { id: string; label: string; names: string[] }[] = [
   },
   {
     id: "siege",
-    label: "Siege ship",
+    label: "Siege Ship",
     names: ["Artillerist", "Bombardier", "Watchman", "Junior provost", "Carpenter", "Sail Handler"],
   },
   {
@@ -487,7 +487,7 @@ export const CREW_PRESETS: { id: string; label: string; names: string[] }[] = [
   },
   {
     id: "explorer",
-    label: "Exploring & loot",
+    label: "Exploring & Loot",
     names: ["Mastman", "Navigator", "Swimmer", "Lucky One", "Seeker", "Veteran", "Cook"],
   },
 ];

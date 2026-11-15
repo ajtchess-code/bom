@@ -1,4 +1,5 @@
 "use client";
+import { apiRoot } from "@/lib/wikiMode";
 // Special crew, laid out like the in-game Special Crew menu: the same four
 // tabs, in the same order, with plain-English effects. Game-data pictures and
 // full records are added when the installed game data has them.
@@ -28,7 +29,7 @@ export default function SpecialCrewGuide({
   useEffect(() => {
     if (given) return;
     let live = true;
-    fetch("/api/internal/game-wiki/visuals/crew")
+    fetch(`${apiRoot()}/game-wiki/visuals/crew`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => live && d && setData(d))
       .catch(() => {});
@@ -103,7 +104,7 @@ export default function SpecialCrewGuide({
           </button>
           {c && open && (
             <button type="button" className="scMore" onClick={() => open("Crew_Special", c.row)}>
-              Full details
+              Full Details
             </button>
           )}
         </div>
@@ -122,7 +123,7 @@ export default function SpecialCrewGuide({
   return (
     <section className="wpPlanner scCrew">
       <p className="gwEyebrow">SPECIAL CREW</p>
-      <h2>Special crew, like the in-game menu</h2>
+      <h2>Special Crew, Like the In-Game Menu</h2>
       <p>
         The same four tabs and order you see in the game, with what each one actually does in plain words. Add
         specialists to your list to plan a crew.
@@ -227,7 +228,7 @@ export default function SpecialCrewGuide({
               })}
             </ul>
             <button type="button" onClick={copy}>
-              Copy list
+              Copy List
             </button>{" "}
             <button type="button" onClick={() => save([])}>
               Clear
@@ -238,7 +239,7 @@ export default function SpecialCrewGuide({
         )}
       </section>
 
-      <h3>Where to find special crew</h3>
+      <h3>Where to Find Special Crew</h3>
       <ul>
         <li>
           <b>Taverns</b>: cities have military and sailor specialists; pirate coves and pirate cities have
@@ -253,14 +254,14 @@ export default function SpecialCrewGuide({
       </ul>
       {(data?.acquisition ?? []).length > 0 && (
         <details>
-          <summary>The game's own wording</summary>
+          <summary>The Game's Own Wording</summary>
           {data.acquisition.map((p: string, i: number) => (
             <p key={i}>{p.replaceAll("#", "")}</p>
           ))}
         </details>
       )}
 
-      <h3>Recruiting on your personal island</h3>
+      <h3>Recruiting on Your Personal Island</h3>
       <p>
         Island recruiting costs Labor: <b>50</b> for a random specialist, or <b>75</b> to choose the class.
         Each captive you land adds 1 Labor (up to your island's Labor limit).
