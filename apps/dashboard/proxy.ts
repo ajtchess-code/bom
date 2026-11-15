@@ -1,9 +1,10 @@
 import {allianceDashboardPath} from '@bom/shared';
 import {NextRequest,NextResponse} from 'next/server';
 import {decodeSession} from './lib/session';
-/** wiki.bandofmisfits.org (or PUBLIC_WIKI_HOST) serves the public wiki at its root. */
+/** wiki.bandofmisfits.org (or PUBLIC_WIKI_HOST) and the main domain (PUBLIC_ROOT_HOSTS) serve the public wiki at their root. */
 const publicWikiHost=(process.env.PUBLIC_WIKI_HOST??'wiki.bandofmisfits.org').toLowerCase();
-const isWikiHost=(req:NextRequest)=>{const h=(req.headers.get('x-forwarded-host')??req.headers.get('host')??'').split(':')[0].toLowerCase();return h===publicWikiHost||h.startsWith('wiki.');};
+const rootHosts=(process.env.PUBLIC_ROOT_HOSTS??'bandofmisfits.org,www.bandofmisfits.org').toLowerCase().split(',').map(h=>h.trim()).filter(Boolean);
+const isWikiHost=(req:NextRequest)=>{const h=(req.headers.get('x-forwarded-host')??req.headers.get('host')??'').split(':')[0].toLowerCase();return h===publicWikiHost||h.startsWith('wiki.')||rootHosts.includes(h);};
 export async function proxy(req:NextRequest){
  if(isWikiHost(req)){
   const path=req.nextUrl.pathname;
