@@ -6,7 +6,7 @@ import { join, resolve } from "node:path";
 import sharp from "sharp";
 import { AttachmentBuilder, EmbedBuilder, MessageFlags, SlashCommandBuilder, type AutocompleteInteraction, type ChatInputCommandInteraction } from "discord.js";
 
-const SITE = (process.env.PUBLIC_WIKI_URL ?? "https://bandofmisfits.org").replace(/\/$/, "");
+const SITE = (process.env.PUBLIC_WIKI_URL || process.env.PUBLIC_WIKI_REDIRECT || "https://bandofmisfits.org").trim().replace(/\/$/, "");
 const root = () => (process.cwd().replace(/\\/g, "/").endsWith("/apps/controller") ? resolve(process.cwd(), "../..") : process.cwd());
 
 type Ship = { n: string; armor: number; hp: number; rank?: number; cls?: string; crew?: number; speed?: number; box?: { min: number[]; max: number[] } | null; ports?: any; masts?: number; sails?: number };
@@ -21,7 +21,7 @@ export async function compendiumData(): Promise<Data | null> {
   try {
     active = JSON.parse(await readFile(join(root(), "data", "compendium-active.json"), "utf8"));
   } catch {
-    return null;
+    return remoteData();
   }
   const key = `${active.release}:${active.activatedAt}`;
   if (loaded?.key === key) return loaded.data;
@@ -35,6 +35,27 @@ export async function compendiumData(): Promise<Data | null> {
     console.warn("[compendium] could not read the active release", e);
   }
   loaded = { key, data };
+  return data;
+}
+/** No release on this host: read the live wiki's data files instead (cached for an hour). */
+let remote: { at: number; data: Data | null } | null = null;
+async function remoteData(): Promise<Data | null> {
+  if (remote && Date.now() - remote.at < 3_600_000) return remote.data;
+  let data: Data | null = null;
+  try {
+    const get = async (p: string) => {
+      const r = await fetch(`${SITE}/${p}`, { headers: { "user-agent": "BOM-Bot (+https://bandofmisfits.org)" }, signal: AbortSignal.timeout(15_000) });
+      if (!r.ok) throw new Error(`${p}: HTTP ${r.status}`);
+      return r.text();
+    };
+    const raw = await get("assets/hit-data.js");
+    const hit = JSON.parse(raw.slice(raw.indexOf("=") + 1).trim().replace(/;\s*$/, ""));
+    const search = JSON.parse(await get("search.json").catch(() => "[]"));
+    data = { ...hit, search, release: "live" };
+  } catch (e) {
+    console.warn("[compendium] could not read the live wiki", e);
+  }
+  remote = { at: Date.now(), data };
   return data;
 }
 export async function compendiumInstalled() {

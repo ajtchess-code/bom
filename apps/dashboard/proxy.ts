@@ -7,12 +7,21 @@ const rootHosts=(process.env.PUBLIC_ROOT_HOSTS??'bandofmisfits.org,www.bandofmis
 const isWikiHost=(req:NextRequest)=>{const h=(req.headers.get('x-forwarded-host')??req.headers.get('host')??'').split(':')[0].toLowerCase();return h===publicWikiHost||h.startsWith('wiki.')||rootHosts.includes(h);};
 /** Paths on the public hosts that are not Compendium pages. */
 const COMPENDIUM_EXACT=['/wiki','/wiki/prep'];
+/** Once the WoSB Wiki is live on its own domain, set PUBLIC_WIKI_REDIRECT=https://wosbwiki.org and wiki pages here redirect there. */
+const wikiRedirect=(process.env.PUBLIC_WIKI_REDIRECT??'').trim().replace(/\/$/,'');
 const COMPENDIUM_PASSTHROUGH=['/compendium','/api','/_next','/branding','/wosb','/ads.txt','/robots.txt','/pb-art','/casino','/music','/event-guide','/prep-review','/map-update'];
 export async function proxy(req:NextRequest){
  if(isWikiHost(req)){
   const path=req.nextUrl.pathname;
   if(path==='/prep'){const url=req.nextUrl.clone();url.pathname='/wiki/prep';return NextResponse.rewrite(url);}
   if(path.startsWith('/dashboard')){const dash=process.env.PUBLIC_DASHBOARD_URL;return dash?NextResponse.redirect(new URL(path+req.nextUrl.search,dash)):NextResponse.redirect(new URL('/',req.url));}
+  const wikiPath=!COMPENDIUM_EXACT.includes(path)&&!COMPENDIUM_PASSTHROUGH.some(p=>path===p||path.startsWith(p+'/'));
+  if(wikiRedirect&&(wikiPath||path==='/wiki')&&path!=='/favicon.ico'&&path!=='/sitemap.xml'){
+   const host=(req.headers.get('x-forwarded-host')??req.headers.get('host')??'').split(':')[0].toLowerCase();
+   // The main domain's home page is the guild landing page again; wiki pages and the wiki subdomain move to the wiki's domain.
+   if(path==='/'&&rootHosts.includes(host))return NextResponse.next();
+   return NextResponse.redirect(wikiRedirect+(path==='/wiki'?'/':path)+req.nextUrl.search,301);
+  }
   // Everything else on the public hosts is the Sea Battle Compendium (served from the active release).
   if(!COMPENDIUM_EXACT.includes(path)&&!COMPENDIUM_PASSTHROUGH.some(p=>path===p||path.startsWith(p+'/'))){const url=req.nextUrl.clone();url.pathname='/compendium'+(path==='/'?'':path);return NextResponse.rewrite(url);}
   return NextResponse.next();

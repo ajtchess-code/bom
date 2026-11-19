@@ -33,6 +33,9 @@ export default async function Home() {
             </a>
           )}
           <small>Secure Discord Sign-In</small>
+          <a className={styles.wikiLink} href={(process.env.PUBLIC_WIKI_REDIRECT ?? "").trim() || "/wiki"}>
+            Open the WoSB Wiki <span aria-hidden="true">→</span>
+          </a>
         </div>
       </section>
       <footer className={styles.footer}>© Band of Misfits</footer>

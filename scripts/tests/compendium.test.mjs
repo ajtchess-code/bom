@@ -46,6 +46,8 @@ test('a Compendium release uploads in parts, verifies and goes live',async()=>{
     assert.match(html,/adsbygoogle\.js\?client=ca-pub-1234567890/);assert.match(html,/Donate with PayPal/);assert.match(html,/og:description" content="Hello sailors\./);
     const full=C.decorate('<html><head></head><body><canvas></canvas></body></html>',{adClient:'',adSlots:{top:'',bottom:''},donateUrl:'x',loginUrl:'/',discordUrl:''},'/');
     assert.doesNotMatch(full,/bomBar/,'full-screen tools keep their own layout');
+    const own=C.decorate('<html><head></head><body data-base="" data-host="standalone"><div id="side"></div></body></html>',{adClient:'ca-pub-1234567890',adSlots:{top:'1',bottom:''},donateUrl:'x',loginUrl:'/',discordUrl:''},'/','','/compendium/');
+    assert.doesNotMatch(own,/bomBar|adsbygoogle|bomFooter/,'stand-alone builds keep their own chrome');assert.match(own,/<base href="\/compendium\/">/);
     const bad=zip({'../evil.txt':'x'});
     await assert.rejects(()=>C.extractZip(bad,join(dir,'x')),/Unsafe path/);
   }finally{process.chdir(cwd);await rm(dir,{recursive:true,force:true});delete process.env.COMPENDIUM_UPLOAD_TOKEN;}

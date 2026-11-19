@@ -1,5 +1,12 @@
 # The WoSB Wiki on bandofmisfits.org
 
+> **The WoSB Wiki now has its own site, https://wosbwiki.org (Cloudflare Pages).** On this dashboard's public hosts, wiki
+> pages answer with a permanent redirect to the same path on wosbwiki.org, and the main domain's home page is the guild
+> landing page again, once `PUBLIC_WIKI_REDIRECT=https://wosbwiki.org` is set. Set it only after the new site is live;
+> until then (empty, the default) this dashboard keeps serving the uploaded wiki as before.
+> Publishing a release to the dashboard is still useful: the Discord commands read it from disk. Without one they read
+> the live site's `assets/hit-data.js` and `search.json`.
+
 The public wiki is now the **WoSB Wiki**, built from the game client by WoSB Workbench. It replaces the old encyclopedia at the site root, and keeps the BOM header, member login, AdSense slots and the PayPal donation footer.
 
 ## What visitors get

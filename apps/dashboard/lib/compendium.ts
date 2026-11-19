@@ -261,6 +261,8 @@ export function decorate(html: string, c: Chrome, home: string, url = "", baseHr
     `<div class="bomFooter" role="contentinfo"><b>Enjoying the wiki?</b><p>It's free and run by Band of Misfits. Donations help keep it online and up to date.</p>` +
     (c.donateUrl ? `<a class="bomDonate" href="${escAttr(c.donateUrl)}" target="_blank" rel="noreferrer noopener">♥ Donate with PayPal</a>` : "") +
     `<small>A fan site by the Band of Misfits guild. Not affiliated with or endorsed by the makers of World of Sea Battle. Game names and images belong to their owners.</small></div>`;
+  // Pages built for the stand-alone site (wosbwiki.org) already carry their own ads, donate footer and metadata.
+  if (/<body[^>]*data-host="standalone"/i.test(html)) return baseHref ? html.replace(/<head[^>]*>/i, (m) => `${m}<base href="${escAttr(baseHref)}">`) : html;
   let out = html.includes("</head>") ? html.replace("</head>", head + "</head>") : head + html;
   // Under /compendium/ Next drops trailing slashes, so pin relative links to the page's own folder.
   if (baseHref) out = out.replace(/<head[^>]*>/i, (m) => `${m}<base href="${escAttr(baseHref)}">`);
