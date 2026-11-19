@@ -2,6 +2,7 @@
 // Wiki management for officers: mistake reports, a guide editor with live
 // preview and history, New Player Guide progress, and the game-data updater.
 import { useEffect, useState } from "react";
+import CompendiumAdmin from "./CompendiumAdmin";
 import Prose from "./Prose";
 import { forget } from "./wikiData";
 
@@ -383,6 +384,7 @@ export default function WikiManage({
           ["editor", "Write Guides"],
           ["progress", "New Player Progress"],
           ["data", "Game Data"],
+          ["compendium", "Compendium"],
         ].map(([k, l]) => (
           <button
             key={k}
@@ -399,6 +401,7 @@ export default function WikiManage({
       {tab === "reports" && <Reports openGuide={openGuide} />}
       {tab === "editor" && <Editor categories={meta.categories} />}
       {tab === "progress" && <Progress chapters={meta.chapters} />}
+      {tab === "compendium" && <CompendiumAdmin />}
       {tab === "data" && (
         <section>
           <p>

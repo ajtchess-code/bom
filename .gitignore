@@ -44,3 +44,6 @@ wiki-releases/
 data/wiki-releases/
 data/wiki-active.json
 docs/wiki-v2-screenshots/
+# Sea Battle Compendium releases uploaded from WoSB Workbench (live data, not source)
+data/compendium/
+data/compendium-active.json

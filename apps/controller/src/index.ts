@@ -1,5 +1,6 @@
 import {createPBOperations} from './pbOperations.js';
 import {handleEventDonationRequests} from './eventDonationRequests.js';
+import {compendiumCommands,compendiumCommandNames,handleCompendiumAutocomplete,handleCompendiumCommand} from "./compendium.js";
 import {ensureEventTrophyEmojis} from './eventEmojis.js';
 import {handleEventDonations} from './eventDonations.js';
 import {installDashboardRoleAudit} from './dashboardRoleAudit.js';
@@ -117,7 +118,8 @@ const commands=[
   ...feedbackCommands,
   ...membershipCommands,
   ...recruitmentCommands,
-  ...banterCommands
+  ...banterCommands,
+  ...compendiumCommands
 ].map(x=>x.toJSON());
 
 async function syncCommands(){ const rest=new REST({version:"10"}).setToken(token!); await rest.put(Routes.applicationGuildCommands(clientId!,guildId!),{body:commands}); }
@@ -964,7 +966,9 @@ client.on("interactionCreate",async interaction=>{
     if(interaction.guildId!==guildId)return;
     if(await handleEventDonationRequests(interaction))return;
     if(await handleEventDonations(interaction,redis))return;
+    if(interaction.isAutocomplete()&&compendiumCommandNames.has(interaction.commandName))return void await handleCompendiumAutocomplete(interaction);
     if(interaction.isChatInputCommand()){
+      if(compendiumCommandNames.has(interaction.commandName))return void await handleCompendiumCommand(interaction);
       if(interaction.commandName==="roast")return void await handleRoast(interaction);
       if(interaction.commandName==="roasts")return void await handleRoastPreference(interaction);
       if(interaction.commandName==="banter-status")return void await handleBanterStatus(interaction);

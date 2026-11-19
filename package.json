@@ -21,6 +21,7 @@
     "start:host": "node scripts/bootstrap.mjs",
     "test:game-hubs": "node --experimental-vm-modules --test scripts/tests/game-hubs-lifecycle.test.mjs",
     "test:game-hub-ui": "node scripts/tests/game-hub-browser.mjs",
+    "test:compendium": "node --import tsx --test scripts/tests/compendium.test.mjs",
     "test:clash-toolkit": "npm run build -w @bom/shared && node --test scripts/tests/clash-toolkit.test.mjs"
   },
   "devDependencies": {

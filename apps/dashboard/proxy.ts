@@ -5,11 +5,16 @@ import {decodeSession} from './lib/session';
 const publicWikiHost=(process.env.PUBLIC_WIKI_HOST??'wiki.bandofmisfits.org').toLowerCase();
 const rootHosts=(process.env.PUBLIC_ROOT_HOSTS??'bandofmisfits.org,www.bandofmisfits.org').toLowerCase().split(',').map(h=>h.trim()).filter(Boolean);
 const isWikiHost=(req:NextRequest)=>{const h=(req.headers.get('x-forwarded-host')??req.headers.get('host')??'').split(':')[0].toLowerCase();return h===publicWikiHost||h.startsWith('wiki.')||rootHosts.includes(h);};
+/** Paths on the public hosts that are not Compendium pages. */
+const COMPENDIUM_EXACT=['/wiki','/wiki/prep'];
+const COMPENDIUM_PASSTHROUGH=['/compendium','/api','/_next','/branding','/wosb','/ads.txt','/robots.txt','/favicon.ico','/pb-art','/casino','/music','/event-guide','/prep-review','/map-update','/sitemap.xml'];
 export async function proxy(req:NextRequest){
  if(isWikiHost(req)){
   const path=req.nextUrl.pathname;
-  if(path==='/'||path==='/prep'){const url=req.nextUrl.clone();url.pathname=path==='/'?'/wiki':'/wiki/prep';return NextResponse.rewrite(url);}
+  if(path==='/prep'){const url=req.nextUrl.clone();url.pathname='/wiki/prep';return NextResponse.rewrite(url);}
   if(path.startsWith('/dashboard')){const dash=process.env.PUBLIC_DASHBOARD_URL;return dash?NextResponse.redirect(new URL(path+req.nextUrl.search,dash)):NextResponse.redirect(new URL('/',req.url));}
+  // Everything else on the public hosts is the Sea Battle Compendium (served from the active release).
+  if(!COMPENDIUM_EXACT.includes(path)&&!COMPENDIUM_PASSTHROUGH.some(p=>path===p||path.startsWith(p+'/'))){const url=req.nextUrl.clone();url.pathname='/compendium'+(path==='/'?'':path);return NextResponse.rewrite(url);}
   return NextResponse.next();
  }
  if(!req.nextUrl.pathname.startsWith('/dashboard'))return NextResponse.next();
@@ -20,4 +25,4 @@ export async function proxy(req:NextRequest){
  const access=await r.json();if(access.guestOnly&&req.nextUrl.pathname!=='/dashboard/recruitment')return NextResponse.redirect(new URL('/dashboard/recruitment',req.url));if(access.allianceOnly&&!allianceDashboardPath(req.nextUrl.pathname))return NextResponse.redirect(new URL('/dashboard/events',req.url));if(access.pbOnly&&req.nextUrl.pathname!=='/dashboard/port-battles')return NextResponse.redirect(new URL('/dashboard/port-battles',req.url));
  return NextResponse.next();
 }
-export const config={matcher:['/dashboard/:path*','/','/prep']};
+export const config={matcher:['/((?!_next/static|_next/image|api/).*)']};
