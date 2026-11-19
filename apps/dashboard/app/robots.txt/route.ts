@@ -10,7 +10,7 @@ export function GET(req: Request) {
   const host = (req.headers.get("x-forwarded-host") ?? req.headers.get("host") ?? "").split(":")[0].toLowerCase();
   const body =
     host.startsWith("wiki.") || publicHosts().includes(host)
-      ? "User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /dashboard\n"
+      ? `User-agent: *\nAllow: /\nDisallow: /api/\nDisallow: /dashboard\nDisallow: /pack/\n\n# AdSense may read every public page\nUser-agent: Mediapartners-Google\nAllow: /\n\nSitemap: https://${host}/sitemap.xml\n`
       : "User-agent: *\nAllow: /wiki\nAllow: /ads.txt\nDisallow: /\n";
   return new Response(body, { headers: { "content-type": "text/plain; charset=utf-8" } });
 }

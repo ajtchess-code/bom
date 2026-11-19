@@ -1,4 +1,4 @@
-// Serves the active Sea Battle Compendium release. On the public wiki hosts the proxy maps every
+// Serves the active WoSB Wiki release. On the public wiki hosts the proxy maps every
 // path here, so the Compendium lives at the site root; elsewhere it is under /compendium/.
 import { readFile, stat } from "node:fs/promises";
 import { join } from "node:path";
@@ -24,7 +24,7 @@ async function serve(req: Request, parts: string[], head: boolean) {
   }
   if (!info?.isFile()) {
     const page = await readFile(join(active.directory, "index.html"), "utf8").catch(() => "");
-    const missing = page.replace(/<main[\s\S]*?<\/main>/i, '<main><h1>Page not found</h1><p>That page isn\'t in the Compendium. Try the search box or the <a href="' + home + '">main page</a>.</p></main>');
+    const missing = page.replace('<meta name="robots" content="index', '<meta name="robots" content="noindex').replace(/<main[\s\S]*?<\/main>/i, '<main><h1>Page not found</h1><p>That page isn\'t in the Compendium. Try the search box or the <a href="' + home + '">main page</a>.</p></main>');
     return new Response(head ? null : decorate(missing, publicSettings(), home), { status: 404, headers: { "content-type": "text/html; charset=utf-8" } });
   }
   const type = typeFor(file);

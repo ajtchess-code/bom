@@ -1,6 +1,6 @@
-# Sea Battle Compendium on bandofmisfits.org
+# The WoSB Wiki on bandofmisfits.org
 
-The public wiki is now the **Sea Battle Compendium**, built from the game client by WoSB Workbench. It replaces the old encyclopedia at the site root, and keeps the BOM header, member login, AdSense slots and the PayPal donation footer.
+The public wiki is now the **WoSB Wiki**, built from the game client by WoSB Workbench. It replaces the old encyclopedia at the site root, and keeps the BOM header, member login, AdSense slots and the PayPal donation footer.
 
 ## What visitors get
 
@@ -30,10 +30,17 @@ Until the first release is installed, visitors still see the old encyclopedia. A
 | `/damage gun target [ammo] [from]` | Damage per ball from any angle, the zone it hits, the glancing limit and the dead zone |
 | `/fire ship [hp] [suppression]` | Minor fires needed for a large fire, burn times, and whether a check can run at that HP |
 | `/tower rank team [port_level]` | Tower and guild-fort HP, tower reach and capture rules |
-| `/compendium query` | Search the Compendium |
+| `/wosb query` | Search the WoSB Wiki |
 
 The commands read the live release on disk. Publishing a new build updates them with no restart. Links use `PUBLIC_WIKI_URL` (default `https://bandofmisfits.org`). Pasted Compendium links get Discord previews from the pages' OpenGraph tags.
 
 ## Tests
 
 `yarn test:compendium` covers part upload and verification, activation, path safety and the injected chrome.
+
+## Search engines and AdSense
+
+- **Head tags.** Every page has a meta description, a canonical URL, Open Graph and Twitter cards with the 1200×630 social card, the favicons and a web manifest. The main page also carries JSON-LD.
+- **Sitemap and robots.** `/sitemap.xml` lists the pages worth indexing. `robots.txt` points to the sitemap, keeps crawlers out of `/api`, `/dashboard` and the 3D model pack, and lets the AdSense crawler read everything.
+- **Thin pages.** Very short stub pages are marked `noindex`. They carry no ads, so ads only appear next to real content.
+- **Privacy.** `privacy.html` explains the AdSense cookies. Visitors in the EEA, UK and Switzerland need a Google-certified consent message, which you switch on in AdSense under **Privacy & messaging**. No code change is needed.

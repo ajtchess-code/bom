@@ -1,4 +1,4 @@
-// Discord commands backed by the Sea Battle Compendium (the public wiki built by WoSB Workbench):
+// Discord commands backed by the WoSB Wiki (the public wiki built by WoSB Workbench; "Compendium" internally):
 // /ship, /damage, /fire, /tower and /compendium search. Data comes from the active release on disk
 // (data/compendium-active.json), so publishing a new Compendium updates the bot without a restart.
 import { readFile, stat } from "node:fs/promises";
@@ -136,7 +136,7 @@ export const compendiumCommands = [
     .addIntegerOption((o) => o.setName("rank").setDescription("Battle's minimum ship rank (1–7)").setRequired(true).setMinValue(1).setMaxValue(7))
     .addIntegerOption((o) => o.setName("team").setDescription("Players per side").setRequired(true).addChoices(...[5, 7, 10, 15, 20, 40].map((n) => ({ name: `${n} v ${n}`, value: n }))))
     .addIntegerOption((o) => o.setName("port_level").setDescription("Port level 1–7 (default 1)").setMinValue(1).setMaxValue(7)),
-  new SlashCommandBuilder().setName("compendium").setDescription("Search the Sea Battle Compendium")
+  new SlashCommandBuilder().setName("wosb").setDescription("Search the WoSB Wiki")
     .addStringOption((o) => o.setName("query").setDescription("Ship, gun, ammo, port, tool or guide").setRequired(true)),
 ];
 export const compendiumCommandNames = new Set(compendiumCommands.map((c) => c.name));
@@ -169,15 +169,15 @@ export async function handleCompendiumAutocomplete(i: AutocompleteInteraction) {
 
 export async function handleCompendiumCommand(i: ChatInputCommandInteraction) {
   const d = await compendiumData();
-  if (!d) return i.reply({ content: "The Compendium isn't installed on this server yet. An admin can publish it from WoSB Workbench.", flags: MessageFlags.Ephemeral });
+  if (!d) return i.reply({ content: "The WoSB Wiki isn't installed on this server yet. An admin can publish it from WoSB Workbench.", flags: MessageFlags.Ephemeral });
   const name = i.commandName;
-  if (name === "compendium") return search(i, d);
+  if (name === "wosb") return search(i, d);
   if (name === "tower") return tower(i, d);
   const ship = find(d.ships, i.options.getString(name === "damage" ? "target" : "ship"));
   if (!ship) return i.reply({ content: "I couldn't find that ship. Pick one from the list as you type.", flags: MessageFlags.Ephemeral });
   if (name === "fire") return fire(i, ship);
   const gun = find(guns(d), i.options.getString("gun")) ?? find(guns(d), "32-pdr Cannon") ?? guns(d)[0];
-  if (!gun) return i.reply({ content: "No gun data in this Compendium release.", flags: MessageFlags.Ephemeral });
+  if (!gun) return i.reply({ content: "No gun data in this WoSB Wiki release.", flags: MessageFlags.Ephemeral });
   if (name === "ship") return shipCard(i, d, ship, gun);
   if (name === "damage") return damage(i, d, ship, gun);
 }
@@ -201,7 +201,7 @@ async function shipCard(i: ChatInputCommandInteraction, d: Data, ship: Ship, gun
       { name: "Fire", value: `A large fire needs **${1 + roundEven(ship.hp / 1000)}** minor fires at once (and HP between 5% and 95%).` },
     )
     .setImage("attachment://heatmap.png")
-    .setFooter({ text: `Estimates from the client's hull model · ${d.calib?.calibrated ? "calibrated" : "uncalibrated"} · Sea Battle Compendium` });
+    .setFooter({ text: `Estimates from the client's hull model · ${d.calib?.calibrated ? "calibrated" : "uncalibrated"} · WoSB Wiki` });
   const png = await heatmapPng(ship, p);
   await i.editReply({ embeds: [e], files: [new AttachmentBuilder(png, { name: "heatmap.png" })],
     content: `[Ship page](${url}) · [Full hit analysis](${SITE}/tools/hit-analysis.html?ship=${encodeURIComponent(ship.n)})` });
@@ -260,7 +260,7 @@ async function search(i: ChatInputCommandInteraction, d: Data) {
     return { s, score };
   }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score || a.s.t.localeCompare(b.s.t)).slice(0, 8);
   if (!scored.length) return i.reply({ content: `Nothing found. Try the search box at ${SITE}/`, flags: MessageFlags.Ephemeral });
-  const e = new EmbedBuilder().setColor(COLOR).setTitle("Sea Battle Compendium").setURL(SITE + "/")
+  const e = new EmbedBuilder().setColor(COLOR).setTitle("WoSB Wiki").setURL(SITE + "/")
     .setDescription(scored.map(({ s }) => `**[${s.t}](${SITE}/${encodeURI(s.u)})** · ${s.c}`).join("\n"));
   await i.reply({ embeds: [e] });
 }

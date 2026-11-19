@@ -7,7 +7,7 @@ const rootHosts=(process.env.PUBLIC_ROOT_HOSTS??'bandofmisfits.org,www.bandofmis
 const isWikiHost=(req:NextRequest)=>{const h=(req.headers.get('x-forwarded-host')??req.headers.get('host')??'').split(':')[0].toLowerCase();return h===publicWikiHost||h.startsWith('wiki.')||rootHosts.includes(h);};
 /** Paths on the public hosts that are not Compendium pages. */
 const COMPENDIUM_EXACT=['/wiki','/wiki/prep'];
-const COMPENDIUM_PASSTHROUGH=['/compendium','/api','/_next','/branding','/wosb','/ads.txt','/robots.txt','/favicon.ico','/pb-art','/casino','/music','/event-guide','/prep-review','/map-update','/sitemap.xml'];
+const COMPENDIUM_PASSTHROUGH=['/compendium','/api','/_next','/branding','/wosb','/ads.txt','/robots.txt','/pb-art','/casino','/music','/event-guide','/prep-review','/map-update'];
 export async function proxy(req:NextRequest){
  if(isWikiHost(req)){
   const path=req.nextUrl.pathname;

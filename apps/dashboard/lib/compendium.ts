@@ -1,4 +1,4 @@
-// The Sea Battle Compendium: the public wiki built by WoSB Workbench and served at bandofmisfits.org.
+// The WoSB Wiki (internally "the Compendium"): the public wiki built by WoSB Workbench and served at bandofmisfits.org.
 // Releases arrive as verified ZIP parts (see /api/compendium/upload), are unpacked under
 // data/compendium/releases/<id>/ and switched on atomically through data/compendium-active.json.
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
@@ -234,28 +234,30 @@ function adUnit(client: string, slot: string) {
     : "";
 }
 export const CHROME_CSS = `.bomBar{display:flex;align-items:center;gap:18px;flex-wrap:wrap;padding:7px 16px;background:#0b1620;color:#e9eef0;font:14px system-ui,Segoe UI,sans-serif;position:relative;z-index:50}
-.bomBar a{color:#e9eef0;text-decoration:none}.bomBar a:hover{color:#f2d390}.bomBrand{display:flex;align-items:center;gap:8px;font-weight:700}.bomBrand img{width:28px;height:28px}
+.bomBar a{color:#e9eef0;text-decoration:none}.bomBar a:hover{color:#f2d390}.bomBrand{display:flex;align-items:center;gap:8px;font-weight:700}.bomBrand img{width:28px;height:28px}.bomBrand small{font-weight:400;color:#9fb3bf;font-size:12px}
 .bomBar nav{display:flex;gap:14px;flex-wrap:wrap;flex:1}.bomLogin{border:1px solid #d8bc81;border-radius:6px;padding:4px 10px;color:#f2d390!important}
 .bomPage{position:relative}.bomAd{max-width:980px;margin:10px auto;padding:0 12px}.bomAd small{display:block;font:11px system-ui;color:#889}
 .bomFooter{margin:0;display:grid;gap:8px;justify-items:center;text-align:center;padding:22px 16px 28px;background:#0b1620;color:#cfd8dc;font:14px system-ui,Segoe UI,sans-serif}
 .bomFooter p{margin:0;max-width:640px}.bomDonate{background:#f2c14e;color:#1b1b1b!important;border-radius:999px;padding:8px 18px;font-weight:700;text-decoration:none}.bomFooter small{color:#90a4ae;max-width:720px}`;
 /** Adds the BOM bar, AdSense and the donation footer to a Compendium page. `home` is the site root URL path. */
 export function decorate(html: string, c: Chrome, home: string, url = "", baseHref = "") {
-  const title = (/<title>([^<]*)<\/title>/i.exec(html)?.[1] ?? "BOM Wiki").trim();
+  const title = (/<title>([^<]*)<\/title>/i.exec(html)?.[1] ?? "WoSB Wiki").trim();
   const firstP = /<main[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i.exec(html)?.[1] ?? "";
   const description = firstP.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 200) || "World of Sea Battle ships, guns, tools and guides from Band of Misfits.";
   const og = html.includes('property="og:title"') ? "" :
-    `<meta name="description" content="${escAttr(description)}"><meta property="og:site_name" content="BOM Wiki · Sea Battle Compendium">` +
+    `<meta name="description" content="${escAttr(description)}"><meta property="og:site_name" content="WoSB Wiki">` +
     `<meta property="og:title" content="${escAttr(title)}"><meta property="og:description" content="${escAttr(description)}">` +
     `<meta property="og:image" content="/branding/defaults/bom-logo.png">${url ? `<meta property="og:url" content="${escAttr(url)}">` : ""}<meta name="theme-color" content="#1f6f8b">`;
   const head = og + `<link rel="stylesheet" href="${home}compendium-chrome.css">` +
     (c.adClient ? `<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${escAttr(c.adClient)}"></script>` : "");
-  const bar = `<header class="bomBar"><a class="bomBrand" href="${home}"><img src="/branding/defaults/bom-logo.png" alt="" width="28" height="28"><span>BOM Wiki</span></a>` +
-    `<nav aria-label="Band of Misfits"><a href="${home}">Compendium</a><a href="${home}category/ships.html">Shipyard</a><a href="${home}map.html">World map</a>` +
+  // No ads on pages kept out of search (thin stubs, 404s): AdSense wants ads only beside real content.
+  const ads = !/<meta name="robots" content="noindex/i.test(html);
+  const bar = `<header class="bomBar"><a class="bomBrand" href="${home}"><img src="${home}assets/brand/emblem.svg" alt="" width="28" height="28"><span>WoSB Wiki</span><small>by Band of Misfits</small></a>` +
+    `<nav aria-label="Band of Misfits"><a href="${home}">Wiki home</a><a href="${home}tools/ship-viewer.html">3D ships</a><a href="${home}category/ships.html">Shipyard</a><a href="${home}map.html">World map</a>` +
     `<a href="${home}tools/battle-simulator.html">Battle simulator</a><a href="/prep">Battle Prep</a>` +
     (c.discordUrl ? `<a href="${escAttr(c.discordUrl)}" target="_blank" rel="noreferrer">Join BOM</a>` : "") +
-    `</nav><a class="bomLogin" href="${escAttr(c.loginUrl)}">Member Login</a></header>` + adUnit(c.adClient, c.adSlots.top);
-  const foot = adUnit(c.adClient, c.adSlots.bottom) +
+    `</nav><a class="bomLogin" href="${escAttr(c.loginUrl)}">Member Login</a></header>` + (ads ? adUnit(c.adClient, c.adSlots.top) : "");
+  const foot = (ads ? adUnit(c.adClient, c.adSlots.bottom) : "") +
     `<div class="bomFooter" role="contentinfo"><b>Enjoying the wiki?</b><p>It's free and run by Band of Misfits. Donations help keep it online and up to date.</p>` +
     (c.donateUrl ? `<a class="bomDonate" href="${escAttr(c.donateUrl)}" target="_blank" rel="noreferrer noopener">♥ Donate with PayPal</a>` : "") +
     `<small>A fan site by the Band of Misfits guild. Not affiliated with or endorsed by the makers of World of Sea Battle. Game names and images belong to their owners.</small></div>`;

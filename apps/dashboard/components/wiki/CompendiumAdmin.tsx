@@ -52,7 +52,7 @@ export default function CompendiumAdmin() {
   const active = s?.active;
   return (
     <section>
-      <h3>Sea Battle Compendium</h3>
+      <h3>WoSB Wiki</h3>
       <p>
         The public wiki at bandofmisfits.org is built by WoSB Workbench. In the Workbench, run <b>Build wiki website</b>, then{" "}
         <b>Publish wiki to Band of Misfits</b> with the upload token below.
@@ -66,7 +66,7 @@ export default function CompendiumAdmin() {
           </a>
         </p>
       ) : (
-        <p>No Compendium is installed yet, so visitors still see the old encyclopedia.</p>
+        <p>The WoSB Wiki isn't installed yet, so visitors still see the old encyclopedia.</p>
       )}
       <h4>Workbench upload token</h4>
       <p>
