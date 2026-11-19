@@ -82,6 +82,7 @@ const requiredModules = [
   "react-dom",
 ];
 
+async function installIfNeeded() {
 const missingModules = requiredModules.filter(
   (name) => !existsSync(`node_modules/${name}/package.json`),
 );
@@ -117,13 +118,26 @@ if (!existsSync("node_modules") || missingModules.length || wrongZodVersion) {
   writeFileSync(stampPath, manifestHash + "\n");
   await runYarn(["cache", "clean"]).catch((err) => console.warn(`[bootstrap] yarn cache clean skipped: ${err.message}`));
 }
+}
 
+// Source pulled from GitHub at launch (scripts/repo-sync.mjs, run by index.js) is only kept if it builds:
+// a failed build restores the previous files and builds those instead, so a bad push can't take the bot down.
+const repoSync = await import("./repo-sync.mjs").catch(() => null);
+await installIfNeeded();
 // Build exactly once per start. Uploads overlay old dist/.next output, so the
 // compiled code is always rebuilt from the current source unless the host opts out.
 const skipStartupBuild = /^(1|true|yes|on)$/i.test(process.env.SKIP_STARTUP_BUILD ?? "");
 if (!skipStartupBuild) {
   console.log("[bootstrap] Building BOM-Bot from current source...");
-  await runYarn(["build"]);
+  try {
+    await runYarn(["build"]);
+  } catch (error) {
+    if (!repoSync?.rollbackSync()) throw error;
+    console.error(`[bootstrap] The newly pulled code failed to build (${error.message}); rebuilding the previous version.`);
+    await installIfNeeded();
+    await runYarn(["build"]);
+  }
+  repoSync?.confirmSync();
 } else {
   console.warn("[bootstrap] SKIP_STARTUP_BUILD enabled; existing dist/.next artifacts will be used.");
 }
