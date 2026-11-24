@@ -46,11 +46,16 @@ export class AttachmentService {
   }
 
   private async fetchAttachment(attachment: MessageAttachment): Promise<Buffer> {
+    let parsed: URL;
+    try { parsed = new URL(attachment.url); } catch { throw new Error('Invalid attachment URL.'); }
+    if (parsed.protocol !== 'https:' || !['cdn.discordapp.com', 'media.discordapp.net'].includes(parsed.hostname.toLowerCase())) {
+      throw new Error('Blocked untrusted attachment host.');
+    }
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 60_000);
 
     try {
-      const response = await fetch(attachment.url, { signal: controller.signal });
+      const response = await fetch(parsed.href, { signal: controller.signal, redirect: 'error' });
       if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
       const lengthHeader = response.headers.get('content-length');

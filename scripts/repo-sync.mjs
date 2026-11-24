@@ -15,15 +15,20 @@
 //   GITHUB_TOKEN=              optional: higher rate limit, or a private repository
 import { createGunzip } from "node:zlib";
 import { Readable } from "node:stream";
-import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, copyFileSync } from "node:fs";
+import { chmodSync, cpSync, existsSync, mkdirSync, readFileSync, readdirSync, renameSync, rmSync, statSync, writeFileSync, copyFileSync } from "node:fs";
 import { dirname, join, normalize, sep } from "node:path";
 
 const STATE = ".bom-repo-sync.json";
 const STAGING = ".repo-sync-staging";
 const BACKUP = ".repo-sync-backup";
+const escRe = (s) => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 // Paths a sync never writes or deletes, even if the repository contains them.
-const PROTECTED = [/^\.env($|\.(?!example$))/, /^node_modules\//, /^\.git\//, /^data\/(compendium|redis|pb-art|wiki-v2|wiki-releases)(\/|$)/,
-  /^data\/[^/]*-active\.json$/, /^build-tmp\//, /^cloudflared$/, /^cloudflare-token/, /^config\/redis/, new RegExp(`^${STAGING}/`), new RegExp(`^${BACKUP}/`), new RegExp(`^${STATE.replace(".", "\\.")}$`)];
+const PROTECTED = [
+  /^\.env($|\.(?!example$))/, /^intel-relay\/\.env($|\.(?!example$))/, /^intel-relay\/(data|node_modules)(\/|$)/,
+  /^node_modules\//, /^\.git\//, /^data\/(compendium|redis|pb-art|wiki-v2|wiki-releases|branding)(\/|$)/,
+  /^vendor\/redis(\/|$)/, /^data\/[^/]*-active\.json$/, /^build-tmp\//, /^cloudflared$/, /^cloudflare-token/,
+  /^config\/redis/, new RegExp(`^${escRe(STAGING)}/`), new RegExp(`^${escRe(BACKUP)}/`), new RegExp(`^${escRe(STATE)}$`),
+];
 const isProtected = (p) => PROTECTED.some((r) => r.test(p));
 
 const log = (...a) => console.log("[repo-sync]", ...a);
@@ -57,6 +62,9 @@ export async function extractTarGz(stream, dir) {
       const target = join(dir, cur.path);
       mkdirSync(dirname(target), { recursive: true });
       writeFileSync(target, data);
+      if (process.platform !== "win32" && cur.mode && (cur.mode & 0o111)) {
+        try { chmodSync(target, cur.mode & 0o777); } catch {}
+      }
       files.push(cur.path);
     }
     cur = null;
@@ -66,7 +74,7 @@ export async function extractTarGz(stream, dir) {
     const rel = parts.join("/");
     if (!rel || rel.endsWith("/")) return null;
     const n = normalize(rel).replace(/\\/g, "/");
-    if (n.startsWith("../") || n.startsWith("/") || n.includes("/../")) throw new Error(`Unsafe path in archive: ${raw}`);
+    if (n === ".." || n.startsWith("../") || n.startsWith("/") || n.includes("/../") || /^[A-Za-z]:/.test(n)) throw new Error(`Unsafe path in archive: ${raw}`);
     return n;
   };
   for await (const chunk of stream) {
@@ -102,9 +110,8 @@ export async function extractTarGz(stream, dir) {
       const prefix = field(h, 345, 500), name = field(h, 0, 100);
       const raw = paxPath ?? longName ?? (prefix ? `${prefix}/${name}` : name);
       const kind = type === "0" || type === "7" ? "file" : type === "L" ? "longname" : type === "x" ? "pax" : "skip";
-      if (kind === "file") { longName = null; paxPath = null; }
+      if (type !== "L" && type !== "x" && type !== "g") { longName = null; paxPath = null; }
       cur = { kind, size, left: size, chunks: [], path: kind === "file" ? clean(raw) : null, mode: parseInt(field(h, 100, 108).trim() || "0", 8) };
-      if (type === "5" || type === "g" || kind === "skip") { if (type === "5") { longName = null; paxPath = null; } }
     }
   }
   if (cur) throw new Error("Archive ended in the middle of a file");
@@ -136,7 +143,7 @@ export async function syncFromRepo(env = process.env) {
     log(`update failed before anything changed (${e.message}); starting the installed version`);
     return { changed: false, error: e.message };
   }
-  // Back up what will be replaced or removed, then apply.
+  // Back up what will be replaced or removed, record pending.json BEFORE mutating live files, then apply.
   const backup = join(BACKUP, state?.sha ?? "pre-sync");
   rmSync(BACKUP, { recursive: true, force: true });
   mkdirSync(backup, { recursive: true });
@@ -144,21 +151,44 @@ export async function syncFromRepo(env = process.env) {
   const removed = (state?.files ?? []).filter((f) => !keep.has(f) && !isProtected(f) && existsSync(f));
   const created = [];
   for (const f of [...files, ...removed]) {
-    if (existsSync(f)) { mkdirSync(dirname(join(backup, f)), { recursive: true }); copyFileSync(f, join(backup, f)); }
-    else created.push(f);
+    if (existsSync(f) && statSync(f).isFile()) { mkdirSync(dirname(join(backup, f)), { recursive: true }); copyFileSync(f, join(backup, f)); }
+    else if (!existsSync(f)) created.push(f);
   }
-  for (const f of files) { mkdirSync(dirname(f) || ".", { recursive: true }); cpSync(join(STAGING, f), f); }
-  for (const f of removed) rmSync(f, { force: true });
+  const nextState = { repo, ref, sha: head.sha, message: head.message, date: head.date, syncedAt: new Date().toISOString(), files };
+  writeJson(join(BACKUP, "pending.json"), { from: state?.sha ?? null, to: head.sha, backup, created, removed, at: new Date().toISOString(), previous: state, nextState });
+  try {
+    for (const f of files) {
+      mkdirSync(dirname(f) || ".", { recursive: true });
+      if (existsSync(f) && statSync(f).isDirectory()) rmSync(f, { recursive: true, force: true });
+      cpSync(join(STAGING, f), f);
+    }
+    for (const f of removed) rmSync(f, { force: true });
+  } catch (e) {
+    rmSync(STAGING, { recursive: true, force: true });
+    rollbackSync();
+    throw e;
+  }
   rmSync(STAGING, { recursive: true, force: true });
-  writeJson(join(BACKUP, "pending.json"), { from: state?.sha ?? null, to: head.sha, backup, created, removed, at: new Date().toISOString(), previous: state });
-  writeJson(STATE, { repo, ref, sha: head.sha, message: head.message, date: head.date, syncedAt: new Date().toISOString(), files });
-  log(`installed ${files.length} files from ${head.sha.slice(0, 7)} (${removed.length} removed)`);
+  log(`installed ${files.length} files from ${head.sha.slice(0, 7)} (${removed.length} removed); awaiting build confirmation`);
   return { changed: true, sha: head.sha };
 }
 
-/** Bootstrap calls this after a successful build: the backup is no longer needed. */
+/** Returns true when syncFromRepo() applied a new commit that has not yet been confirmed by a build. */
+export function hasPendingSync() {
+  return existsSync(join(BACKUP, "pending.json"));
+}
+
+/** Bootstrap calls this after a successful install/build: commit the new SHA and clear the backup. */
 export function confirmSync() {
-  if (existsSync(join(BACKUP, "pending.json"))) { rmSync(BACKUP, { recursive: true, force: true }); log("new version built; backup cleared"); }
+  const pendingPath = join(BACKUP, "pending.json");
+  if (existsSync(pendingPath)) {
+    try {
+      const p = JSON.parse(readFileSync(pendingPath, "utf8"));
+      if (p?.nextState) writeJson(STATE, p.nextState);
+    } catch {}
+    rmSync(BACKUP, { recursive: true, force: true });
+    log("new version built; state committed and backup cleared");
+  }
 }
 
 /** Bootstrap calls this when the freshly synced code failed to build: put the previous files back. */

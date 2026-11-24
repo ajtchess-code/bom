@@ -19,11 +19,8 @@
     "migrate": "yarn workspace @bom/db migrate",
     "start:novonode": "node scripts/novonode.mjs",
     "start:host": "node scripts/bootstrap.mjs",
-    "test:game-hubs": "node --experimental-vm-modules --test scripts/tests/game-hubs-lifecycle.test.mjs",
-    "test:game-hub-ui": "node scripts/tests/game-hub-browser.mjs",
     "test:repo-sync": "node --test scripts/tests/repo-sync.test.mjs",
-    "test:compendium": "node --import tsx --test scripts/tests/compendium.test.mjs",
-    "test:clash-toolkit": "npm run build -w @bom/shared && node --test scripts/tests/clash-toolkit.test.mjs"
+    "test:compendium": "node --import tsx --test scripts/tests/compendium.test.mjs"
   },
   "devDependencies": {
     "@electric-sql/pglite": "^0.3.14",
@@ -43,7 +40,7 @@
     "fastify": "5.6.0",
     "ioredis": "5.7.0",
     "jose": "6.1.0",
-    "next": "16.4.2",
+    "next": "16.4.6",
     "pg": "8.16.3",
     "react": "19.2.0",
     "react-dom": "19.2.0",

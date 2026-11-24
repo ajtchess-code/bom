@@ -44,7 +44,8 @@ export function safeJoin(base: string, parts: string[]) {
 
 export const TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8", ".css": "text/css; charset=utf-8", ".js": "text/javascript; charset=utf-8",
-  ".json": "application/json; charset=utf-8", ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
+  ".json": "application/json; charset=utf-8", ".xml": "application/xml; charset=utf-8", ".webmanifest": "application/manifest+json; charset=utf-8",
+  ".svg": "image/svg+xml", ".png": "image/png", ".webp": "image/webp",
   ".jpg": "image/jpeg", ".jpeg": "image/jpeg", ".gif": "image/gif", ".ico": "image/x-icon", ".txt": "text/plain; charset=utf-8",
   ".bin": "application/octet-stream", ".glb": "model/gltf-binary", ".wav": "audio/wav", ".ogg": "audio/ogg", ".woff2": "font/woff2",
 };
@@ -90,8 +91,26 @@ type Part = { index: number; size: number; sha256: string };
 type Upload = { id: string; release: string; parts: Part[]; completed: number[]; meta: any; startedAt: string };
 const uploadsDir = () => join(dataDir(), "uploads");
 const uploadFile = (id: string) => join(uploadsDir(), `${id}.json`);
-const releaseDir = (release: string) => join(dataDir(), "releases", release);
-const validId = (v: string) => /^[A-Za-z0-9._-]{1,80}$/.test(v);
+const validId = (v: string) => /^[A-Za-z0-9][A-Za-z0-9._-]{0,79}$/.test(v) && v !== "." && v !== "..";
+const releaseDir = (release: string) => {
+  if (!validId(release)) throw httpError(400, "Invalid release name.");
+  const root = resolve(dataDir(), "releases");
+  const full = resolve(root, release);
+  if (!full.startsWith(root + sep)) throw httpError(400, "Invalid release path.");
+  return full;
+};
+const uploadLocks = new Map<string, Promise<unknown>>();
+async function withUploadLock<T>(id: string, fn: () => Promise<T>): Promise<T> {
+  const prev = uploadLocks.get(id) ?? Promise.resolve();
+  const next = prev.then(fn, fn);
+  const tail = next.then(() => {}, () => {});
+  uploadLocks.set(id, tail);
+  try {
+    return await next;
+  } finally {
+    if (uploadLocks.get(id) === tail) uploadLocks.delete(id);
+  }
+}
 
 export async function beginUpload(body: any): Promise<Upload> {
   const release = String(body?.release ?? "");
@@ -116,17 +135,20 @@ export async function beginUpload(body: any): Promise<Upload> {
 
 export async function receivePart(id: string, index: number, bytes: Buffer) {
   if (!validId(id)) throw httpError(400, "Unknown upload.");
-  const upload: Upload | null = await readFile(uploadFile(id), "utf8").then(JSON.parse).catch(() => null);
-  if (!upload) throw httpError(404, "Unknown upload. Start again.");
-  const part = upload.parts[index];
-  if (!part) throw httpError(400, "Unknown part.");
-  if (bytes.length !== part.size || sha(bytes) !== part.sha256) throw httpError(422, `Part ${index + 1} arrived damaged; it will be retried.`);
-  if (!upload.completed.includes(index)) {
-    await extractZip(bytes, releaseDir(upload.release));
-    upload.completed.push(index);
-    await writeFile(uploadFile(id), JSON.stringify(upload));
-  }
-  return { completed: upload.completed.length, total: upload.parts.length };
+  if (!Number.isInteger(index) || index < 0) throw httpError(400, "Unknown part.");
+  return withUploadLock(id, async () => {
+    const upload: Upload | null = await readFile(uploadFile(id), "utf8").then(JSON.parse).catch(() => null);
+    if (!upload) throw httpError(404, "Unknown upload. Start again.");
+    const part = upload.parts[index];
+    if (!part) throw httpError(400, "Unknown part.");
+    if (bytes.length !== part.size || sha(bytes) !== part.sha256) throw httpError(422, `Part ${index + 1} arrived damaged; it will be retried.`);
+    if (!upload.completed.includes(index)) {
+      await extractZip(bytes, releaseDir(upload.release));
+      upload.completed.push(index);
+      await writeFile(uploadFile(id), JSON.stringify(upload));
+    }
+    return { completed: upload.completed.length, total: upload.parts.length };
+  });
 }
 
 export async function finishUpload(id: string) {
@@ -208,15 +230,18 @@ export async function extractZip(buf: Buffer, directory: string) {
   let p = buf.readUInt32LE(eocd + 16);
   const root = resolve(directory);
   for (let n = 0; n < count; n++) {
-    if (buf.readUInt32LE(p) !== 0x02014b50) throw httpError(422, "Damaged ZIP directory.");
+    if (p < 0 || p + 46 > buf.length || buf.readUInt32LE(p) !== 0x02014b50) throw httpError(422, "Damaged ZIP directory.");
     const method = buf.readUInt16LE(p + 10), crc = buf.readUInt32LE(p + 16), csize = buf.readUInt32LE(p + 20), size = buf.readUInt32LE(p + 24);
     const nlen = buf.readUInt16LE(p + 28), elen = buf.readUInt16LE(p + 30), clen = buf.readUInt16LE(p + 32), local = buf.readUInt32LE(p + 42);
+    if (p + 46 + nlen + elen + clen > buf.length) throw httpError(422, "Truncated ZIP directory entry.");
     const name = buf.subarray(p + 46, p + 46 + nlen).toString("utf8");
     p += 46 + nlen + elen + clen;
     if (name.endsWith("/")) continue;
     const target = resolve(root, name);
     if (!target.startsWith(root + sep) || name.includes("\\") || name.startsWith("/")) throw httpError(422, `Unsafe path in ZIP: ${name}`);
+    if (local + 30 > buf.length || buf.readUInt32LE(local) !== 0x04034b50) throw httpError(422, `Damaged ZIP entry header: ${name}`);
     const start = local + 30 + buf.readUInt16LE(local + 26) + buf.readUInt16LE(local + 28);
+    if (start < 0 || start + csize > buf.length) throw httpError(422, `Truncated ZIP entry data: ${name}`);
     const raw = buf.subarray(start, start + csize);
     const body = method === 0 ? raw : method === 8 ? inflateRawSync(raw, { maxOutputLength: Math.max(1, size) }) : null;
     if (!body || body.length !== size || crc32(body) !== crc) throw httpError(422, `ZIP entry failed its check: ${name}`);
@@ -244,17 +269,25 @@ export function decorate(html: string, c: Chrome, home: string, url = "", baseHr
   const title = (/<title>([^<]*)<\/title>/i.exec(html)?.[1] ?? "WoSB Wiki").trim();
   const firstP = /<main[\s\S]*?<p[^>]*>([\s\S]*?)<\/p>/i.exec(html)?.[1] ?? "";
   const description = firstP.replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 200) || "World of Sea Battle ships, guns, tools and guides from Band of Misfits.";
+  const ogImage = (() => {
+    try {
+      return url ? new URL("/branding/defaults/bom-logo.png", url).toString() : "/branding/defaults/bom-logo.png";
+    } catch {
+      return "/branding/defaults/bom-logo.png";
+    }
+  })();
   const og = html.includes('property="og:title"') ? "" :
     `<meta name="description" content="${escAttr(description)}"><meta property="og:site_name" content="WoSB Wiki">` +
     `<meta property="og:title" content="${escAttr(title)}"><meta property="og:description" content="${escAttr(description)}">` +
-    `<meta property="og:image" content="/branding/defaults/bom-logo.png">${url ? `<meta property="og:url" content="${escAttr(url)}">` : ""}<meta name="theme-color" content="#1f6f8b">`;
+    `<meta property="og:image" content="${escAttr(ogImage)}">${url ? `<meta property="og:url" content="${escAttr(url)}">` : ""}<meta name="theme-color" content="#1f6f8b">`;
   const head = og + `<link rel="stylesheet" href="${home}compendium-chrome.css">` +
     (c.adClient ? `<script async crossorigin="anonymous" src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${escAttr(c.adClient)}"></script>` : "");
   // No ads on pages kept out of search (thin stubs, 404s): AdSense wants ads only beside real content.
   const ads = !/<meta name="robots" content="noindex/i.test(html);
+  const prepLink = home === "/" ? "/prep" : "/wiki/prep";
   const bar = `<header class="bomBar"><a class="bomBrand" href="${home}"><img src="${home}assets/brand/emblem.svg" alt="" width="28" height="28"><span>WoSB Wiki</span><small>by Band of Misfits</small></a>` +
     `<nav aria-label="Band of Misfits"><a href="${home}">Wiki home</a><a href="${home}tools/ship-viewer.html">3D ships</a><a href="${home}category/ships.html">Shipyard</a><a href="${home}map.html">World map</a>` +
-    `<a href="${home}tools/battle-simulator.html">Battle simulator</a><a href="/prep">Battle Prep</a>` +
+    `<a href="${home}tools/battle-simulator.html">Battle simulator</a><a href="${prepLink}">Battle Prep</a>` +
     (c.discordUrl ? `<a href="${escAttr(c.discordUrl)}" target="_blank" rel="noreferrer">Join BOM</a>` : "") +
     `</nav><a class="bomLogin" href="${escAttr(c.loginUrl)}">Member Login</a></header>` + (ads ? adUnit(c.adClient, c.adSlots.top) : "");
   const foot = (ads ? adUnit(c.adClient, c.adSlots.bottom) : "") +
@@ -263,13 +296,13 @@ export function decorate(html: string, c: Chrome, home: string, url = "", baseHr
     `<small>A fan site by the Band of Misfits guild. Not affiliated with or endorsed by the makers of World of Sea Battle. Game names and images belong to their owners.</small></div>`;
   // Pages built for the stand-alone site (wosbwiki.org) already carry their own ads, donate footer and metadata.
   if (/<body[^>]*data-host="standalone"/i.test(html)) return baseHref ? html.replace(/<head[^>]*>/i, (m) => `${m}<base href="${escAttr(baseHref)}">`) : html;
-  let out = html.includes("</head>") ? html.replace("</head>", head + "</head>") : head + html;
+  let out = html.includes("</head>") ? html.replace("</head>", () => head + "</head>") : head + html;
   // Under /compendium/ Next drops trailing slashes, so pin relative links to the page's own folder.
   if (baseHref) out = out.replace(/<head[^>]*>/i, (m) => `${m}<base href="${escAttr(baseHref)}">`);
   // Full-screen tools (the battle and boarding simulators) keep their own layout: no bar, ads or footer.
   if (!html.includes('id="side"')) return out;
   out = /<body[^>]*>/i.test(out) ? out.replace(/<body[^>]*>/i, (m) => m + bar + '<div class="bomPage">') : bar + '<div class="bomPage">' + out;
-  out = out.includes("</body>") ? out.replace(/<\/body>(?![\s\S]*<\/body>)/i, "</div>" + foot + "</body>") : out + "</div>" + foot;
+  out = out.includes("</body>") ? out.replace(/<\/body>(?![\s\S]*<\/body>)/i, () => "</div>" + foot + "</body>") : out + "</div>" + foot;
   return out;
 }
 

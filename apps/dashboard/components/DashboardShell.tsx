@@ -644,7 +644,7 @@ export default function DashboardShell({
             kind: "Action",
             label: "Open System Health",
             detail: "Review services, workers and performance",
-            href: "/dashboard/admin?view=diagnostics",
+            href: "/dashboard/admin/diagnostics",
             key: "health",
           },
         ]

@@ -21,3 +21,25 @@ export async function GET(req: NextRequest, ctx: { params: Promise<{ path: strin
   if (up.ok) h.set("cache-control", "public, max-age=60, s-maxage=300, stale-while-revalidate=600");
   return new Response(up.body, { status: up.status, headers: h });
 }
+
+// Stateless crafting planner calculation allowed on the public wiki.
+export async function POST(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
+  const { path } = await ctx.params;
+  if (path.join("/") !== "game-wiki/craft")
+    return Response.json({ error: "not_public", message: "That part of the wiki needs a BOM login." }, { status: 403 });
+  const base = process.env.INTERNAL_API_URL ?? "http://127.0.0.1:4100";
+  const up = await fetch(`${base}/v1/game-wiki/craft`, {
+    method: "POST",
+    headers: {
+      "x-internal-token": process.env.INTERNAL_API_TOKEN ?? "",
+      "x-bom-public": "1",
+      "content-type": "application/json",
+    },
+    body: await req.text(),
+    cache: "no-store",
+  });
+  const h = new Headers(up.headers);
+  h.delete("content-encoding");
+  h.delete("content-length");
+  return new Response(up.body, { status: up.status, headers: h });
+}

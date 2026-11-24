@@ -233,14 +233,14 @@ function renderFeed(){
 async function loadFeed(older=false){
  if(feed.loading)return;feed.loading=true;
  try{
-  const params=feedParams(older&&feed.rows.length?{before:Number(feed.rows.at(-1).source_at)-1}:{});
+  const params=feedParams(older&&feed.rows.length?{before:Number(feed.rows.at(-1).source_at),beforeId:String(feed.rows.at(-1).source_id)}:{});
   const data=await api('/api/feed?'+params);
   fillSelect('feedRelay',data.relays.map(r=>({key:r.key,name:r.sub?`${r.account} › ${r.name}`:r.name})),'All relays');
   fillSelect('feedServer',data.servers.sort((a,b)=>a.name.localeCompare(b.name)),'All servers');
   fillSelect('feedChannel',data.channels.filter(c=>!$('feedServer').value||c.guildId===$('feedServer').value).sort((a,b)=>a.name.localeCompare(b.name)).map(c=>({id:c.id,name:'#'+c.name})),'All channels');
   if(older){const ids=new Set(feed.rows.map(r=>r.source_id));feed.rows=feed.rows.concat(data.rows.filter(r=>!ids.has(r.source_id)))}
   else{const keepOlder=feed.rows.length>100?feed.rows.slice(100):[];feed.rows=data.rows.concat(keepOlder.filter(r=>!data.rows.some(x=>x.source_id===r.source_id)))}
-  feed.older=data.rows.length>=100||older;
+  feed.older=data.rows.length>=100;
   renderFeed();
  }catch(e){$('feedCount').textContent='Could not load the feed. Retrying…'}
  finally{feed.loading=false}

@@ -15,9 +15,9 @@ export function loadRootEnv(){
     const key=line.slice(0,eq).trim();
     if(!/^[A-Za-z_][A-Za-z0-9_]*$/.test(key)||process.env[key]!==undefined)continue;
     let value=line.slice(eq+1).trim();
-    if((value.startsWith('"')&&value.endsWith('"'))||(value.startsWith("'")&&value.endsWith("'"))){
+    if(value.length>=2&&((value.startsWith('"')&&value.endsWith('"'))||(value.startsWith("'")&&value.endsWith("'")))){
       const quote=value[0];value=value.slice(1,-1);
-      if(quote==='"')value=value.replace(/\\n/g,"\n").replace(/\\r/g,"\r").replace(/\\t/g,"\t").replace(/\\"/g,'"').replace(/\\\\/g,"\\");
+      if(quote==='"')value=value.replace(/\\([nrt"\\])/g,(_,c)=>({n:"\n",r:"\r",t:"\t",'"':'"',"\\":"\\"}[c]));
     }else{
       // Treat a whitespace-prefixed # as a comment, while preserving # inside
       // passwords/URLs such as abc#123.

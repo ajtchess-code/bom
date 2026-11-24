@@ -3,6 +3,10 @@ async function proxy(req: NextRequest) {
   const base = process.env.INTERNAL_API_URL ?? "http://127.0.0.1:4100",
     qs = new URL(req.url).search,
     headers = new Headers({ "x-internal-token": process.env.INTERNAL_API_TOKEN ?? "" });
+  const sig256 = req.headers.get("x-hub-signature-256");
+  const sig1 = req.headers.get("x-hub-signature");
+  if (sig256) headers.set("x-hub-signature-256", sig256);
+  if (sig1) headers.set("x-hub-signature", sig1);
   let body: BodyInit | undefined;
   if (req.method !== "GET" && req.method !== "HEAD") {
     body = await req.text();

@@ -132,6 +132,7 @@ export default function Prose({
         if (!cells.every((c) => /^:?-{2,}:?$/.test(c))) rows.push(cells);
         i++;
       }
+      if (!rows.length) continue;
       const [head, ...body] = rows;
       blocks.push(
         <div key={k} className="gwOverflow whTable">

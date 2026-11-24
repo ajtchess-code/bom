@@ -18,8 +18,16 @@ export type RoutePolicy=z.infer<typeof routePolicySchema>;
 export function policyFor(value:unknown):RoutePolicy{return routePolicySchema.parse(value??{});}
 export function routeIsPaused(config:{pausedUntil?:number;paused?:boolean},now=Date.now()){return Boolean(config.paused||(config.pausedUntil??0)>now);}
 export function patternMatches(name:string,pattern:string){
- const escaped=pattern.replace(/[.+?^${}()|[\]\\]/g,'\\$&').replace(/\*/g,'.*');
- return new RegExp('^'+escaped+'$','iu').test(name);
+ const s=name.toLocaleLowerCase(),p=pattern.toLocaleLowerCase();
+ let si=0,pi=0,star=-1,match=0;
+ while(si<s.length){
+  if(pi<p.length&&p[pi]===s[si]){si++;pi++;}
+  else if(pi<p.length&&p[pi]==='*'){star=pi++;match=si;}
+  else if(star!==-1){pi=star+1;si=++match;}
+  else return false;
+ }
+ while(pi<p.length&&p[pi]==='*')pi++;
+ return pi===p.length;
 }
 export function channelDecision(channel:any,config:any):{included:boolean;reason:string}{
  const guildId=channel.guild?.id??channel.guildId;

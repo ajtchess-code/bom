@@ -15,6 +15,9 @@ class PostgresMulti{
   incr(key:string){this.ops.push(()=>this.client.incr(key));return this;}
   expire(key:string,seconds:number){this.ops.push(()=>this.client.expire(key,seconds));return this;}
   zadd(key:string,score:number,member:string){this.ops.push(()=>this.client.zadd(key,score,member));return this;}
+  lpush(key:string,...values:string[]){this.ops.push(()=>this.client.lpush(key,...values));return this;}
+  rpush(key:string,...values:string[]){this.ops.push(()=>this.client.rpush(key,...values));return this;}
+  ltrim(key:string,start:number,end:number){this.ops.push(()=>this.client.ltrim(key,start,end));return this;}
   async exec(){const out=[];for(const op of this.ops){try{out.push([null,await op()]);}catch(e){out.push([e,null]);}}return out;}
 }
 
@@ -61,6 +64,35 @@ class PostgresRedisCompat extends EventEmitter{
     if(!keys.length)return 0;let n=0;
     for(const key of keys){for(const table of ["live_kv","live_lists","live_sets","live_sorted_sets"]){const r=await db.query(`DELETE FROM ${table} WHERE key_name=$1`,[key]);n+=r.rowCount;}}
     return n;
+  }
+  async lpush(key:string,...values:string[]){
+    const c=await pool.connect();
+    try{
+      await c.query("BEGIN");
+      await c.query("SELECT pg_advisory_xact_lock(hashtext('live_lists:lpush'))");
+      const minRow=await c.query(`SELECT LEAST(COALESCE(MIN(id),0),0) AS min_id FROM live_lists`);
+      let nextId=BigInt(minRow.rows[0]?.min_id??0)-1n;
+      for(const v of values){await c.query(`INSERT INTO live_lists(id,key_name,value_text) VALUES($1,$2,$3)`,[nextId.toString(),key,v]);nextId-=1n;}
+      const rows=await c.query(`SELECT COUNT(*) n FROM live_lists WHERE key_name=$1`,[key]);
+      await c.query("COMMIT");
+      return Number(rows.rows[0]?.n??0);
+    }catch(e){await c.query("ROLLBACK").catch(()=>{});throw e;}finally{c.release();}
+  }
+  async ltrim(key:string,start:number,end:number){
+    const c=await pool.connect();
+    try{
+      await c.query("BEGIN");
+      await c.query("SELECT pg_advisory_xact_lock(hashtext($1))",[key]);
+      const all=await c.query(`SELECT id FROM live_lists WHERE key_name=$1 ORDER BY id`,[key]);
+      const n=all.rows.length;
+      const s=start<0?Math.max(0,n+start):start;
+      const e=end<0?n+end:end;
+      const keep=s<=e&&s<n?new Set(all.rows.slice(s,e+1).map((r:any)=>String(r.id))):new Set<string>();
+      const drop=all.rows.filter((r:any)=>!keep.has(String(r.id))).map((r:any)=>r.id);
+      if(drop.length)await c.query(`DELETE FROM live_lists WHERE id = ANY($1::bigint[])`,[drop]);
+      await c.query("COMMIT");
+      return "OK";
+    }catch(e){await c.query("ROLLBACK").catch(()=>{});throw e;}finally{c.release();}
   }
   async rpush(key:string,...values:string[]){
     for(const v of values)await db.query(`INSERT INTO live_lists(key_name,value_text) VALUES($1,$2)`,[key,v]);
@@ -204,6 +236,56 @@ export async function dequeueByRequestId(roomId:string,requestId:string):Promise
  const tx=await pool.connect();try{await tx.query('BEGIN');await tx.query('SELECT pg_advisory_xact_lock(hashtext($1))',[queueKey]);const row=(await tx.query(`SELECT id,value_text FROM live_lists WHERE key_name=$1 AND value_text::jsonb->>'requestId'=$2 ORDER BY id FOR UPDATE LIMIT 1`,[queueKey,requestId])).rows[0];if(row)await tx.query('DELETE FROM live_lists WHERE id=$1',[row.id]);await tx.query('COMMIT');return row?JSON.parse(row.value_text):null;}catch(e){await tx.query('ROLLBACK').catch(()=>{});throw e;}finally{tx.release();}
 }
 export async function queueItems(roomId:string):Promise<QueueItem[]>{return (await redis.lrange(keys.roomQueue(roomId),0,-1)).map((x:string)=>JSON.parse(x));}
+/** Atomically reorder a room queue without dropping concurrently enqueued or dequeued items. */
+export async function reorderQueue(roomId:string,from:number,to:number,requesterOnlyUserId?:string):Promise<{status:'ok';items:QueueItem[]}|{status:'invalid_index'|'forbidden'}>{
+  const queueKey=keys.roomQueue(roomId);
+  if(stateBackend==='redis'){
+    const raw=await redis.eval(
+      `local items=redis.call('LRANGE',KEYS[1],0,-1) local from=tonumber(ARGV[1])+1 local to=tonumber(ARGV[2])+1 local reqUser=ARGV[3] if from<1 or from>#items or to<1 or to>#items then return '__INVALID__' end if reqUser~='' then local ok,parsed=pcall(cjson.decode,items[from]) if not ok or tostring(parsed.requesterId or '')~=reqUser then return '__FORBIDDEN__' end end local moved=table.remove(items,from) table.insert(items,to,moved) redis.call('DEL',KEYS[1]) for _,v in ipairs(items) do redis.call('RPUSH',KEYS[1],v) end return cjson.encode(items)`,
+      1,queueKey,String(from),String(to),requesterOnlyUserId??''
+    );
+    if(raw==='__INVALID__')return {status:'invalid_index'};
+    if(raw==='__FORBIDDEN__')return {status:'forbidden'};
+    const arr:string[]=JSON.parse(String(raw||'[]'));
+    return {status:'ok',items:arr.map(x=>JSON.parse(x))};
+  }
+  const tx=await pool.connect();
+  try{
+    await tx.query('BEGIN');
+    await tx.query('SELECT pg_advisory_xact_lock(hashtext($1))',[queueKey]);
+    const rows=(await tx.query('SELECT id,value_text FROM live_lists WHERE key_name=$1 ORDER BY id FOR UPDATE',[queueKey])).rows;
+    if(from<0||to<0||from>=rows.length||to>=rows.length){await tx.query('COMMIT');return {status:'invalid_index'};}
+    const items:QueueItem[]=rows.map((r:any)=>JSON.parse(r.value_text));
+    if(requesterOnlyUserId&&String(items[from]?.requesterId??'')!==requesterOnlyUserId){await tx.query('COMMIT');return {status:'forbidden'};}
+    const [moved]=items.splice(from,1);items.splice(to,0,moved);
+    await tx.query('DELETE FROM live_lists WHERE key_name=$1',[queueKey]);
+    for(const it of items)await tx.query('INSERT INTO live_lists(key_name,value_text) VALUES($1,$2)',[queueKey,JSON.stringify(it)]);
+    await tx.query('COMMIT');
+    return {status:'ok',items};
+  }catch(e){await tx.query('ROLLBACK').catch(()=>{});throw e;}finally{tx.release();}
+}
+/** Atomically remove a queued track by 0-based index without disturbing concurrent pushes/pops. */
+export async function removeQueueAt(roomId:string,index:number):Promise<QueueItem|null>{
+  const queueKey=keys.roomQueue(roomId);
+  if(stateBackend==='redis'){
+    const raw=await redis.eval(
+      `local items=redis.call('LRANGE',KEYS[1],0,-1) local idx=tonumber(ARGV[1])+1 if idx<1 or idx>#items then return false end local removed=table.remove(items,idx) redis.call('DEL',KEYS[1]) for _,v in ipairs(items) do redis.call('RPUSH',KEYS[1],v) end return removed`,
+      1,queueKey,String(index)
+    );
+    return raw?JSON.parse(String(raw)):null;
+  }
+  const tx=await pool.connect();
+  try{
+    await tx.query('BEGIN');
+    await tx.query('SELECT pg_advisory_xact_lock(hashtext($1))',[queueKey]);
+    const rows=(await tx.query('SELECT id,value_text FROM live_lists WHERE key_name=$1 ORDER BY id FOR UPDATE',[queueKey])).rows;
+    if(index<0||index>=rows.length){await tx.query('COMMIT');return null;}
+    const target=rows[index];
+    await tx.query('DELETE FROM live_lists WHERE id=$1',[target.id]);
+    await tx.query('COMMIT');
+    return JSON.parse(target.value_text);
+  }catch(e){await tx.query('ROLLBACK').catch(()=>{});throw e;}finally{tx.release();}
+}
 
 
 export type CounterLimit={key:string;limit:number;ttlSeconds:number};

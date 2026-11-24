@@ -75,7 +75,14 @@ export class RelayService {
   private async flushBurst():Promise<void>{
     const pending=this.burst.splice(0),policy=policyFor(this.config.policy);
     const groups=new Map<string,typeof pending>();for(const item of pending){const key=`${item.message.channel.id}:${item.message.author.id}`;groups.set(key,[...(groups.get(key)??[]),item]);}
-    for(const group of groups.values()){
+    for(const rawGroup of groups.values()){
+      const group:typeof rawGroup=[];
+      for(const item of rawGroup){
+        if(this.db.getSetting(`deleted:${item.message.id}`)||this.db.getSetting(`delete:${item.message.id}`)){
+          this.db.markDeleted(item.message.id);this.db.setSetting(`deleted:${item.message.id}`,'1');this.db.deleteSetting(`delete:${item.message.id}`);item.resolve();
+        }else group.push(item);
+      }
+      if(!group.length)continue;
       if(routeIsPaused(this.config)){for(const item of group){this.db.delivery(item.message.id,'paused');item.resolve();}continue;}
       try{
         if(group.length<policy.burstThreshold){for(const item of group)await this.write(item.message,false);}
@@ -148,15 +155,21 @@ export class RelayService {
     this.db.audit(editing ? 'relay_update' : 'relay_create', message.id, { parts: ids.length });
   }
   public delete(id: string): Promise<void> {
-    if(routeIsPaused(this.config)||(!this.db.hasRelay(id)&&!this.jobs.has(id)))return Promise.resolve();
+    if(!this.db.hasRelay(id)&&!this.jobs.has(id))return Promise.resolve();
     this.db.setSetting(`delete:${id}`, 'pending');
+    if(routeIsPaused(this.config))return Promise.resolve();
     const operationKey=this.db.getSetting(`burst-for:${id}`)??id;
     return this.enqueue(operationKey, async () => {
       const actualGroup=this.db.getSetting(`burst-for:${id}`);if(actualGroup&&actualGroup!==operationKey){await this.delete(id);return;}
       const burstId=this.db.getSetting(`burst-for:${id}`);
       if(burstId){
         const entries=JSON.parse(this.db.getSetting(`burst:${burstId}`)??'[]');for(const e of entries)if(e.id===id)e.deleted=true;
-        const retained=policyFor(this.config.policy).deletionMode==='remove'?entries.filter((e:any)=>e.id!==id):entries;
+        const retained=policyFor(this.config.policy).deletionMode==='remove'?entries.filter((e:any)=>!e.deleted):entries;
+        if(!retained.length){
+          for(const part of this.db.getRelayParts(burstId)){try{await this.webhook.delete(part.destinationMessageId);}catch(error){if(!missingMessage(error))throw error;}}
+          for(const entry of entries){this.db.deleteRelay(entry.id);this.db.deleteSetting(`burst-for:${entry.id}`);}
+          this.db.deleteSetting(`burst:${burstId}`);this.db.markDeleted(id);this.db.setSetting(`deleted:${id}`,'1');this.db.deleteSetting(`delete:${id}`);this.db.audit('relay_delete',id);this.db.delivery(id,'deleted',{mode:'remove'});return;
+        }
         const content='**Activity summary**\n'+retained.map((e:any)=>`• ${e.author}: ${e.deleted?'[source deleted]':String(e.content).slice(0,700)}\n  [Open Source](${e.url})`).join('\n');
         const record=this.db.sourceRecord(id);
         if(record){const anchor={id:burstId,channel:{id:record.channel_id},guild:{id:record.guild_id}} as Message;

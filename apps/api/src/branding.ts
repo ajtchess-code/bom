@@ -69,7 +69,7 @@ async function discordJson(url:string,init:RequestInit){
   const method=String(init.method??"GET").toUpperCase(),isWrite=method!=="GET";
   const run=async()=>{
     if(isWrite){const wait=Math.max(0,325-(Date.now()-lastDiscordWriteAt));if(wait)await new Promise(r=>setTimeout(r,wait));lastDiscordWriteAt=Date.now();}
-    let res=await fetch(url,init);if(res.status===429){const j:any=await res.clone().json().catch(()=>({}));const delay=Math.min(5000,Math.max(250,Number(j?.retry_after??1)*1000));await new Promise(r=>setTimeout(r,delay));res=await fetch(url,init);}const text=await res.text();let body:any=null;try{body=text?JSON.parse(text):null;}catch{body=text;}
+    let res=await fetch(url,{...init,signal:init.signal??AbortSignal.timeout(20_000)});if(res.status===429){const j:any=await res.clone().json().catch(()=>({}));const delay=Math.min(5000,Math.max(250,Number(j?.retry_after??1)*1000));await new Promise(r=>setTimeout(r,delay));res=await fetch(url,{...init,signal:init.signal??AbortSignal.timeout(20_000)});}const text=await res.text();let body:any=null;try{body=text?JSON.parse(text):null;}catch{body=text;}
     if(!res.ok)throw Object.assign(new Error(body?.message??`Discord API returned ${res.status}`),{statusCode:res.status,discord:body});return body;
   };
   if(!isWrite)return run();const next=discordWriteChain.then(run,run);discordWriteChain=next.then(()=>{},()=>{});return next;
@@ -139,7 +139,7 @@ export function registerBrandingRoutes(app:FastifyInstance,{guildId,requireAdmin
     reply.header("Content-Type","image/png").header("Cache-Control","private, max-age=60");return reply.send(await readFile(p));
   });
 
-  app.put("/v1/music/branding/:workerId",async(req:any,reply)=>{
+  app.put("/v1/music/branding/:workerId",{bodyLimit:16*1024*1024},async(req:any,reply)=>{
     if(!await requireAdmin(req,reply))return;
     const id=Number(req.params.workerId);if(!Number.isInteger(id)||id<1||id>8)return reply.code(404).send({error:"not_found"});
     const body=z.object({colorHex:z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),avatarDataUrl:z.string().optional(),bannerDataUrl:z.string().optional(),roleIconDataUrl:z.string().optional()}).parse(req.body??{});

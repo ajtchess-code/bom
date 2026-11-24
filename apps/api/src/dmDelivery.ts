@@ -9,6 +9,6 @@ export async function sendApiDm(discord:(path:string,init?:RequestInit)=>Promise
    await muted();
    const message=await discord(`/channels/${channel.id}/messages`,{method:'POST',body:JSON.stringify(withDmMute(payload,userId))});
    await recordDmDelivery(userId,'api','SENT',String(message.id));return {channel,message};
-  }catch(e:any){if(e.message!=='suppressed_by_dm_mute')await recordDmDelivery(userId,'api',Number(e.code)===50007?'BLOCKED':'FAILED',undefined,String(e.code??'delivery_error'));throw e;}
+  }catch(e:any){const code=e?.code??e?.body?.code;if(e.message!=='suppressed_by_dm_mute')await recordDmDelivery(userId,'api',Number(code)===50007?'BLOCKED':'FAILED',undefined,String(code??'delivery_error'));throw e;}
 
 }

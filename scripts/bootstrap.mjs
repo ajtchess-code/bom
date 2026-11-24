@@ -15,6 +15,7 @@ mkdirSync(buildTmp, { recursive: true });
 process.env.TMPDIR = buildTmp;
 process.env.TMP = buildTmp;
 process.env.TEMP = buildTmp;
+if (!process.env.NEXT_TELEMETRY_DISABLED) process.env.NEXT_TELEMETRY_DISABLED = "1";
 
 import { yarnArgs } from "./yarn-cmd.mjs";
 const runYarn = (args) => { const y = yarnArgs(args); return run(y.command, y.args); };
@@ -59,7 +60,12 @@ for (const path of [...retiredWaveformPaths, ...retiredFeaturePaths]) {
 
 function run(command, args) {
   return new Promise((resolve, reject) => {
-    const child = spawn(command, args, { stdio: "inherit", env: process.env });
+    const useShell = process.platform === "win32" && /\.(?:cmd|bat)$/i.test(command);
+    const child = spawn(command, args, {
+      stdio: ["ignore", "inherit", "inherit"],
+      env: { ...process.env, CI: "true", NEXT_TELEMETRY_DISABLED: "1" },
+      shell: useShell,
+    });
     child.once("error", reject);
     child.on("exit", (code) =>
       code === 0
@@ -82,6 +88,70 @@ const requiredModules = [
   "react-dom",
 ];
 
+/**
+ * Safely checks npm for newer stable patch releases of Next.js within the same
+ * major.minor series (e.g. 16.4.2 -> 16.4.6) so security fixes apply automatically
+ * on host startup. Returns a restore callback if manifests were updated.
+ */
+async function autoUpdateNextPatch() {
+  if (/^(0|off|false|no)$/i.test(process.env.BOM_AUTO_UPDATE_NEXT ?? "on")) return null;
+  const files = ["package.json", "apps/dashboard/package.json"].filter((f) => existsSync(f));
+  if (!files.length) return null;
+  let rootPkg;
+  try { rootPkg = JSON.parse(readFileSync("package.json", "utf8")); } catch { return null; }
+  const current = String(rootPkg?.dependencies?.next ?? "").trim();
+  const match = current.match(/^(\d+)\.(\d+)\.(\d+)$/);
+  if (!match) return null;
+  const [, major, minor, patchStr] = match;
+  const currentPatch = Number(patchStr);
+  let versions;
+  try {
+    const res = await fetch("https://registry.npmjs.org/next", {
+      headers: { accept: "application/vnd.npm.install-v1+json", "user-agent": "BOM-Bot-bootstrap" },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    versions = Object.keys(data?.versions ?? {});
+  } catch (err) {
+    console.warn(`[bootstrap] Next.js patch check skipped (${err?.message ?? err})`);
+    return null;
+  }
+  const prefix = `${major}.${minor}.`;
+  let latestPatch = currentPatch;
+  for (const v of versions) {
+    if (!v.startsWith(prefix)) continue;
+    const rest = v.slice(prefix.length);
+    if (!/^\d+$/.test(rest)) continue;
+    const n = Number(rest);
+    if (n > latestPatch) latestPatch = n;
+  }
+  if (latestPatch <= currentPatch) return null;
+  const target = `${major}.${minor}.${latestPatch}`;
+  const backups = files.map((file) => ({ file, content: readFileSync(file, "utf8") }));
+  try {
+    for (const { file, content } of backups) {
+      const parsed = JSON.parse(content);
+      if (parsed?.dependencies?.next) {
+        parsed.dependencies.next = target;
+        writeFileSync(file, JSON.stringify(parsed, null, 2) + "\n");
+      }
+    }
+    console.log(`[bootstrap] Auto-upgrading Next.js security patch: ${current} → ${target}`);
+    return {
+      from: current,
+      to: target,
+      restore: () => {
+        for (const { file, content } of backups) writeFileSync(file, content);
+      },
+    };
+  } catch (err) {
+    for (const { file, content } of backups) try { writeFileSync(file, content); } catch {}
+    console.warn(`[bootstrap] Could not write Next.js patch update: ${err?.message ?? err}`);
+    return null;
+  }
+}
+
 async function installIfNeeded() {
 const missingModules = requiredModules.filter(
   (name) => !existsSync(`node_modules/${name}/package.json`),
@@ -92,6 +162,22 @@ try {
   zodVersion = JSON.parse(readFileSync("node_modules/zod/package.json", "utf8")).version;
 } catch {}
 const wrongZodVersion = zodVersion !== "3.25.76";
+
+let wantedNextVersion = null;
+try {
+  wantedNextVersion = JSON.parse(readFileSync("package.json", "utf8"))?.dependencies?.next ?? null;
+} catch {}
+let installedNextVersion = null;
+try {
+  installedNextVersion = JSON.parse(readFileSync("node_modules/next/package.json", "utf8")).version;
+} catch {}
+let nestedNextVersion = null;
+try {
+  nestedNextVersion = JSON.parse(readFileSync("apps/dashboard/node_modules/next/package.json", "utf8")).version;
+} catch {}
+const wrongNextVersion = Boolean(
+  wantedNextVersion && (installedNextVersion !== wantedNextVersion || (nestedNextVersion && nestedNextVersion !== wantedNextVersion)),
+);
 
 // A completed install writes this stamp. If the host's own installer or a full
 // disk left node_modules half-written, the stamp is missing and we reinstall.
@@ -106,40 +192,63 @@ const missingBins = ["tsc", "next"].filter((bin) => !existsSync(`node_modules/.b
 if (!stampOk) missingModules.push("(no completed-install stamp)");
 missingModules.push(...missingBins.map((bin) => `.bin/${bin}`));
 
-if (!existsSync("node_modules") || missingModules.length || wrongZodVersion) {
+if (!existsSync("node_modules") || missingModules.length || wrongZodVersion || wrongNextVersion) {
   console.log(
     `[bootstrap] Installing workspace dependencies${
       missingModules.length ? `; missing: ${missingModules.join(", ")}` : ""
-    }${wrongZodVersion ? `; zod=${zodVersion ?? "missing"}, need 3.25.76` : ""}...`,
+    }${wrongZodVersion ? `; zod=${zodVersion ?? "missing"}, need 3.25.76` : ""}${
+      wrongNextVersion ? `; next=${nestedNextVersion || installedNextVersion || "missing"}, need ${wantedNextVersion}` : ""
+    }...`,
   );
+  if (wrongNextVersion && existsSync("apps/dashboard/node_modules/next")) {
+    try { rmSync("apps/dashboard/node_modules/next", { recursive: true, force: true }); } catch {}
+  }
   await runYarn(["install", "--force", "--production=false"]);
   // The download cache lives inside the server's disk quota and duplicates
   // node_modules; drop it so small hosts don't run out of space.
   writeFileSync(stampPath, manifestHash + "\n");
   await runYarn(["cache", "clean"]).catch((err) => console.warn(`[bootstrap] yarn cache clean skipped: ${err.message}`));
+  return true;
 }
+return false;
 }
 
-// Source pulled from GitHub at launch (scripts/repo-sync.mjs, run by index.js) is only kept if it builds:
-// a failed build restores the previous files and builds those instead, so a bad push can't take the bot down.
+// Source pulled from GitHub at launch (scripts/repo-sync.mjs, run by index.js) is only kept if it installs and builds:
+// a failure restores the previous files and builds those instead, so a bad push can't take the bot down.
 const repoSync = await import("./repo-sync.mjs").catch(() => null);
-await installIfNeeded();
-// Build exactly once per start. Uploads overlay old dist/.next output, so the
-// compiled code is always rebuilt from the current source unless the host opts out.
 const skipStartupBuild = /^(1|true|yes|on)$/i.test(process.env.SKIP_STARTUP_BUILD ?? "");
-if (!skipStartupBuild) {
-  console.log("[bootstrap] Building BOM-Bot from current source...");
-  try {
+const nextPatch = await autoUpdateNextPatch();
+try {
+  const synced = Boolean(repoSync?.hasPendingSync?.());
+  const installed = await installIfNeeded();
+  const mustBuild = !skipStartupBuild || synced || installed || Boolean(nextPatch);
+  if (mustBuild) {
+    console.log("[bootstrap] Building BOM-Bot from current source...");
     await runYarn(["build"]);
-  } catch (error) {
+  } else {
+    console.warn("[bootstrap] SKIP_STARTUP_BUILD enabled and nothing changed; existing dist/.next artifacts will be used.");
+  }
+  repoSync?.confirmSync();
+} catch (error) {
+  if (nextPatch) {
+    console.error(`[bootstrap] Next.js auto-upgrade (${nextPatch.from} → ${nextPatch.to}) failed (${error.message}); restoring ${nextPatch.from}.`);
+    nextPatch.restore();
+    try {
+      await installIfNeeded();
+      if (!skipStartupBuild || repoSync?.hasPendingSync?.()) await runYarn(["build"]);
+      repoSync?.confirmSync();
+    } catch (innerError) {
+      if (!repoSync?.rollbackSync()) throw innerError;
+      console.error(`[bootstrap] The newly pulled code failed to install/build (${innerError.message}); rebuilding the previous version.`);
+      await installIfNeeded();
+      await runYarn(["build"]);
+    }
+  } else {
     if (!repoSync?.rollbackSync()) throw error;
-    console.error(`[bootstrap] The newly pulled code failed to build (${error.message}); rebuilding the previous version.`);
+    console.error(`[bootstrap] The newly pulled code failed to install/build (${error.message}); rebuilding the previous version.`);
     await installIfNeeded();
     await runYarn(["build"]);
   }
-  repoSync?.confirmSync();
-} else {
-  console.warn("[bootstrap] SKIP_STARTUP_BUILD enabled; existing dist/.next artifacts will be used.");
 }
 process.env.BOM_STARTUP_BUILT = "1";
 

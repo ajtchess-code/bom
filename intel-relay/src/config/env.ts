@@ -12,6 +12,7 @@ const schema = z.object({
   COOKIE_SECURE: z.enum(['true', 'false']).default('false'),
   DATA_DIR: z.string().default('./data'),
   LOG_LEVEL: z.enum(['debug', 'info', 'warn', 'error']).default('info'),
+  DESTINATION_GUILD_IDS: z.string().default(''),
 });
 const result = schema.safeParse(process.env);
 if (!result.success) throw new Error(result.error.issues.map(i => `${i.path.join('.')}: ${i.message}`).join('\n'));

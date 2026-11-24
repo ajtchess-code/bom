@@ -32,7 +32,12 @@ export default function CompendiumAdmin() {
         parts.push({ index: i, size: buf.byteLength, sha256: await sha256(buf), buf });
       }
       const release = "compendium-" + new Date().toISOString().replace(/[-:T]/g, "").slice(0, 14);
-      const post = (b: any) => fetch("/api/compendium/upload", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) }).then((r) => r.json());
+      const post = async (b: any) => {
+        const r = await fetch("/api/compendium/upload", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(b) });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.message || j.error || `Upload request failed (${r.status})`);
+        return j;
+      };
       const begun = await post({ action: "begin", release, parts: parts.map(({ buf, ...p }) => p) });
       if (!begun.id) throw new Error(begun.message || "Upload refused");
       for (const p of parts) {
@@ -77,7 +82,7 @@ export default function CompendiumAdmin() {
         {s?.token ? "Replace upload token" : "Create upload token"}
       </button>{" "}
       {s?.token && (
-        <button type="button" onClick={() => call({ action: "revoke" }).then(() => { setToken(""); load(); })}>
+        <button type="button" onClick={() => call({ action: "revoke" }).then(() => { setToken(""); load(); }).catch((e) => setMsg(e.message))}>
           Revoke token
         </button>
       )}
@@ -88,7 +93,7 @@ export default function CompendiumAdmin() {
       )}
       <h4>Upload manually</h4>
       <p>Choose the ZIP part(s) of a built WikiSite folder (one ZIP of the whole folder works when it's under 95 MB).</p>
-      <input type="file" accept=".zip" multiple onChange={(e) => upload(e.target.files)} />
+      <input type="file" accept=".zip" multiple onChange={(e) => { const files = e.target.files; void upload(files); e.target.value = ""; }} />
       {s?.releases?.length > 1 && (
         <>
           <h4>Earlier releases</h4>

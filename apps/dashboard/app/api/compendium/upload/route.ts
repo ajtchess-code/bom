@@ -36,10 +36,28 @@ export async function PUT(req: Request) {
   if (!(await allowed(req))) return Response.json({ error: "unauthorized", message: "Upload token missing or wrong." }, { status: 401 });
   try {
     const url = new URL(req.url);
+    const partParam = url.searchParams.get("part");
+    if (partParam === null || !/^\d+$/.test(partParam))
+      return Response.json({ error: "bad_part", message: "Missing or invalid part index." }, { status: 400 });
     const length = Number(req.headers.get("content-length") ?? 0);
     if (length > PART_LIMIT) return Response.json({ error: "too_large", message: "Each part must be under 95 MB." }, { status: 413 });
-    const bytes = Buffer.from(await req.arrayBuffer());
-    const r = await receivePart(String(url.searchParams.get("id") ?? ""), Number(url.searchParams.get("part")), bytes);
+    const chunks: Uint8Array[] = [];
+    let total = 0;
+    const reader = req.body?.getReader();
+    if (reader) {
+      for (;;) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        total += value.byteLength;
+        if (total > PART_LIMIT) {
+          await reader.cancel().catch(() => {});
+          return Response.json({ error: "too_large", message: "Each part must be under 95 MB." }, { status: 413 });
+        }
+        chunks.push(value);
+      }
+    }
+    const bytes = Buffer.concat(chunks);
+    const r = await receivePart(String(url.searchParams.get("id") ?? ""), Number(partParam), bytes);
     return Response.json({ ok: true, ...r });
   } catch (e) {
     return fail(e);

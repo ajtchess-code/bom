@@ -70,7 +70,8 @@ export default function PublicShell({ settings, children }: { settings: Settings
   const [home, setHome] = useState("/wiki");
   const [prep, setPrep] = useState("/wiki/prep");
   useEffect(() => {
-    if (window.location.hostname.startsWith("wiki.")) {
+    const h = window.location.hostname.toLowerCase();
+    if (h.startsWith("wiki.") || h === "bandofmisfits.org" || h === "www.bandofmisfits.org") {
       setHome("/");
       setPrep("/prep");
     }

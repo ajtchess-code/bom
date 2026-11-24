@@ -47,9 +47,9 @@ export function parseIntelEnv(text) {
     const match = line.match(/^([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)$/);
     if (!match) throw new Error('Malformed intel-relay/.env line. Use KEY=value entries.');
     let value = match[2].trim();
-    if ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'"))) {
+    if (value.length >= 2 && ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))) {
       const quote = value[0]; value = value.slice(1,-1);
-      if (quote === '"') value = value.replace(/\\n/g,'\n').replace(/\\r/g,'\r');
+      if (quote === '"') value = value.replace(/\\([nrt"\\])/g, (_, c) => ({ n: '\n', r: '\r', t: '\t', '"': '"', '\\': '\\' }[c]));
     } else value = value.replace(/\s+#.*$/, '').trim();
     values[match[1]] = value;
   }
@@ -84,7 +84,7 @@ export function prepareIntelRelay({ root, occupiedPorts = [], hostEnv = process.
   const stamp = resolve(directory, 'node_modules', '.intel-install-stamp');
   const npm = process.platform === 'win32' ? 'npm.cmd' : 'npm';
   const execute = args => {
-    const result = run(npm, args, { cwd: directory, env, stdio: 'inherit' });
+    const result = run(npm, args, { cwd: directory, env, stdio: 'inherit', ...(process.platform === 'win32' ? { shell: true } : {}) });
     if (result.error || result.status !== 0) throw new Error(`Relay ${args[0]} failed. See the preceding npm output; existing BOM services are unaffected.`);
   };
   const missing = ['discord.js-selfbot-v13','discord.js','dotenv','zod','typescript'].some(name => !existsSync(resolve(directory,'node_modules',name,'package.json')));

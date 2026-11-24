@@ -24,7 +24,7 @@ const original = {
   error: console.error.bind(console),
 };
 
-const secretKey = /(token|password|secret|authorization|cookie|session|api[_-]?key|private[_-]?key|client[_-]?secret)/i;
+const secretKey = /(token|password|secret|authorization|cookie|session|api[_-]?key|private[_-]?key|client[_-]?secret|redis[_-]?url|lavalink[_-]?secondary[_-]?urls|encryption[_-]?key|credentials[_-]?key)/i;
 const knownSecrets = Object.entries(process.env)
   .filter(([key, value]) => secretKey.test(key) && typeof value === "string" && value.length >= 6)
   .map(([, value]) => value)
@@ -38,7 +38,9 @@ function redactString(input) {
   value = value
     .replace(/(authorization\s*[:=]\s*(?:bearer\s+)?)[^\s,;]+/gi, "$1[REDACTED]")
     .replace(/((?:token|password|secret|api[_-]?key|client[_-]?secret)\s*[:=]\s*)[^\s,;]+/gi, "$1[REDACTED]")
-    .replace(/(postgres(?:ql)?:\/\/[^:\s/@]+:)[^@\s/]+(@)/gi, "$1[REDACTED]$2");
+    .replace(/(postgres(?:ql)?:\/\/[^:\s/@]+:)[^@\s/]+(@)/gi, "$1[REDACTED]$2")
+    .replace(/(rediss?:\/\/[^:\s/@]*:)[^@\s/]+(@)/gi, "$1[REDACTED]$2")
+    .replace(/(\b(?:https?:\/\/)?[a-z0-9.-]+:\d{1,5}\|)[^\s,;]+/gi, "$1[REDACTED]");
   return value;
 }
 

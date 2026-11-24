@@ -9,10 +9,15 @@ if(!botToken)throw new Error("DISCORD_BOT_TOKEN is required by API authorization
 if(!guildId)throw new Error("DISCORD_GUILD_ID is required for single-guild mode");
 const headers={Authorization:`Bot ${botToken}`};
 const ADMINISTRATOR=8n, MANAGE_GUILD=32n;
-/** Discord IDs that always have full dashboard admin, whatever their roles. Add more with DASHBOARD_OWNER_IDS (comma-separated). */
-const BUILT_IN_OWNERS=['1207434980855259206'];
+/** Discord IDs that always have full dashboard admin, whatever their roles. Add more with DASHBOARD_OWNER_IDS (comma-separated). Set DISABLE_BUILT_IN_OWNERS=true to rely solely on DASHBOARD_OWNER_IDS and guild ownership. */
+const BUILT_IN_OWNERS=/^(1|true|yes|on)$/i.test(process.env.DISABLE_BUILT_IN_OWNERS??'')?[]:['1207434980855259206'];
 const dashboardOwners=new Set([...BUILT_IN_OWNERS,...(process.env.DASHBOARD_OWNER_IDS??'').split(',').map(x=>x.trim()).filter(x=>/^\d{5,25}$/.test(x))]);
 export const isDashboardOwner=(userId:string)=>dashboardOwners.has(String(userId));
+
+export function invalidateAuthzCache(userId?:string){
+  if(userId){accessCache.delete(userId);memberCache.delete(userId);return;}
+  accessCache.clear();memberCache.clear();
+}
 
 const accessCacheMs=Math.max(15_000,Number(process.env.DISCORD_ACCESS_CACHE_MS??120_000));
 const memberCacheMs=Math.max(15_000,Number(process.env.DISCORD_MEMBER_CACHE_MS??120_000));
@@ -50,8 +55,7 @@ async function discordJson(url:string){
 }
 
 async function guildAndRoles(force=false){
-  if(force)guildRoleCache=null;
-  const now=Date.now();if(guildRoleCache&&guildRoleCache.expires>now)return guildRoleCache;if(guildRoleInflight)return guildRoleInflight;
+  const now=Date.now();if(!force&&guildRoleCache&&guildRoleCache.expires>now)return guildRoleCache;if(!force&&guildRoleInflight)return guildRoleInflight;
   guildRoleInflight=(async()=>{try{
     const [guild,roles]=await Promise.all([
       discordJson(`https://discord.com/api/v10/guilds/${guildId}`),
@@ -81,7 +85,7 @@ export async function discordAccess(userId:string){
     if(!member&&isDashboardOwner(userId)){const value={member:true,owner:true,manageGuild:true,roles:[guildId!],guild:{id:guild.id,name:guild.name,icon:guild.icon,ownerId:guild.owner_id,premiumTier:guild.premium_tier??0}};accessCache.set(userId,{expires:Date.now()+accessCacheMs,staleUntil:Date.now()+accessCacheMs+staleGraceMs,value});return value;}
     if(!member){const value={member:false,owner:false,manageGuild:false,roles:[] as string[],guild:null};accessCache.set(userId,{expires:Date.now()+30_000,staleUntil:Date.now()+60_000,value});return value;}
     const roleSet=new Set(member.roles);roleSet.add(guildId!);let bits=0n;for(const role of roles)if(roleSet.has(role.id))bits|=BigInt(role.permissions);
-    const owner=guild.owner_id===userId||isDashboardOwner(userId);const value={member:true,owner,manageGuild:owner||Boolean(bits&ADMINISTRATOR)||Boolean(bits&MANAGE_GUILD),roles:[...roleSet],guild:{id:guild.id,name:guild.name,icon:guild.icon,ownerId:guild.owner_id,premiumTier:guild.premium_tier??0}};
+    const owner=guild.owner_id===userId||isDashboardOwner(userId);const displayName=member.nick??member.user?.global_name??member.user?.username??null;const username=member.user?.username??null;const value={member:true,owner,manageGuild:owner||Boolean(bits&ADMINISTRATOR)||Boolean(bits&MANAGE_GUILD),roles:[...roleSet],displayName,username,guild:{id:guild.id,name:guild.name,icon:guild.icon,ownerId:guild.owner_id,premiumTier:guild.premium_tier??0}};
     accessCache.set(userId,{expires:Date.now()+accessCacheMs,staleUntil:Date.now()+accessCacheMs+staleGraceMs,value});return value;
   }catch(err){if(cached&&cached.staleUntil>Date.now()){console.warn(`[authz] Discord access refresh failed for ${userId}; using stale access`,err);cached.expires=Date.now()+30_000;return cached.value;}throw err;}finally{accessInflight.delete(userId);}})();
   accessInflight.set(userId,promise);return promise;
@@ -123,8 +127,7 @@ export async function hasMusicPermission(userId:string,permission:MusicPermissio
 }
 
 export async function discordContext(force=false){
-  if(force)contextCache=null;
-  const now=Date.now();if(contextCache&&contextCache.expires>now)return contextCache.value;if(contextInflight)return contextInflight;
+  const now=Date.now();if(!force&&contextCache&&contextCache.expires>now)return contextCache.value;if(!force&&contextInflight)return contextInflight;
   contextInflight=(async()=>{try{
     const [channels,gr]=await Promise.all([
       discordJson(`https://discord.com/api/v10/guilds/${guildId}/channels`) as Promise<any[]>,

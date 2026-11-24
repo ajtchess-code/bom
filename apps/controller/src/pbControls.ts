@@ -22,7 +22,7 @@ export async function handleLegacyPBControls(i:any,d:Deps){
  if(action==='preferences'){await editInteractionReply(i,{content:'Manage your preferred ships by rate directly in Discord.',components:[new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setCustomId('pbprefs:open').setLabel('Manage Preferred Ships').setStyle(ButtonStyle.Primary))]});return true;}
  if(action==='panel'){const page=Number(pageRaw);await editInteractionReply(i,await d.panel(battleId,pageId,Number.isInteger(page)?page:0,i.user.id));return true;}
  if(action==='all'||action==='auto'){
-  if(action==='all'&&battleId!==d.guildId)return true;
+  if(action==='all'&&battleId!==d.guildId){await editInteractionReply(i,'That signup panel belongs to a different server.');return true;}
   const [battles,prefs,cat,config]=await Promise.all([action==='auto'?d.api(`/port-battles/${battleId}`,i.user.id).then(x=>[x.battle]):d.api('/port-battles',i.user.id),d.api('/pb-preferences',i.user.id),d.api('/catalogue',i.user.id),d.api('/pb-config',i.user.id)]);let signed=0;const noShips:string[]=[];const skipped:string[]=[];
   for(const b of (Array.isArray(battles)?battles:[]).filter((b:any)=>b.status==='OPEN')){
    const rate=String(b.rate),profile=prefs.rates?.[rate]??{},valid=new Set((cat.ships??[]).filter((s:any)=>String(s.rate??s.level)===rate&&(!Array.isArray(config.preferredShipCatalog?.[rate])||config.preferredShipCatalog[rate].includes(s.name))).map((s:any)=>s.name)),ships=(profile.ships??[]).filter((s:string)=>valid.has(s));

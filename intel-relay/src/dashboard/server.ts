@@ -1,7 +1,24 @@
 import http, { type IncomingMessage, type ServerResponse } from 'node:http';
 import fs from 'node:fs';
-import { randomBytes, scryptSync, timingSafeEqual,createHash } from 'node:crypto';
+import { randomBytes, scrypt, scryptSync, timingSafeEqual, createHash } from 'node:crypto';
 import type { AccountManager } from '../accounts/manager.js';
+
+function scryptAsync(password: string, salt: Buffer): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    scrypt(password, salt, 32, (err, derivedKey) => (err ? reject(err) : resolve(derivedKey)));
+  });
+}
+
+function clientIp(req: IncomingMessage): string {
+  const remote = req.socket.remoteAddress ?? 'unknown';
+  if (remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1') {
+    const cf = req.headers['cf-connecting-ip'];
+    if (typeof cf === 'string' && cf.trim()) return cf.trim().slice(0, 64);
+    const xff = req.headers['x-forwarded-for'];
+    if (typeof xff === 'string' && xff.trim()) return xff.split(',')[0]!.trim().slice(0, 64);
+  }
+  return remote;
+}
 export class DashboardServer {
   private server: http.Server;
   private sessions = new Map<string, number>();
@@ -18,8 +35,15 @@ export class DashboardServer {
   public async stop() { this.server.closeIdleConnections(); await new Promise<void>((resolve, reject) => this.server.close(e => e ? reject(e) : resolve())); }
   private json(res: ServerResponse, status: number, value: unknown) { res.writeHead(status, { 'content-type': 'application/json' }); res.end(JSON.stringify(value)); }
   private async body(req: IncomingMessage): Promise<Record<string, unknown>> {
-    let size = 0, text = '';
-    for await (const chunk of req) { size += chunk.length; if (size > 128_000) throw new Error('Request too large.'); text += chunk; }
+    let size = 0;
+    const chunks: Buffer[] = [];
+    for await (const chunk of req) {
+      const buf = Buffer.isBuffer(chunk) ? chunk : Buffer.from(chunk);
+      size += buf.length;
+      if (size > 128_000) throw new Error('Request too large.');
+      chunks.push(buf);
+    }
+    const text = Buffer.concat(chunks).toString('utf8');
     const data: unknown = JSON.parse(text || '{}');
     if (!data || typeof data !== 'object' || Array.isArray(data)) throw new Error('Invalid JSON object.');
     return data as Record<string, unknown>;
@@ -40,11 +64,13 @@ export class DashboardServer {
     for (const [key, value] of this.attempts) if (value.until <= now) this.attempts.delete(key);
     const cookie = req.headers.cookie?.match(/(?:^|;\s*)relay_session=([a-f0-9]{64})(?:;|$)/)?.[1];
     if (url.pathname === '/api/login' && req.method === 'POST') {
-      const ip = req.socket.remoteAddress ?? 'unknown';
+      const ip = clientIp(req);
       const attempts = this.attempts.get(ip) ?? { count: 0, until: now + 15 * 60_000 };
       if (attempts.count >= 10 || this.attempts.size > 10000 || this.sessions.size >= 1000) return this.json(res, 429, { error: 'Too many login attempts. Try again later.' });
-      const body = await this.body(req); attempts.count++; this.attempts.set(ip, attempts);
-      if (typeof body.password !== 'string' || body.password.length > 1024 || !timingSafeEqual(scryptSync(body.password, this.salt, 32), this.hash)) return this.json(res, 401, { error: 'Incorrect password.' });
+      attempts.count++; this.attempts.set(ip, attempts);
+      const body = await this.body(req);
+      const derived = typeof body.password === 'string' && body.password.length <= 1024 ? await scryptAsync(body.password, this.salt) : null;
+      if (!derived || !timingSafeEqual(derived, this.hash)) return this.json(res, 401, { error: 'Incorrect password.' });
       this.attempts.delete(ip); const session = randomBytes(32).toString('hex'); this.sessions.set(session, now + 8 * 3600_000);
       res.setHeader('Set-Cookie', `relay_session=${session}; HttpOnly; SameSite=Strict; Path=/; Max-Age=28800${this.secure ? '; Secure' : ''}`);
       return this.json(res, 200, { ok: true });
@@ -52,7 +78,7 @@ export class DashboardServer {
     if (!cookie || !this.sessions.has(cookie)) return this.json(res, 401, { error: 'Sign in to continue.' });
     const actor='session-'+createHash('sha256').update(cookie).digest('hex').slice(0,10);
     try {
-      if (url.pathname === '/api/logout' && req.method === 'POST') { this.sessions.delete(cookie); res.setHeader('Set-Cookie', 'relay_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0'); return this.json(res, 200, { ok: true }); }
+      if (url.pathname === '/api/logout' && req.method === 'POST') { this.sessions.delete(cookie); res.setHeader('Set-Cookie', `relay_session=; HttpOnly; SameSite=Strict; Path=/; Max-Age=0${this.secure ? '; Secure' : ''}`); return this.json(res, 200, { ok: true }); }
       if (url.pathname === '/api/feed' && req.method === 'GET') return this.json(res, 200, this.manager.feed(Object.fromEntries([...url.searchParams].filter(([, v]) => v !== ''))));
       if (url.pathname === '/api/accounts' && req.method === 'GET') return this.json(res, 200, this.manager.list());
       if (url.pathname === '/api/accounts' && req.method === 'POST') return this.json(res, 200, { id: await this.manager.save(null, await this.body(req),actor) });

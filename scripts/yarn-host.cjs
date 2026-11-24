@@ -8,7 +8,7 @@ const {resolve}=require('node:path');
 const win=process.platform==='win32';
 const temp=resolve(process.env.BOM_BUILD_TMP_DIR||resolve(__dirname,'../build-tmp'));
 try{mkdirSync(temp,{recursive:true});}catch(error){console.error('[host-yarn] Cannot create build temp directory:',error.message);process.exit(1);}
-const env={...process.env,TMPDIR:temp,TMP:temp,TEMP:temp,YARN_IGNORE_PATH:'1',COREPACK_ENABLE_DOWNLOAD_PROMPT:'0'};
+const env={...process.env,CI:'true',NEXT_TELEMETRY_DISABLED:'1',TMPDIR:temp,TMP:temp,TEMP:temp,YARN_IGNORE_PATH:'1',COREPACK_ENABLE_DOWNLOAD_PROMPT:'0'};
 const candidates=[
  {command:win?'yarn.cmd':'yarn',prefix:[]},
  {command:win?'corepack.cmd':'corepack',prefix:['yarn']},
@@ -22,7 +22,7 @@ for(const candidate of candidates){
  if(!versionOnly)console.log(`[host-yarn] Using Yarn ${version}; temporary files: ${temp}`);
  const forwarded=[...args];
  if(forwarded[0]==='install'&&!forwarded.some(a=>a.startsWith('--production')))forwarded.push('--production=false');
- const child=spawnSync(candidate.command,[...candidate.prefix,...forwarded],{env,stdio:'inherit',shell:win});
+ const child=spawnSync(candidate.command,[...candidate.prefix,...forwarded],{env,stdio:['ignore','inherit','inherit'],shell:win});
  if(child.error)console.error('[host-yarn]',child.error.message);
  if(child.signal)console.error('[host-yarn] Yarn terminated by',child.signal);
  process.exit(child.status??1);

@@ -29,18 +29,23 @@ export async function compendiumData(): Promise<Data | null> {
   try {
     const raw = await readFile(join(active.directory, "assets", "hit-data.js"), "utf8");
     const hit = JSON.parse(raw.slice(raw.indexOf("=") + 1).trim().replace(/;\s*$/, ""));
-    const search = JSON.parse(await readFile(join(active.directory, "search.json"), "utf8").catch(() => "[]"));
-    data = { ...hit, search, release: active.release };
+    let search: Data["search"] = [];
+    try { search = JSON.parse(await readFile(join(active.directory, "search.json"), "utf8")); } catch {}
+    data = { ships: [], cannons: [], ammo: [], towers: [], ...hit, search: Array.isArray(search) ? search : [], release: active.release };
   } catch (e) {
-    console.warn("[compendium] could not read the active release", e);
+    console.warn("[compendium] could not read the active release; falling back to live wiki", e);
+    return remoteData();
   }
   loaded = { key, data };
   return data;
 }
-/** No release on this host: read the live wiki's data files instead (cached for an hour). */
+/** No release on this host: read the live wiki's data files instead (cached for an hour; failures retry after 30s). */
 let remote: { at: number; data: Data | null } | null = null;
 async function remoteData(): Promise<Data | null> {
-  if (remote && Date.now() - remote.at < 3_600_000) return remote.data;
+  if (remote) {
+    const ttl = remote.data ? 3_600_000 : 30_000;
+    if (Date.now() - remote.at < ttl) return remote.data;
+  }
   let data: Data | null = null;
   try {
     const get = async (p: string) => {
@@ -48,10 +53,11 @@ async function remoteData(): Promise<Data | null> {
       if (!r.ok) throw new Error(`${p}: HTTP ${r.status}`);
       return r.text();
     };
-    const raw = await get("assets/hit-data.js");
+    const [raw, searchRaw] = await Promise.all([get("assets/hit-data.js"), get("search.json").catch(() => "[]")]);
     const hit = JSON.parse(raw.slice(raw.indexOf("=") + 1).trim().replace(/;\s*$/, ""));
-    const search = JSON.parse(await get("search.json").catch(() => "[]"));
-    data = { ...hit, search, release: "live" };
+    let search: Data["search"] = [];
+    try { const parsed = JSON.parse(searchRaw); if (Array.isArray(parsed)) search = parsed; } catch {}
+    data = { ships: [], cannons: [], ammo: [], towers: [], ...hit, search, release: "live" };
   } catch (e) {
     console.warn("[compendium] could not read the live wiki", e);
   }
@@ -189,23 +195,24 @@ export async function handleCompendiumAutocomplete(i: AutocompleteInteraction) {
 }
 
 export async function handleCompendiumCommand(i: ChatInputCommandInteraction) {
+  await i.deferReply();
   const d = await compendiumData();
-  if (!d) return i.reply({ content: "The WoSB Wiki isn't installed on this server yet. An admin can publish it from WoSB Workbench.", flags: MessageFlags.Ephemeral });
+  if (!d) return i.editReply({ content: "The WoSB Wiki isn't available right now. Please try again in a moment." });
   const name = i.commandName;
   if (name === "wosb") return search(i, d);
   if (name === "tower") return tower(i, d);
-  const ship = find(d.ships, i.options.getString(name === "damage" ? "target" : "ship"));
-  if (!ship) return i.reply({ content: "I couldn't find that ship. Pick one from the list as you type.", flags: MessageFlags.Ephemeral });
+  const ship = find(d.ships ?? [], i.options.getString(name === "damage" ? "target" : "ship"));
+  if (!ship) return i.editReply({ content: "I couldn't find that ship. Pick one from the list as you type." });
   if (name === "fire") return fire(i, ship);
   const gun = find(guns(d), i.options.getString("gun")) ?? find(guns(d), "32-pdr Cannon") ?? guns(d)[0];
-  if (!gun) return i.reply({ content: "No gun data in this WoSB Wiki release.", flags: MessageFlags.Ephemeral });
+  if (!gun) return i.editReply({ content: "No gun data in this WoSB Wiki release." });
   if (name === "ship") return shipCard(i, d, ship, gun);
   if (name === "damage") return damage(i, d, ship, gun);
 }
 
 async function shipCard(i: ChatInputCommandInteraction, d: Data, ship: Ship, gun: Gun) {
-  await i.deferReply();
   const ball = find(shots(d), "Cast-Iron Shot") ?? shots(d)[0];
+  if (!ball) return i.editReply({ content: "No ammunition data in this WoSB Wiki release." });
   const M = model(ship.box ?? BOX), p = params(d, gun, ball, ship);
   const ammo = shots(d).map((a) => { const q = params(d, gun, a, ship); return { a, side: fromBearing(M, 90, q).dmg, stern: fromBearing(M, 180, q).dmg }; })
     .sort((x, y) => y.side - x.side).slice(0, 4);
@@ -230,6 +237,7 @@ async function shipCard(i: ChatInputCommandInteraction, d: Data, ship: Ship, gun
 
 async function damage(i: ChatInputCommandInteraction, d: Data, ship: Ship, gun: Gun) {
   const ammo = find(shots(d), i.options.getString("ammo")) ?? find(shots(d), "Cast-Iron Shot") ?? shots(d)[0];
+  if (!ammo) return i.editReply({ content: "No ammunition data in this WoSB Wiki release." });
   const from = i.options.getInteger("from") ?? 90;
   const M = model(ship.box ?? BOX), p = params(d, gun, ammo, ship), r = fromBearing(M, from, p);
   const dead = Array.from({ length: 180 }, (_, k) => fromBearing(M, k * 2, p)).filter((x) => x.dmg <= 0.05).length * 2;
@@ -241,7 +249,7 @@ async function damage(i: ChatInputCommandInteraction, d: Data, ship: Ship, gun: 
       { name: "Glancing", value: p.pen > p.armor * p.armorWeight ? `Side hits more than ${fmt(glance(p), 0)}° off square do nothing. Dead zone: ${dead}° of the circle.` : "This gun can't get through the side at any angle; aim for the stern." },
     )
     .setFooter({ text: "Estimate: penetration − armor ÷ cos(angle); stern armor ×0.5, bow ×1.3. The server decides exact numbers." });
-  await i.reply({ embeds: [e] });
+  await i.editReply({ embeds: [e] });
 }
 
 async function fire(i: ChatInputCommandInteraction, ship: Ship) {
@@ -255,7 +263,7 @@ async function fire(i: ChatInputCommandInteraction, ship: Ship) {
       { name: "After a large fire", value: "80 s before another can start. Repairs put out finite and mendable large fires, not infinite ones.", inline: false },
     )
     .setFooter({ text: "From the game client's fire rules. The ignition chance per hit is rolled by the server." });
-  await i.reply({ embeds: [e] });
+  await i.editReply({ embeds: [e] });
 }
 
 async function tower(i: ChatInputCommandInteraction, d: Data) {
@@ -270,18 +278,19 @@ async function tower(i: ChatInputCommandInteraction, d: Data) {
       { name: "Towers", value: (d.towers ?? []).map((t: any) => `${t.n}: reach ${t.dead ? `${t.dead}–` : ""}${t.range}${t.dmg ? ` · ${t.dmg} dmg every ${t.cd} s` : ""}`).join("\n") || "—" },
       { name: "Capture", value: `Stay within ${pb.capture_r ?? 30} of a tower for ${pb.capture_s ?? 30} s. Boarding the fort takes ${pb.fort_board_s ?? 25} s. Each destroyed tower adds 10 minutes.` },
     );
-  await i.reply({ embeds: [e] });
+  await i.editReply({ embeds: [e] });
 }
 
 async function search(i: ChatInputCommandInteraction, d: Data) {
   const q = norm(i.options.getString("query", true));
-  const scored = d.search.map((s) => {
+  if (!q) return i.editReply({ content: `Nothing found. Try the search box at ${SITE}/` });
+  const scored = (d.search ?? []).map((s) => {
     const t = norm(s.t), k = norm(s.k ?? "");
     const score = t === q ? 100 : t.startsWith(q) ? 60 : t.includes(q) ? 40 : k.includes(q) ? 10 : 0;
     return { s, score };
   }).filter((x) => x.score > 0).sort((a, b) => b.score - a.score || a.s.t.localeCompare(b.s.t)).slice(0, 8);
-  if (!scored.length) return i.reply({ content: `Nothing found. Try the search box at ${SITE}/`, flags: MessageFlags.Ephemeral });
+  if (!scored.length) return i.editReply({ content: `Nothing found. Try the search box at ${SITE}/` });
   const e = new EmbedBuilder().setColor(COLOR).setTitle("WoSB Wiki").setURL(SITE + "/")
     .setDescription(scored.map(({ s }) => `**[${s.t}](${SITE}/${encodeURI(s.u)})** · ${s.c}`).join("\n"));
-  await i.reply({ embeds: [e] });
+  await i.editReply({ embeds: [e] });
 }

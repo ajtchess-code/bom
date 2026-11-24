@@ -44,13 +44,13 @@ async function fixedRule(guildId:string){
 }
 async function sessionByChannel(guildId:string,channelId:string){return oneOrNone<any>(`SELECT * FROM temp_voice_sessions WHERE guild_id=$1 AND channel_id=$2 AND status='ACTIVE' LIMIT 1`,[guildId,channelId]);}
 async function positionRooms(guild:Guild){
-  const anchor=await guild.channels.fetch(JOIN_TO_CREATE_CHANNEL_ID);
+  const anchor=await guild.channels.fetch(JOIN_TO_CREATE_CHANNEL_ID).catch(()=>null);
   if(!anchor?.isVoiceBased())return;
   const sessions=await many<any>(`SELECT channel_id,room_number FROM temp_voice_sessions WHERE guild_id=$1 AND status='ACTIVE' ORDER BY room_number NULLS LAST,created_at`,[guild.id]);
   let position=anchor.rawPosition+1;
-  for(const session of sessions){const channel=await guild.channels.fetch(session.channel_id);if(channel?.isVoiceBased()){
-    if(channel.parentId!==anchor.parentId)await channel.setParent(anchor.parentId,{lockPermissions:false});
-    await channel.setPosition(position++);
+  for(const session of sessions){const channel=await guild.channels.fetch(session.channel_id).catch(()=>null);if(channel?.isVoiceBased()){
+    if(channel.parentId!==anchor.parentId)await channel.setParent(anchor.parentId,{lockPermissions:false}).catch(()=>{});
+    await channel.setPosition(position++).catch(()=>{});
   }}
 }
 async function createTemporaryVoice(guild:Guild,member:GuildMember){
@@ -78,8 +78,8 @@ async function createTemporaryVoice(guild:Guild,member:GuildMember){
 
 async function deleteSession(guild:Guild,session:any,reason:string){
   // Recheck occupancy before stopping music or deleting anything.
-  const voice=await guild.channels.fetch(session.channel_id);
-  if(voice?.isVoiceBased()&&voice.members.size>0)return;
+  const voice=await guild.channels.fetch(session.channel_id).catch(()=>null);
+  if(voice?.isVoiceBased()&&hasHumanMembers(voice))return;
   const musicRoom=await oneOrNone<any>(`SELECT id FROM music_rooms WHERE guild_id=$1 AND voice_channel_id=$2 AND enabled=TRUE LIMIT 1`,[guild.id,session.channel_id]);
   if(musicRoom?.id){
     const workerId=await redis.get(keys.roomWorker(musicRoom.id)).catch(()=>null);
@@ -88,15 +88,15 @@ async function deleteSession(guild:Guild,session:any,reason:string){
     if(workerId){const lease=await redis.get(keys.workerLease(workerId)).catch(()=>null);if(lease===musicRoom.id)await redis.del(keys.workerLease(workerId)).catch(()=>{});}
     await db.query(`UPDATE music_rooms SET enabled=FALSE WHERE id=$1`,[musicRoom.id]).catch(()=>{});
   }
-  if(voice?.isVoiceBased()&&voice.members.size>0)return;
-  if(voice)await voice.delete(reason);
+  if(voice?.isVoiceBased()&&hasHumanMembers(voice))return;
+  if(voice)await voice.delete(reason).catch(()=>{});
   if(session.waiting_channel_id){const waiting=await guild.channels.fetch(session.waiting_channel_id).catch(()=>null);if(waiting)await waiting.delete(reason).catch(()=>{});}
   if(session.text_channel_id){const text=await guild.channels.fetch(session.text_channel_id).catch(()=>null);if(text)await text.delete(reason).catch(()=>{});}
   await db.query(`UPDATE temp_voice_sessions SET status='DELETED',deleted_at=CURRENT_TIMESTAMP WHERE id=$1`,[session.id]);
   console.log(`[automation:voice] deleted temporary room ${session.channel_id} (${reason})`);
 }
 async function checkEmpty(guild:Guild,session:any,channel:any){
-  if(channel.members.size>0){await db.query(`UPDATE temp_voice_sessions SET empty_since=NULL WHERE id=$1`,[session.id]);return;}
+  if(hasHumanMembers(channel)){await db.query(`UPDATE temp_voice_sessions SET empty_since=NULL WHERE id=$1`,[session.id]);return;}
   const row=(await db.query(`UPDATE temp_voice_sessions SET empty_since=COALESCE(empty_since,NOW()) WHERE id=$1 AND status='ACTIVE' RETURNING empty_since`,[session.id])).rows[0];
   if(row&&Date.now()-new Date(row.empty_since).getTime()>=EMPTY_DELAY_MS)await deleteSession(guild,session,'Temporary voice empty for 15 minutes');
 }
@@ -105,7 +105,7 @@ async function handleVoiceState(guildId:string,oldState:VoiceState,newState:Voic
   if(newState.channelId===JOIN_TO_CREATE_CHANNEL_ID&&newState.member&&!newState.member.user.bot)await createTemporaryVoice(newState.guild,newState.member).catch(error=>console.error('[automation:voice]',error));
   for(const id of new Set([oldState.channelId,newState.channelId].filter(Boolean) as string[])){
     const session=await sessionByChannel(guildId,id);if(!session)continue;
-    const channel=await newState.guild.channels.fetch(id);if(channel?.isVoiceBased())await checkEmpty(newState.guild,session,channel);
+    const channel=await newState.guild.channels.fetch(id).catch(()=>null);if(channel?.isVoiceBased())await checkEmpty(newState.guild,session,channel);
   }
 }
 
@@ -150,10 +150,10 @@ async function handleChannelDelete(guildId:string,channel:any){
 }
 
 async function normalizeTemporaryRooms(guild:Guild){
- const anchor=await guild.channels.fetch(JOIN_TO_CREATE_CHANNEL_ID);if(!anchor?.isVoiceBased())return;
+ const anchor=await guild.channels.fetch(JOIN_TO_CREATE_CHANNEL_ID).catch(()=>null);if(!anchor?.isVoiceBased())return;
  const rule=await fixedRule(guild.id),sessions=await many<any>(`SELECT * FROM temp_voice_sessions WHERE guild_id=$1 AND status='ACTIVE' ORDER BY created_at`,[guild.id]);
  const used=new Set<number>();
- for(const session of sessions){const channel=await guild.channels.fetch(session.channel_id);if(!channel?.isVoiceBased())continue;
+ for(const session of sessions){const channel=await guild.channels.fetch(session.channel_id).catch(()=>null);if(!channel?.isVoiceBased())continue;
   let number=Number(session.room_number);if(!Number.isInteger(number)||number<1||used.has(number)){number=1;while(used.has(number))number++;}used.add(number);
   await db.query('UPDATE temp_voice_sessions SET room_number=$2,rule_id=$3 WHERE id=$1',[session.id,number,rule.id]);
   const name=`ßǾM${roomNumberText(number,'SUPERSCRIPT')}`;if(channel.name!==name)await channel.setName(name,'BOM temporary voice numbering');

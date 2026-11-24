@@ -30,8 +30,9 @@ async function download(url,maximum){
 const crcTable=Array.from({length:256},(_,i)=>{let c=i;for(let k=0;k<8;k++)c=(c&1)?0xedb88320^(c>>>1):c>>>1;return c>>>0;});
 function crc32(bytes){let c=0xffffffff;for(const b of bytes)c=crcTable[(c^b)&255]^(c>>>8);return (c^0xffffffff)>>>0;}
 
+function within(base,target){const root=resolve(base),full=resolve(target);if(full!==root&&!full.startsWith(root+sep))throw new Error('Unsafe wiki path');return full;}
 /** Central directory parsing rejects traversal, links, encrypted and oversized entries. */
-export async function extractCheckedZip(buffer,directory){
+export async function extractCheckedZip(buffer,directory,expectedCount=null){
   if(buffer.length>=maxZip)throw new Error('ZIP exceeds the upload limit');
   let end=-1;for(let i=buffer.length-22;i>=Math.max(0,buffer.length-65557);i--)if(buffer.readUInt32LE(i)===0x06054b50){end=i;break;}
   if(end<0)throw new Error('Invalid ZIP end record');
@@ -52,6 +53,7 @@ export async function extractCheckedZip(buffer,directory){
     if(body.length!==size||crc32(body)!==crc)throw new Error('ZIP data integrity failure');
     entries.push({target,body});
   }
+  if(expectedCount!==null&&entries.length!==expectedCount)throw new Error('Entry count mismatch');
   // Validate the entire archive before touching the staging release.
   for(const {target,body} of entries){await mkdir(dirname(target),{recursive:true});await writeFile(target,body);}
   return entries.length;
@@ -71,9 +73,15 @@ async function activate(state,directory){
   const audit=await json(resolve(directory,'audit.json'));
   if(audit.missingImages.length||audit.imageCount!==catalog.images||audit.tables.length!==catalog.tables.length)throw new Error('Incomplete wiki audit');
   for(const t of catalog.tables){
-    const pages=await json(resolve(directory,'indexes',`${t.name}.json`));
+    if(typeof t?.name!=='string'||!t.name||/[\\/]/.test(t.name)||t.name==='.'||t.name==='..')throw new Error('Unsafe table name in wiki catalog');
+    const indexPath=within(resolve(directory,'indexes'),resolve(directory,'indexes',`${t.name}.json`));
+    const pages=await json(indexPath);
     if(pages.length!==Math.ceil(t.rows/100))throw new Error(`Invalid page index: ${t.name}`);
-    for(const file of new Set(pages.map(p=>p.file)))await stat(resolve(directory,'tables',t.name,file));
+    const tableDir=within(resolve(directory,'tables'),resolve(directory,'tables',t.name));
+    for(const file of new Set(pages.map(p=>p.file))){
+      if(typeof file!=='string'||!file)throw new Error(`Invalid page file in index: ${t.name}`);
+      await stat(within(tableDir,resolve(tableDir,file)));
+    }
   }
   // Remember the release this one replaces so the wiki can show what changed.
   let previous=null;try{const old=await json(resolve('data/wiki-active.json'));if(old.directory&&resolve(old.directory)!==resolve(directory))previous={directory:old.directory,release:old.release??null};}catch{}
@@ -85,14 +93,14 @@ export async function nextInstall(tag){return locked(async()=>{
   if(state.complete)return progress(state);
   const part=state.manifest.parts[state.completed],bytes=await download(`${state.base}/${part.file}`,maxZip);
   if(bytes.length!==part.bytes||hash(bytes)!==part.sha256)throw new Error(`Checksum mismatch: ${part.file}`);
-  const count=await extractCheckedZip(bytes,directory);if(count!==part.files)throw new Error(`Entry count mismatch: ${part.file}`);
+  const count=await extractCheckedZip(bytes,directory,part.files);if(count!==part.files)throw new Error(`Entry count mismatch: ${part.file}`);
   state.completed++;
   if(state.completed===state.manifest.parts.length){await activate(state,directory);state.complete=true;}
   await atomicJson(statePath,state);return progress(state);
 });}
 export async function installLocal(manifestPath){return locked(async()=>{
   const manifest=validateManifest(await json(manifestPath)),directory=resolve(data(),manifest.release,'content');
-  for(const part of manifest.parts){const bytes=await readFile(resolve(dirname(manifestPath),part.file));if(bytes.length!==part.bytes||hash(bytes)!==part.sha256)throw new Error(`Checksum mismatch: ${part.file}`);if(await extractCheckedZip(bytes,directory)!==part.files)throw new Error('Entry count mismatch');console.log(`Verified ${part.file}`);}
+  for(const part of manifest.parts){const bytes=await readFile(resolve(dirname(manifestPath),part.file));if(bytes.length!==part.bytes||hash(bytes)!==part.sha256)throw new Error(`Checksum mismatch: ${part.file}`);if(await extractCheckedZip(bytes,directory,part.files)!==part.files)throw new Error('Entry count mismatch');console.log(`Verified ${part.file}`);}
   await activate({manifest},directory);return {complete:true,directory};
 });}
 if(process.argv[1]&&resolve(process.argv[1])===fileURLToPath(import.meta.url)){

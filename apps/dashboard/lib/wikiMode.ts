@@ -1,21 +1,23 @@
 // Whether the wiki is running publicly (no login) or inside the member dashboard.
-// Set by the page that renders the wiki, before any data is fetched.
+// Only updated in the browser so SSR never mutates process-global state across concurrent requests.
 export const wikiMode = { public: false };
 export const setPublicWiki = (value: boolean) => {
-  wikiMode.public = value;
+  if (typeof window !== "undefined") wikiMode.public = value;
 };
+const isWikiRootHost = () =>
+  typeof window !== "undefined" &&
+  (window.location.hostname.startsWith("wiki.") || /^(?:www\.)?bandofmisfits\.org$/i.test(window.location.hostname));
 /** Base for API calls: the read-only public proxy, or the member proxy. */
-export const apiRoot = () => (wikiMode.public ? "/api/public" : "/api/internal");
+export const apiRoot = (isPublic = wikiMode.public) => (isPublic ? "/api/public" : "/api/internal");
 /** Where wiki links point: the public site root, /wiki on the dashboard host, or the member wiki. */
-export function wikiHref(query = "") {
+export function wikiHref(query = "", isPublic = wikiMode.public) {
   const qs = query ? (query.startsWith("?") ? query : `?${query}`) : "";
-  if (!wikiMode.public) return `/dashboard/wiki${qs}`;
-  const onWikiHost = typeof window !== "undefined" && window.location.hostname.startsWith("wiki.");
-  return `${onWikiHost ? "/" : "/wiki"}${qs}`;
+  if (!isPublic) return `/dashboard/wiki${qs}`;
+  return `${isWikiRootHost() ? "/" : "/wiki"}${qs}`;
 }
-export const prepHref = () =>
-  wikiMode.public
-    ? typeof window !== "undefined" && window.location.hostname.startsWith("wiki.")
+export const prepHref = (isPublic = wikiMode.public) =>
+  isPublic
+    ? isWikiRootHost()
       ? "/prep"
       : "/wiki/prep"
     : "/dashboard/battle-prep";

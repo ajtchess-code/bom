@@ -77,7 +77,7 @@ export default function TradeRoutes() {
           });
         }
     }
-    const score = (r: Run) => (sort === "perDistance" && r.distance ? r.profit / r.distance : r.profit);
+    const score = (r: Run) => (sort === "perDistance" ? (r.distance ? r.profit / r.distance : 0) : r.profit);
     // One row per good (its best run), listing other ports that pay the same.
     const best = new Map<string, Run>();
     for (const r of out.sort((a, b) => score(b) - score(a))) {

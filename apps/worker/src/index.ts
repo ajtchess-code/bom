@@ -25,7 +25,10 @@ const searchPrefix=process.env.LAVALINK_SEARCH_PREFIX??"ytmsearch:";
 const voiceJoinSettleMs=Math.max(0,Math.min(500,Number(process.env.VOICE_JOIN_SETTLE_MS??100)));
 /** "host:port", "https://host[:port]", optionally followed by "|password" for a server with its own password. */
 function parseLavalinkEndpoint(value:string){
-  const [address,...pass]=value.trim().split("|"),auth=pass.length?pass.join("|"):lavalinkPassword;
+  const idx=value.indexOf("|");
+  const address=(idx>=0?value.slice(0,idx):value).trim();
+  const rawPass=idx>=0?value.slice(idx+1).trim():"";
+  const auth=rawPass||lavalinkPassword;
   return {...parseLavalinkAddress(address),auth};
 }
 function parseLavalinkAddress(value:string){
@@ -60,8 +63,10 @@ const commandRedis=redis.duplicate();
 // Lavalink connectivity/health telemetry. These Shoukaku events make it clear in
 // Novonode logs whether a worker is merely logged into Discord or is actually
 // connected and ready to use the hosted Lavalink node.
+const readyNodes=new Set<string>();
 shoukaku.on("ready",(name,lavalinkResume,libraryResume)=>{
-  nodeReady=true;
+  readyNodes.add(name);
+  nodeReady=readyNodes.size>0;
   console.log(`[Lavalink] Worker ${workerId}: node ${name} READY (lavalinkResume=${lavalinkResume}, libraryResume=${libraryResume})`);
 });
 shoukaku.on("error",(name,error)=>{
@@ -69,10 +74,13 @@ shoukaku.on("error",(name,error)=>{
   console.error(`[Lavalink] Worker ${workerId}: node ${name} ERROR`,error);
 });
 shoukaku.on("close",(name,code,reason)=>{
+  readyNodes.delete(name);
+  nodeReady=readyNodes.size>0;
   console.warn(`[Lavalink] Worker ${workerId}: node ${name} CLOSED code=${code} reason=${reason||"none"}`);
 });
 shoukaku.on("disconnect",(name,count)=>{
-  nodeReady=false;reconnects++;
+  readyNodes.delete(name);
+  nodeReady=readyNodes.size>0;reconnects++;
   console.warn(`[Lavalink] Worker ${workerId}: node ${name} DISCONNECTED (count=${count})`);
 });
 shoukaku.on("reconnecting",(name,reconnectsLeft,reconnectInterval)=>{
@@ -180,7 +188,8 @@ async function play(cmd:Extract<WorkerCommand,{type:"PLAY"}>){
     if(runtime&&runtime.roomId!==cmd.roomId)await failRuntime("Worker was reassigned while a previous room was still active");
     const shardId=client.guilds.cache.get(guildId)?.shardId??0;
     const nodes=[...(shoukaku as any).nodes?.values?.()??[]];
-    const node:any=nodes.find((n:any)=>n?.state===1||n?.state==="CONNECTED"||n?.sessionId)??(shoukaku as any).nodes?.get?.("primary")??nodes[0];
+    const isNodeConnected=(n:any)=>Boolean(n&&(n.state===1||n.state===2||n.state==="CONNECTED"||readyNodes.has(n.name)));
+    const node:any=nodes.find(isNodeConnected)??(shoukaku as any).nodes?.get?.("primary")??nodes[0];
     if(!node)throw new Error("Lavalink node is not ready");
 
     // Voice negotiation and Lavalink search are independent. Doing them in
@@ -224,12 +233,14 @@ async function play(cmd:Extract<WorkerCommand,{type:"PLAY"}>){
     const selected=resolved.selected;
     if(resolved.remainder.length){
       void (async()=>{
+        let queuedCount=0;
         for(const t of resolved.remainder){
+          if(runtime?.requestId!==cmd.requestId)break;
           const inf=toInfo(t);
           const item:QueueItem={requestId:randomUUID(),roomId:cmd.roomId,guildId:cmd.guildId,voiceChannelId:cmd.voiceChannelId,query:`${inf.author} ${inf.title}`,display:`${inf.author} — ${inf.title}`,encoded:t.encoded,trackInfo:inf,requesterId:cmd.requesterId,requestedAt:Date.now(),traceId:cmd.traceId,source:"PLAYLIST",surface:(cmd as any).surface??"DISCORD",originalQuery:(cmd as any).originalQuery??cmd.query};
-          await enqueue(item);
+          await enqueue(item);queuedCount++;
         }
-        diag("music-queue","playlist remainder queued",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,queued:resolved.remainder.length});
+        diag("music-queue","playlist remainder queued",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,queued:queuedCount});
       })().catch(err=>diagWarn("music-queue","playlist remainder queue failed",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,error:err?.message??String(err)}));
     }
     const info=toInfo(selected);
@@ -243,6 +254,7 @@ async function play(cmd:Extract<WorkerCommand,{type:"PLAY"}>){
     // track/player state, which presents in Discord as a speaking bot with
     // effectively silent audio.  Pre-mute only when a fade-in is requested,
     // then always establish the intended volume after the track is loaded.
+    skippedEndPlayers.delete(player);
     if(fadeIn)try{await player.setGlobalVolume?.(0);}catch{}
     await player.playTrack({track:{encoded:selected.encoded,userData:{roomId:cmd.roomId,requesterId:cmd.requesterId,requestId:cmd.requestId,traceId:cmd.traceId}}});
     // A reused Lavalink player can retain paused/volume state from the previous
@@ -260,11 +272,7 @@ async function play(cmd:Extract<WorkerCommand,{type:"PLAY"}>){
     if(fadeIn){
       const steps=8,step=Math.max(25,Math.floor(transitionMs/steps));
       void (async()=>{for(let i=1;i<=steps&&runtime?.requestId===cmd.requestId;i++){await new Promise(r=>setTimeout(r,step));try{const target=Math.round(i/steps*Number(runtime?.baseVolume??100));await player.setGlobalVolume?.(target);if(i===steps)diag("audio-volume","fade-in reached target volume",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,targetVolume:target,reportedVolume:Number(player.volume??target)});}catch{}}})();
-      if(!info.isStream&&info.length>transitionMs+500){
-        const remaining=Math.max(500,info.length-Number(cmd.startPositionMs??0)-transitionMs);
-        const timer=setTimeout(()=>{void (async()=>{const steps=8,step=Math.max(25,Math.floor(transitionMs/steps));for(let i=steps-1;i>=0&&runtime?.requestId===cmd.requestId;i--){try{await player.setGlobalVolume?.(Math.round(i/steps*Number(runtime?.baseVolume??100)));}catch{};await new Promise(r=>setTimeout(r,step));}})();},remaining);
-        timer.unref?.();if(runtime?.requestId===cmd.requestId)runtime.transitionTimer=timer;
-      }
+      if(runtime?.requestId===cmd.requestId)scheduleFadeOut(runtime,Number(cmd.startPositionMs??0));
     }
     void setPresence(info);
     await publishEvent({type:"TRACK_START",workerId,roomId:cmd.roomId,guildId:cmd.guildId,requesterId:cmd.requesterId,requestId:cmd.requestId,traceId:cmd.traceId,track:info,origin:runtime.origin as any,surface:runtime.surface as any,originalQuery:runtime.originalQuery});
@@ -327,6 +335,18 @@ async function fetchLyrics(){
   return r.json();
 }
 
+function scheduleFadeOut(active:Runtime,positionMs:number){
+  if(active.transitionTimer){clearTimeout(active.transitionTimer);active.transitionTimer=undefined;}
+  const transitionMs=Math.max(0,Number(active.transitionMs??0));
+  const enabled=Boolean(active.transitionMode&&active.transitionMode!=="OFF"&&active.transitionMode!=="GAPLESS"&&transitionMs>0);
+  if(!enabled||!active.track||active.track.isStream||active.track.length<=transitionMs+500)return;
+  const remaining=Math.max(500,active.track.length-Math.max(0,positionMs)-transitionMs);
+  const reqId=active.requestId;
+  const timer=setTimeout(()=>{void (async()=>{const steps=8,step=Math.max(25,Math.floor(transitionMs/steps));for(let i=steps-1;i>=0&&runtime?.requestId===reqId&&!runtime?.player?.paused;i--){try{await active.player.setGlobalVolume?.(Math.round(i/steps*Number(runtime?.baseVolume??100)));}catch{};await new Promise(r=>setTimeout(r,step));}})();},remaining);
+  timer.unref?.();
+  active.transitionTimer=timer;
+}
+
 async function handle(raw:string){
   const parsed=WorkerCommand.safeParse(JSON.parse(raw)); if(!parsed.success){console.error(`[worker-command] invalid payload worker=${workerId}`,parsed.error);return;} const cmd=parsed.data;
   if(cmd.type==="PLAY")return play(cmd);
@@ -337,11 +357,11 @@ async function handle(raw:string){
   }
   if(cmd.guildId!==guildId||!runtime||runtime.guildId!==guildId)return;
   const active=runtime;
-  if(cmd.type==="PAUSE"){ await active.player.setPaused?.(true).catch?.(()=>{}); if(!active.player.setPaused)await active.player.update({paused:true}); await publishEvent({type:"STATE",workerId,roomId:active.roomId,guildId:active.guildId,status:"PAUSED"}); return; }
-  if(cmd.type==="RESUME"){ await active.player.setPaused?.(false).catch?.(()=>{}); if(!active.player.setPaused)await active.player.update({paused:false}); await publishEvent({type:"STATE",workerId,roomId:active.roomId,guildId:active.guildId,status:"PLAYING"}); return; }
-  if(cmd.type==="SKIP"){ if(cmd.expectedRequestId && active.requestId!==cmd.expectedRequestId)return; skippedEndPlayers.add(active.player); await active.player.stopTrack(); return; }
+  if(cmd.type==="PAUSE"){ if(active.transitionTimer){clearTimeout(active.transitionTimer);active.transitionTimer=undefined;} await active.player.setPaused?.(true).catch?.(()=>{}); if(!active.player.setPaused)await active.player.update({paused:true}); await publishEvent({type:"STATE",workerId,roomId:active.roomId,guildId:active.guildId,status:"PAUSED"}); return; }
+  if(cmd.type==="RESUME"){ await active.player.setPaused?.(false).catch?.(()=>{}); if(!active.player.setPaused)await active.player.update({paused:false}); scheduleFadeOut(active,Number(active.player.position??0)); await publishEvent({type:"STATE",workerId,roomId:active.roomId,guildId:active.guildId,status:"PLAYING"}); return; }
+  if(cmd.type==="SKIP"){ if(cmd.expectedRequestId && active.requestId!==cmd.expectedRequestId)return; skippedEndPlayers.add(active.player); try{await active.player.stopTrack();}catch(err){skippedEndPlayers.delete(active.player);throw err;} return; }
   if(cmd.type==="STOP"){ roomVolume.delete(active.roomId); ignoredEndPlayers.add(active.player); runtime=null; if(active.transitionTimer)clearTimeout(active.transitionTimer); await active.player.stopTrack?.().catch(()=>{}); await shoukaku.leaveVoiceChannel(guildId).catch(()=>{}); connectedVoiceChannelId=null; await setPresence(); await publishEvent({type:"TRACK_END",workerId,roomId:active.roomId,guildId:active.guildId,requestId:active.requestId,traceId:active.traceId,reason:"STOPPED"}); return; }
-  if(cmd.type==="SEEK"){ await active.player.seekTo(cmd.positionMs); return; }
+  if(cmd.type==="SEEK"){ if(active.transitionTimer){clearTimeout(active.transitionTimer);active.transitionTimer=undefined;} await active.player.seekTo(cmd.positionMs); if(!active.player.paused)scheduleFadeOut(active,Number(cmd.positionMs??0)); return; }
   if(cmd.type==="FILTER"){
     const preset=(FILTER_PRESETS as any)[cmd.preset]??{};
     await active.player.setFilters(preset);
@@ -383,20 +403,22 @@ async function commandLoop(){
 }
 
 setInterval(async()=>{
-  const playerPing=Number((runtime?.player as any)?.ping??0);if(Number.isFinite(playerPing)&&playerPing>=0)lastNodePing=playerPing;
-  try{readAudioHealth();}catch{}
-  const signature=JSON.stringify({workerId,userId:client.user?.id??null,tag:client.user?.tag??null,roomId:runtime?.roomId??null,nodeReady,lavalinkPingMs:lastNodePing,eventLoopLagMs,reconnects,recentFailures,...audioHealth});
-  const payload=JSON.stringify({...JSON.parse(signature),at:Date.now()});
-  // Avoid redundant persistence churn while still refreshing the TTL often enough for health scoring.
-  if(signature!==lastHeartbeatPayload||runtime){await redis.set(keys.workerHeartbeat(workerId),payload,"EX",30);lastHeartbeatPayload=signature;}
-  else await redis.expire(keys.workerHeartbeat(workerId),30);
-  if(runtime){
-    const lease=await redis.get(keys.workerLease(workerId));
-    if(lease===runtime.roomId)await redis.expire(keys.workerLease(workerId),45);
-    else if(!lease)await redis.set(keys.workerLease(workerId),runtime.roomId,"EX",45,"NX");
-    await redis.set(keys.roomWorker(runtime.roomId),workerId,"EX",45);
-  }
-  if(recentFailures>0)recentFailures=Math.max(0,recentFailures-1);
+  try{
+    const playerPing=Number((runtime?.player as any)?.ping??0);if(Number.isFinite(playerPing)&&playerPing>=0)lastNodePing=playerPing;
+    try{readAudioHealth();}catch{}
+    const signature=JSON.stringify({workerId,userId:client.user?.id??null,tag:client.user?.tag??null,roomId:runtime?.roomId??null,nodeReady,lavalinkPingMs:lastNodePing,eventLoopLagMs,reconnects,recentFailures,...audioHealth});
+    const payload=JSON.stringify({...JSON.parse(signature),at:Date.now()});
+    // Avoid redundant persistence churn while recreating the key if Redis restarted or evicted it.
+    if(signature!==lastHeartbeatPayload||runtime){await redis.set(keys.workerHeartbeat(workerId),payload,"EX",30);lastHeartbeatPayload=signature;}
+    else{const extended=await redis.expire(keys.workerHeartbeat(workerId),30);if(!extended)await redis.set(keys.workerHeartbeat(workerId),payload,"EX",30);}
+    if(runtime){
+      const lease=await redis.get(keys.workerLease(workerId));
+      if(lease===runtime.roomId)await redis.expire(keys.workerLease(workerId),45);
+      else if(!lease)await redis.set(keys.workerLease(workerId),runtime.roomId,"EX",45,"NX");
+      await redis.set(keys.roomWorker(runtime.roomId),workerId,"EX",45);
+    }
+    if(recentFailures>0)recentFailures=Math.max(0,recentFailures-1);
+  }catch(err){console.warn(`[worker] heartbeat failed worker=${workerId}`,err);}
 },10_000).unref();
 
 client.once("clientReady",async()=>{

@@ -32,9 +32,20 @@ export class AccountStore {
   public saveRevision(id:number,account:Account):void {
     const file=path.join(this.directory,'config-history.enc');let history:any[]=[];
     if(fs.existsSync(file)){const raw=fs.readFileSync(file),decipher=createDecipheriv('aes-256-gcm',this.key,raw.subarray(0,12));decipher.setAuthTag(raw.subarray(12,28));history=JSON.parse(Buffer.concat([decipher.update(raw.subarray(28)),decipher.final()]).toString());}
-    history.push({id,account});history=history.slice(-500);
+    // Never retain Discord user tokens in revision snapshots; restore always keeps the live token.
+    const sanitized:Account={...account,token:''};
+    history.push({id,account:sanitized});history=history.slice(-500);
     const nonce=randomBytes(12),cipher=createCipheriv('aes-256-gcm',this.key,nonce),bytes=Buffer.concat([cipher.update(JSON.stringify(history)),cipher.final()]);
-    fs.writeFileSync(file+'.tmp',Buffer.concat([nonce,cipher.getAuthTag(),bytes]),{mode:0o600});fs.renameSync(file+'.tmp',file);
+    const tmp=`${file}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`;
+    fs.writeFileSync(tmp,Buffer.concat([nonce,cipher.getAuthTag(),bytes]),{mode:0o600});fs.renameSync(tmp,file);
+  }
+  public purgeRevisions(accountId:string):void {
+    const file=path.join(this.directory,'config-history.enc');if(!fs.existsSync(file))return;
+    const raw=fs.readFileSync(file),decipher=createDecipheriv('aes-256-gcm',this.key,raw.subarray(0,12));decipher.setAuthTag(raw.subarray(12,28));
+    const history=JSON.parse(Buffer.concat([decipher.update(raw.subarray(28)),decipher.final()]).toString()).filter((entry:any)=>entry?.account?.id!==accountId);
+    const nonce=randomBytes(12),cipher=createCipheriv('aes-256-gcm',this.key,nonce),bytes=Buffer.concat([cipher.update(JSON.stringify(history)),cipher.final()]);
+    const tmp=`${file}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`;
+    fs.writeFileSync(tmp,Buffer.concat([nonce,cipher.getAuthTag(),bytes]),{mode:0o600});fs.renameSync(tmp,file);
   }
   public revision(id:number):Account|null {
     const file=path.join(this.directory,'config-history.enc');if(!fs.existsSync(file))return null;
@@ -44,7 +55,8 @@ export class AccountStore {
   public save(accounts: Account[]): void {
     const nonce = randomBytes(12), cipher = createCipheriv('aes-256-gcm', this.key, nonce);
     const bytes = Buffer.concat([cipher.update(JSON.stringify(accounts)), cipher.final()]);
-    fs.writeFileSync(`${this.file}.tmp`, Buffer.concat([nonce, cipher.getAuthTag(), bytes]), { mode: 0o600 });
-    fs.renameSync(`${this.file}.tmp`, this.file);
+    const tmp = `${this.file}.${process.pid}.${randomBytes(6).toString('hex')}.tmp`;
+    fs.writeFileSync(tmp, Buffer.concat([nonce, cipher.getAuthTag(), bytes]), { mode: 0o600 });
+    fs.renameSync(tmp, this.file);
   }
 }

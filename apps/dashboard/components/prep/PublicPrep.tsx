@@ -30,10 +30,33 @@ type Plan = {
 };
 const STORE = "bom:public-prep";
 const rid = () => globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random()}`;
+function sanitizeShapes(raw: unknown): Shape[] {
+  if (!Array.isArray(raw)) return [];
+  return raw
+    .slice(0, 2000)
+    .filter(
+      (s): s is Shape =>
+        Boolean(s) &&
+        typeof s === "object" &&
+        Array.isArray((s as any).points) &&
+        (s as any).points.every(
+          (pt: unknown) => Array.isArray(pt) && pt.length >= 2 && Number.isFinite(pt[0]) && Number.isFinite(pt[1]),
+        ),
+    );
+}
 function loadPlans(): Plan[] {
   try {
     const v = JSON.parse(localStorage.getItem(STORE) || "[]");
-    return Array.isArray(v) ? v.map((p) => ({ ...p, tactics: readTactics(p.tactics) })) : [];
+    return Array.isArray(v)
+      ? v
+          .filter((p) => p && typeof p === "object")
+          .map((p) => ({
+            ...p,
+            drawing: sanitizeShapes(p.drawing),
+            mapDrawing: sanitizeShapes(p.mapDrawing),
+            tactics: readTactics(p.tactics),
+          }))
+      : [];
   } catch {
     return [];
   }
@@ -169,8 +192,8 @@ export default function PublicPrep({ ports }: { ports: Port[] }) {
         title: String(raw.title ?? "Imported plan").slice(0, 80),
         port: ports.some((x) => x.name === raw.port) ? raw.port : (ports[0]?.name ?? ""),
         videoUrl: String(raw.videoUrl ?? "").slice(0, 500),
-        drawing: raw.drawing.slice(0, 2000),
-        mapDrawing: Array.isArray(raw.mapDrawing) ? raw.mapDrawing.slice(0, 2000) : [],
+        drawing: sanitizeShapes(raw.drawing),
+        mapDrawing: sanitizeShapes(raw.mapDrawing),
         tactics: readTactics(raw.tactics),
         updatedAt: new Date().toISOString(),
       };

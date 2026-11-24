@@ -1,6 +1,7 @@
 import {cloudflaredEnv} from './cloudflared-env.mjs';
 import { loadRootEnv } from "./load-env.mjs";
 import { spawn, spawnSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, readFileSync, chmodSync, renameSync, rmSync, statSync } from "node:fs";
 import process from "node:process";
 import { startLocalRedis } from "./local-redis.mjs";
@@ -11,9 +12,11 @@ loadRootEnv();
 // and restart normally. Subsequent starts skip an already active release.
 if(process.env.WOSB_WIKI_LOCAL_RELEASE){
   const manifestPath=process.env.WOSB_WIKI_LOCAL_RELEASE;
-  const release=JSON.parse(readFileSync(manifestPath,'utf8')).release;
-  let current=null;try{current=JSON.parse(readFileSync('data/wiki-active.json','utf8')).release;}catch{}
-  if(current!==release){const {installLocal}=await import('./wiki-release.mjs');await installLocal(manifestPath);}
+  try{
+    const release=JSON.parse(readFileSync(manifestPath,'utf8')).release;
+    let current=null;try{current=JSON.parse(readFileSync('data/wiki-active.json','utf8')).release;}catch{}
+    if(current!==release){const {installLocal}=await import('./wiki-release.mjs');await installLocal(manifestPath);}
+  }catch(error){console.warn(`[startup] WOSB_WIKI_LOCAL_RELEASE skipped (${manifestPath}): ${error?.message??error}`);}
 }
 const root=process.cwd();
 const required=["DISCORD_GUILD_ID","DISCORD_CLIENT_ID","DISCORD_CLIENT_SECRET","DISCORD_BOT_TOKEN","SESSION_SECRET","INTERNAL_API_TOKEN","PUBLIC_DASHBOARD_URL","LAVALINK_URL","LAVALINK_PASSWORD"];
@@ -34,7 +37,7 @@ const skipStartupBuild=alreadyBuilt||/^(1|true|yes|on)$/i.test(process.env.SKIP_
 if(!skipStartupBuild){
   console.log("[bootstrap] Building BOM-Bot from current source...");
   const yb=yarnArgs(["build"]);
-  const build=spawnSync(yb.command,yb.args,{cwd:root,env:process.env,stdio:"inherit"});
+  const build=spawnSync(yb.command,yb.args,{cwd:root,env:process.env,stdio:"inherit",shell:process.platform==="win32"&&/\.(?:cmd|bat)$/i.test(yb.command)});
   if(build.error||build.status!==0){
     console.error(`[BOM-Bot] Fatal startup error: yarn build failed (${build.error?.message??build.status})`);
     process.exit(build.status||1);
@@ -78,10 +81,13 @@ const withDiagnostics=(name,args)=>existsSync(diagnosticsPreload)?["--require",d
 function spawnService(name,command,args,extraEnv={},options={}){
   const ownNodeService=command===process.execPath&&!options.env;
   const launchArgs=ownNodeService?withDiagnostics(name,args):args;
-  const launchEnv=options.env??{...process.env,...(ownNodeService?{BOM_SERVICE:name}:{}),...extraEnv};
+  const launchEnv=options.env??{...process.env,CI:"true",NEXT_TELEMETRY_DISABLED:"1",...(ownNodeService?{BOM_SERVICE:name}:{}),...extraEnv};
+  const useShell=process.platform==="win32"&&/\.(?:cmd|bat)$/i.test(command);
+  let consecutiveFailures=0;
   const launch=()=>{
     if(shuttingDown)return;
-    const child=spawn(command,launchArgs,{cwd:options.cwd||root,env:launchEnv,stdio:"inherit"});
+    const startedAt=Date.now();
+    const child=spawn(command,launchArgs,{cwd:options.cwd||root,env:launchEnv,stdio:["ignore","inherit","inherit"],shell:useShell});
     children.set(name,child);
     console.log(`[startup] ${name} started (pid ${child.pid})`);
     let spawnFailed=false;
@@ -92,8 +98,10 @@ function spawnService(name,command,args,extraEnv={},options={}){
     child.on("exit",(code,signal)=>{
       children.delete(name);
       if(shuttingDown||spawnFailed)return;
-      console.error(`[startup] ${name} exited (${code??signal}); restarting in 2s`);
-      setTimeout(launch,2000).unref();
+      consecutiveFailures=Date.now()-startedAt>=60_000?1:consecutiveFailures+1;
+      const delayMs=Math.min(60_000,2000*Math.pow(2,Math.min(consecutiveFailures-1,5)));
+      console.error(`[startup] ${name} exited (${code??signal}); restarting in ${Math.round(delayMs/1000)}s`);
+      setTimeout(launch,delayMs).unref();
     });
   };
   launch();
@@ -128,9 +136,10 @@ function parseLavalinkRaw(raw){
   return {host:trimmed,port:null,secure:boolEnv("LAVALINK_SECURE",false),explicitScheme:false,explicitPort:false};
 }
 
+const formatHostPort=(host,port)=>`${String(host).includes(":")?`[${host}]`:host}:${port}`;
 async function probeLavalink(candidate){
   const protocol=candidate.secure?"https":"http";
-  const base=`${protocol}://${candidate.host}:${candidate.port}`;
+  const base=`${protocol}://${formatHostPort(candidate.host,candidate.port)}`;
   const ctrl=new AbortController();
   const timer=setTimeout(()=>ctrl.abort(),6500);
   try{
@@ -164,7 +173,7 @@ async function normalizeLavalink(){
   for(const result of results){
     if(result.ok){
       const c=result.candidate;
-      process.env.LAVALINK_URL=`${c.host}:${c.port}`;
+      process.env.LAVALINK_URL=formatHostPort(c.host,c.port);
       process.env.LAVALINK_SECURE=c.secure?"true":"false";
       process.env.LAVALINK_PORT=String(c.port);
       const version=result.info?.version?.semver||result.info?.version?.version||result.info?.version||"unknown";
@@ -181,10 +190,10 @@ async function normalizeLavalink(){
     }
   }
   const c=candidates[0];
-  process.env.LAVALINK_URL=`${c.host}:${c.port}`;
+  process.env.LAVALINK_URL=formatHostPort(c.host,c.port);
   process.env.LAVALINK_SECURE=c.secure?"true":"false";
   process.env.LAVALINK_PORT=String(c.port);
-  console.warn(`[startup] No Lavalink candidate verified. Workers will start against ${c.secure?"https":"http"}://${c.host}:${c.port} and keep Shoukaku's reconnect loop active.`);
+  console.warn(`[startup] No Lavalink candidate verified. Workers will start against ${c.secure?"https":"http"}://${formatHostPort(c.host,c.port)} and keep Shoukaku's reconnect loop active.`);
   return false;
 }
 
@@ -198,11 +207,22 @@ async function ensureCloudflared(path){
   };
   let check=verify();
   if(check.ok){console.log(`[startup] cloudflared verified: ${check.version}`);return true;}
-  console.warn(`[startup] cloudflared at ${path} is not executable (${check.reason}${check.detail?`: ${check.detail}`:""}); replacing it with Cloudflare's official Linux amd64 binary.`);
+  const arch=process.arch==="arm64"?"arm64":"amd64";
+  const downloadUrl=`https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-${arch}`;
+  console.warn(`[startup] cloudflared at ${path} is not executable (${check.reason}${check.detail?`: ${check.detail}`:""}); replacing it with Cloudflare's official Linux ${arch} binary.`);
   const temp=`${path}.download`;
   try{rmSync(temp,{force:true});}catch{}
-  const curl=spawnSync("curl",["-fL","--retry","3","--connect-timeout","20","-o",temp,"https://github.com/cloudflare/cloudflared/releases/latest/download/cloudflared-linux-amd64"],{cwd:root,stdio:"inherit",timeout:180000});
+  const curl=spawnSync("curl",["-fL","--retry","3","--connect-timeout","20","-o",temp,downloadUrl],{cwd:root,stdio:"inherit",timeout:180000});
   if(curl.error||curl.status!==0){console.error(`[startup] Unable to download cloudflared (${curl.error?.message??`exit ${curl.status}`}).`);return false;}
+  const expectedSha=(process.env.CLOUDFLARED_SHA256??"").trim().toLowerCase();
+  if(expectedSha){
+    const actualSha=createHash("sha256").update(readFileSync(temp)).digest("hex");
+    if(actualSha!==expectedSha){
+      rmSync(temp,{force:true});
+      console.error(`[startup] Downloaded cloudflared SHA-256 mismatch (expected ${expectedSha}, got ${actualSha}).`);
+      return false;
+    }
+  }
   try{
     chmodSync(temp,0o755);
     if(existsSync(path)){
@@ -234,7 +254,15 @@ function findTunnelToken(){
   return null;
 }
 
-await migrate();
+process.on("SIGTERM",()=>shutdown("SIGTERM",0));
+process.on("SIGINT",()=>shutdown("SIGINT",0));
+try{
+  await migrate();
+}catch(error){
+  console.error(`[startup] Migration failed: ${error?.message??error}`);
+  shutdown("migration failure",1);
+  await new Promise(()=>{});
+}
 await normalizeLavalink();
 spawnService("api",process.execPath,["apps/api/dist/index.js"],{API_PORT:apiPort});
 spawnService("controller",process.execPath,["apps/controller/dist/index.js"]);
@@ -281,5 +309,3 @@ function shutdown(signal,exitCode=0){
   const drained=setInterval(()=>{if(children.size===0){clearInterval(drained);process.exit(exitCode);}},100);
   drained.unref();
 }
-process.on("SIGTERM",()=>shutdown("SIGTERM",0));
-process.on("SIGINT",()=>shutdown("SIGINT",0));

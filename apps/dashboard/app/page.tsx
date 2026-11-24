@@ -1,8 +1,22 @@
+import { headers } from "next/headers";
 import { getSession } from "@/lib/session";
+import { requestHost } from "@/lib/publicHost";
 import Link from "next/link";
 import styles from "./login.module.css";
 export default async function Home() {
   const session = await getSession();
+  const h = await headers();
+  const currentHost = requestHost(h);
+  const dashUrl = (process.env.PUBLIC_DASHBOARD_URL ?? "").trim().replace(/\/$/, "");
+  let crossOriginDash = "";
+  if (dashUrl) {
+    try {
+      const u = new URL(dashUrl);
+      if (currentHost && u.hostname.toLowerCase() !== currentHost) crossOriginDash = u.origin;
+    } catch {}
+  }
+  const loginHref = `${crossOriginDash}/api/auth/discord/start`;
+  const dashboardHref = `${crossOriginDash}/dashboard`;
   return (
     <main className={styles.deck}>
       <div className={styles.backdrop} />
@@ -18,11 +32,17 @@ export default async function Home() {
           <h1>Welcome Aboard.</h1>
           <p>Your Crew. Your Dashboard.</p>
           {session ? (
-            <Link className={styles.signIn} href="/dashboard">
-              Open Dashboard <span aria-hidden="true">→</span>
-            </Link>
+            crossOriginDash ? (
+              <a className={styles.signIn} href={dashboardHref}>
+                Open Dashboard <span aria-hidden="true">→</span>
+              </a>
+            ) : (
+              <Link className={styles.signIn} href="/dashboard">
+                Open Dashboard <span aria-hidden="true">→</span>
+              </Link>
+            )
           ) : (
-            <a className={styles.signIn} href="/api/auth/discord/start">
+            <a className={styles.signIn} href={loginHref}>
               <svg width="24" height="20" viewBox="0 0 24 20" aria-hidden="true">
                 <path
                   fill="currentColor"

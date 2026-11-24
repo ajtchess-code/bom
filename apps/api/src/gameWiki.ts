@@ -18,6 +18,14 @@ const bounded = (v:unknown, min:number, max:number, fallback:number)=>{const n=N
 export const recordName = (r:Row, n:number)=>String(r.EnglishName || r.NameEnglish || r.IDEnglish || r.English || r.Name || r.RecipeID || r.EntityID || r.ID || r.Key || r.Type || `Record ${n+1}`);
 const normalized = (s:unknown)=>String(s??'').normalize('NFKD').replace(/\p{M}/gu,'').toLowerCase();
 let imageCache:{directory:string;expires:number;resolver:ReturnType<typeof wikiImageResolver>}|null=null;
+let searchCache:{directory:string;expires:number;rows:{table:string;row:number;name:string;normName:string;normText:string}[]}|null=null;
+async function loadSearchIndex(directory:string){
+  if(searchCache?.directory===directory&&searchCache.expires>Date.now())return searchCache.rows;
+  const raw:{table:string;row:number;name:string;text:string}[]=await jsonFile(resolve(directory,'search.json'));
+  const rows=raw.map(r=>({table:r.table,row:r.row,name:r.name,normName:normalized(r.name),normText:normalized(r.text)}));
+  searchCache={directory,expires:Date.now()+60_000,rows};
+  return rows;
+}
 async function imageLookup(directory:string){
  await new GameWiki(directory).catalog();
  if(imageCache?.directory===directory&&imageCache.expires>Date.now())return imageCache.resolver;
@@ -73,9 +81,9 @@ export class GameWiki {
   async search(query:string,table?:string){
     const terms=normalized(query).trim().split(/\s+/).filter(Boolean).slice(0,12);
     if(!terms.length)return [];
-    const index:{table:string;row:number;name:string;text:string}[]=await jsonFile(resolve(this.directory,'search.json'));
-    return index.filter(r=>(!table||r.table===table)&&terms.every(t=>normalized(r.text).includes(t)))
-      .map(r=>({table:r.table,row:r.row,name:r.name,score:terms.reduce((n,t)=>n+(normalized(r.name).includes(t)?10:1),0)}))
+    const index=await loadSearchIndex(this.directory);
+    return index.filter(r=>(!table||r.table===table)&&terms.every(t=>r.normText.includes(t)))
+      .map(r=>({table:r.table,row:r.row,name:r.name,score:terms.reduce((n,t)=>n+(r.normName.includes(t)?10:1),0)}))
       .sort((a,b)=>b.score-a.score||a.name.localeCompare(b.name)).slice(0,100);
   }
 }
@@ -149,8 +157,8 @@ export function registerGameWiki(app:any,{requireMember,requireAdmin}: {requireM
     if(!await guard(req,reply))return;
     await wiki().catalog();
     const path=String(req.query.path??'');if(!path.startsWith('Images/')||!path.endsWith('.png')||path.includes('\\')||path.split('/').some(p=>p==='..'||p==='.'||!p))return reply.code(400).send({error:'invalid_image'});
-    const directory=await realpath(resolve(root(),'Images'));
-    let target:string;try{target=await realpath(resolve(root(),path));}catch(e:any){if(e.code==='ENOENT')return reply.code(404).send({error:'image_not_found'});throw e;}
+    let directory:string,target:string;
+    try{directory=await realpath(resolve(root(),'Images'));target=await realpath(resolve(root(),path));}catch(e:any){if(e.code==='ENOENT')return reply.code(404).send({error:'image_not_found'});throw e;}
     if(!target.startsWith(directory+sep))return reply.code(400).send({error:'invalid_image'});
     reply.type('image/png').header('cache-control','private, max-age=3600');return reply.send(createReadStream(target));
   });
@@ -168,8 +176,8 @@ export function registerGameWiki(app:any,{requireMember,requireAdmin}: {requireM
     await wiki().catalog();
     const path=String(req.query.path??'').replaceAll('\\','/');
     if(!/^(CodeArchive|CodeEvidence|RawData)\//.test(path)||!path.endsWith('.txt')&&!path.endsWith('.json')||path.split('/').some(p=>p==='..'||p==='.'||!p))return reply.code(400).send({error:'invalid_evidence_path'});
-    const folder=await realpath(resolve(root(),path.split('/')[0]));let target:string;
-    try{target=await realpath(resolve(root(),path));}catch(e:any){if(e.code==='ENOENT')return reply.code(404).send({error:'evidence_not_found'});throw e;}
+    let folder:string,target:string;
+    try{folder=await realpath(resolve(root(),path.split('/')[0]));target=await realpath(resolve(root(),path));}catch(e:any){if(e.code==='ENOENT')return reply.code(404).send({error:'evidence_not_found'});throw e;}
     if(!target.startsWith(folder+sep))return reply.code(400).send({error:'invalid_evidence_path'});
     reply.type('text/plain; charset=utf-8').header('x-content-type-options','nosniff');return reply.send(createReadStream(target));
   });

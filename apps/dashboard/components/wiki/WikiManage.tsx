@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import CompendiumAdmin from "./CompendiumAdmin";
 import Prose from "./Prose";
 import { forget } from "./wikiData";
+import { forgetGuides } from "./WikiHub";
 
 async function api(path: string, init?: RequestInit) {
   const r = await fetch(`/api/internal/wiki/portal/${path}`, {
@@ -161,6 +162,7 @@ function Editor({ categories }: { categories: { id: string; label: string }[] })
         setDraft({ ...draft, id: r.id, slug: r.slug });
       }
       forget("wiki/portal");
+      forgetGuides();
       setMsg("Saved.");
       void refresh();
     } catch (e: any) {

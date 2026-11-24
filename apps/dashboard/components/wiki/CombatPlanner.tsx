@@ -19,7 +19,7 @@ export default function CombatPlanner({data,rangeOnly=false}:{data:any;rangeOnly
  // Per-shot damage: from the game data when it has it, otherwise from the wiki's weapon balance list.
  const [reference,setReference]=useState<Map<string,{damage:number;reload:number}>>(new Map());
  useEffect(()=>{fetch(`${apiRoot()}/wiki/portal/articles/cannons-and-weapons`).then(r=>r.ok?r.json():null).then(b=>{const m=new Map<string,{damage:number;reload:number}>();for(const w of b?.data?.weapons??[]){const d=num(w.damage);if(d>0)m.set(squash(w.name),{damage:d,reload:num(w.reload)});}setReference(m);}).catch(()=>{});},[]);
- const damageOf=(w:any,variant:number)=>{const own=num(rankedValue(w?.Damage??w?.BaseDamage??w?.DamageBase,variant));if(own>0)return own;const name=squash(w?.EnglishName);for(const [k,v] of reference)if(k===name||k.includes(name)||name.includes(k))return v.damage;return NaN;};
+ const damageOf=(w:any,variant:number)=>{const own=num(rankedValue(w?.Damage??w?.BaseDamage??w?.DamageBase,variant));if(own>0)return own;const name=squash(w?.EnglishName);if(!name)return NaN;const exact=reference.get(name);if(exact)return exact.damage;const nums=(s:string)=>(s.match(/\d+/g)??[]).join(',');const wantNums=nums(name);for(const [k,v] of reference){if(wantNums!==nums(k))continue;if(k.includes(name)||name.includes(k))return v.damage;}return NaN;};
  // Drag ships around the range map.
  const svgRef=useRef<SVGSVGElement|null>(null),[dragging,setDragging]=useState<number|null>(null);
  const toMap=(e:React.PointerEvent)=>{const svg=svgRef.current;if(!svg)return null;const pt=svg.createSVGPoint();pt.x=e.clientX;pt.y=e.clientY;const m=svg.getScreenCTM();if(!m)return null;const p=pt.matrixTransform(m.inverse());return {x:Math.round(p.x),y:Math.round(p.y)};};

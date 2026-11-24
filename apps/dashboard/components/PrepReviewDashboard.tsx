@@ -126,10 +126,9 @@ function ShapeMarks({ shapes, hiddenLayers }: { shapes: Shape[]; hiddenLayers: S
   return (
     <>
       {shapes
-        .filter((s) => !hiddenLayers.has(s.layer))
+        .filter((s) => s && !hiddenLayers.has(s.layer) && Array.isArray(s.points) && s.points.length > 0)
         .map((s) => {
           const pts = s.points;
-          if (!pts.length) return null;
           const stroke = s.color === "rainbow" ? `url(#rainbow-${s.id})` : s.color;
           const points = pts.map((p) => p.join(",")).join(" ");
           const mid = pts[Math.floor(pts.length / 2)] ?? pts[0];

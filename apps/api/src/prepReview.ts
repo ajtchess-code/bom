@@ -1,5 +1,5 @@
 import {randomUUID} from "node:crypto";
-import {db,many,oneOrNone} from "@bom/db";
+import {db,many,oneOrNone,pool} from "@bom/db";
 
 type RegisterOpts={guildId:string;requireMember:(req:any,reply:any)=>Promise<any>;userId:(req:any)=>string};
 
@@ -56,13 +56,22 @@ export function registerPrepReviewRoutes(app:any,opts:RegisterOpts){
     return compactSession(await oneOrNone<any>(`SELECT * FROM prep_review_sessions WHERE id=$1`,[id]));
   });
   app.put("/v1/prep-review/sessions/:id",async(req:any,reply:any)=>{
-    if(!(await requireMember(req,reply))?.member)return;const uid=userId(req),id=String(req.params.id),current=await oneOrNone<any>(`SELECT * FROM prep_review_sessions WHERE guild_id=$1 AND id=$2`,[guildId,id]);if(!current)return reply.code(404).send({error:"not_found"});const expected=Number(req.body?.version);if(!Number.isFinite(expected)||expected!==Number(current.version))return reply.code(409).send({error:"version_conflict",current:compactSession(current)});
-    const kind=cleanKind(req.body?.kind??current.kind),port=portByName(req.body?.portName??current.port_name),drawing=Array.isArray(req.body?.drawing)?req.body.drawing:json(current.drawing,[]),mapDrawing=Array.isArray(req.body?.mapDrawing)?req.body.mapDrawing:json(current.map_drawing,[]),viewState=req.body?.viewState&&typeof req.body.viewState==="object"?req.body.viewState:json(current.view_state,{}),video=kind==="REVIEW"?safeUrl(req.body?.videoUrl??current.video_url):null,t=title(req.body?.title??current.title,kind,port.name),next=expected+1;
-    if(drawing.length>1000||mapDrawing.length>1000)return reply.code(400).send({error:"too_many_annotations"});
-    await db.query(`INSERT INTO prep_review_revisions(id,session_id,guild_id,version,snapshot,actor_id) VALUES($1,$2,$3,$4,$5::jsonb,$6)`,[randomUUID(),id,guildId,expected,JSON.stringify({kind:current.kind,title:current.title,portName:current.port_name,mapKey:current.map_key,videoUrl:current.video_url,drawing:json(current.drawing,[]),mapDrawing:json(current.map_drawing,[]),viewState:json(current.view_state,{})}),uid]);
-    await db.query(`UPDATE prep_review_sessions SET kind=$1,title=$2,port_name=$3,map_key=$4,video_url=$5,drawing=$6::jsonb,map_drawing=$7::jsonb,view_state=$8::jsonb,version=$9,updated_by=$10,updated_at=CURRENT_TIMESTAMP WHERE guild_id=$11 AND id=$12`,[kind,t,port.name,port.mapFile,video,JSON.stringify(drawing),JSON.stringify(mapDrawing),JSON.stringify(viewState),next,uid,guildId,id]);
-    await db.query(`DELETE FROM prep_review_revisions WHERE id IN (SELECT id FROM prep_review_revisions WHERE session_id=$1 ORDER BY created_at DESC OFFSET 50)`,[id]);
-    return compactSession(await oneOrNone<any>(`SELECT * FROM prep_review_sessions WHERE guild_id=$1 AND id=$2`,[guildId,id]));
+    if(!(await requireMember(req,reply))?.member)return;const uid=userId(req),id=String(req.params.id),expected=Number(req.body?.version);
+    const tx=await pool.connect();let committed=false;
+    try{
+      await tx.query("BEGIN");
+      const current=(await tx.query(`SELECT * FROM prep_review_sessions WHERE guild_id=$1 AND id=$2 FOR UPDATE`,[guildId,id])).rows[0];
+      if(!current){await tx.query("ROLLBACK");return reply.code(404).send({error:"not_found"});}
+      if(!Number.isFinite(expected)||expected!==Number(current.version)){await tx.query("ROLLBACK");return reply.code(409).send({error:"version_conflict",current:compactSession(current)});}
+      const kind=cleanKind(req.body?.kind??current.kind),port=portByName(req.body?.portName??current.port_name),drawing=Array.isArray(req.body?.drawing)?req.body.drawing:json(current.drawing,[]),mapDrawing=Array.isArray(req.body?.mapDrawing)?req.body.mapDrawing:json(current.map_drawing,[]),viewState=req.body?.viewState&&typeof req.body.viewState==="object"?req.body.viewState:json(current.view_state,{}),video=kind==="REVIEW"?safeUrl(req.body?.videoUrl??current.video_url):null,t=title(req.body?.title??current.title,kind,port.name),next=expected+1;
+      if(drawing.length>1000||mapDrawing.length>1000){await tx.query("ROLLBACK");return reply.code(400).send({error:"too_many_annotations"});}
+      await tx.query(`INSERT INTO prep_review_revisions(id,session_id,guild_id,version,snapshot,actor_id) VALUES($1,$2,$3,$4,$5::jsonb,$6)`,[randomUUID(),id,guildId,expected,JSON.stringify({kind:current.kind,title:current.title,portName:current.port_name,mapKey:current.map_key,videoUrl:current.video_url,drawing:json(current.drawing,[]),mapDrawing:json(current.map_drawing,[]),viewState:json(current.view_state,{})}),uid]);
+      const upd=await tx.query(`UPDATE prep_review_sessions SET kind=$1,title=$2,port_name=$3,map_key=$4,video_url=$5,drawing=$6::jsonb,map_drawing=$7::jsonb,view_state=$8::jsonb,version=$9,updated_by=$10,updated_at=CURRENT_TIMESTAMP WHERE guild_id=$11 AND id=$12 AND version=$13 RETURNING *`,[kind,t,port.name,port.mapFile,video,JSON.stringify(drawing),JSON.stringify(mapDrawing),JSON.stringify(viewState),next,uid,guildId,id,expected]);
+      if(!upd.rowCount){await tx.query("ROLLBACK");const latest=await oneOrNone<any>(`SELECT * FROM prep_review_sessions WHERE guild_id=$1 AND id=$2`,[guildId,id]);return reply.code(409).send({error:"version_conflict",current:latest?compactSession(latest):null});}
+      await tx.query(`DELETE FROM prep_review_revisions WHERE id IN (SELECT id FROM prep_review_revisions WHERE session_id=$1 ORDER BY created_at DESC OFFSET 50)`,[id]);
+      await tx.query("COMMIT");committed=true;
+      return compactSession(upd.rows[0]);
+    }finally{if(!committed)await tx.query("ROLLBACK").catch(()=>{});tx.release();}
   });
   app.get("/v1/prep-review/sessions/:id/revisions",async(req:any,reply:any)=>{if(!(await requireMember(req,reply))?.member)return;return {revisions:await many<any>(`SELECT id,version,actor_id,created_at FROM prep_review_revisions WHERE guild_id=$1 AND session_id=$2 ORDER BY created_at DESC LIMIT 50`,[guildId,String(req.params.id)])};});
   app.post("/v1/prep-review/sessions/:id/restore/:revisionId",async(req:any,reply:any)=>{

@@ -18,13 +18,15 @@ import java.nio.file.*;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public final class BOMCraftBridge extends JavaPlugin {
  private final Gson gson=new Gson();
  private final HttpClient http=HttpClient.newBuilder().connectTimeout(Duration.ofSeconds(10)).followRedirects(HttpClient.Redirect.NEVER).build();
  private YamlConfiguration state;
  private File stateFile;
- private boolean polling=false;
+ private final AtomicBoolean polling=new AtomicBoolean(false);
+ private final Object journalLock=new Object();
  private URI endpoint;
  private String secret;
  private final Map<UUID,Long> linkCooldown=new ConcurrentHashMap<>();
@@ -35,25 +37,31 @@ public final class BOMCraftBridge extends JavaPlugin {
   long ticks=Math.max(10,getConfig().getLong("poll-seconds",30))*20;
   getServer().getScheduler().runTaskTimerAsynchronously(this,this::poll,40,ticks);
  }
- private synchronized void saveJournal() throws Exception {
-  Path temporary=stateFile.toPath().resolveSibling("journal.tmp");Files.writeString(temporary,state.saveToString(),StandardCharsets.UTF_8);
-  try{Files.move(temporary,stateFile.toPath(),StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);}catch(AtomicMoveNotSupportedException e){Files.move(temporary,stateFile.toPath(),StandardCopyOption.REPLACE_EXISTING);}
+ private void saveJournal() throws Exception {
+  synchronized(journalLock){
+   Path temporary=stateFile.toPath().resolveSibling("journal.tmp");Files.writeString(temporary,state.saveToString(),StandardCharsets.UTF_8);
+   try{Files.move(temporary,stateFile.toPath(),StandardCopyOption.ATOMIC_MOVE,StandardCopyOption.REPLACE_EXISTING);}catch(AtomicMoveNotSupportedException e){Files.move(temporary,stateFile.toPath(),StandardCopyOption.REPLACE_EXISTING);}
+  }
  }
  private JsonObject send(String op,JsonObject payload) throws Exception {
   JsonObject envelope=new JsonObject();envelope.addProperty("op",op);envelope.addProperty("timestamp",System.currentTimeMillis());envelope.addProperty("nonce",UUID.randomUUID().toString());envelope.add("payload",payload);
   String encoded=gson.toJson(envelope);Mac mac=Mac.getInstance("HmacSHA256");mac.init(new SecretKeySpec(secret.getBytes(StandardCharsets.UTF_8),"HmacSHA256"));
   JsonObject request=new JsonObject();request.addProperty("envelope",encoded);request.addProperty("signature",HexFormat.of().formatHex(mac.doFinal(encoded.getBytes(StandardCharsets.UTF_8))));
   HttpResponse<String> response=http.send(HttpRequest.newBuilder(endpoint).timeout(Duration.ofSeconds(25)).header("Content-Type","application/json").POST(HttpRequest.BodyPublishers.ofString(gson.toJson(request))).build(),HttpResponse.BodyHandlers.ofString());
-  JsonObject body=JsonParser.parseString(response.body()).getAsJsonObject();if(response.statusCode()!=200)throw new IllegalStateException(body.has("message")?body.get("message").getAsString():"Dashboard returned "+response.statusCode());return body;
+  JsonObject body=null;
+  try{JsonElement parsed=JsonParser.parseString(response.body());if(parsed!=null&&parsed.isJsonObject())body=parsed.getAsJsonObject();}catch(Exception ignored){}
+  if(response.statusCode()!=200)throw new IllegalStateException(body!=null&&body.has("message")?body.get("message").getAsString():"Dashboard returned "+response.statusCode());
+  if(body==null)throw new IllegalStateException("Dashboard returned invalid JSON ("+response.statusCode()+")");
+  return body;
  }
  private <T> T main(Callable<T> task) throws Exception {return getServer().getScheduler().callSyncMethod(this,task).get(15,TimeUnit.SECONDS);}
- private synchronized void poll(){if(polling)return;polling=true;try{
+ private void poll(){if(!polling.compareAndSet(false,true))return;try{
   JsonObject payload=new JsonObject();payload.add("status",main(this::serverStatus));
   JsonArray results=main(()->{JsonArray values=new JsonArray();if(state.isConfigurationSection("jobs"))for(String id:state.getConfigurationSection("jobs").getKeys(false)){if(values.size()>=30)break;if(state.getBoolean("jobs."+id+".pending"))values.add(JsonParser.parseString(state.getString("jobs."+id+".result")));}return values;});
   payload.add("results",results);JsonObject reply=send("poll",payload);
   main(()->{for(JsonElement e:results)state.set("jobs."+e.getAsJsonObject().get("id").getAsString()+".pending",false);saveJournal();return true;});
   if(reply.has("jobs"))for(JsonElement item:reply.getAsJsonArray("jobs")){JsonObject job=item.getAsJsonObject();main(()->{execute(job);return true;});}
- }catch(Exception e){getLogger().warning("Dashboard sync: "+e.getMessage());}finally{polling=false;}}
+ }catch(Exception e){getLogger().warning("Dashboard sync: "+e.getMessage());}finally{polling.set(false);}}
  private JsonObject serverStatus(){
   JsonObject status=new JsonObject();status.addProperty("online",getServer().getOnlinePlayers().size());status.addProperty("maxPlayers",getServer().getMaxPlayers());status.addProperty("version",getServer().getVersion());status.addProperty("maintenance",state.getBoolean("maintenance"));status.addProperty("currencyName",getConfig().getString("currency-name","BOM Coins"));status.addProperty("economyAvailable",economy()!=null);
   try{status.add("tps",gson.toJsonTree(getServer().getClass().getMethod("getTPS").invoke(getServer())));status.add("mspt",gson.toJsonTree(getServer().getClass().getMethod("getAverageTickTime").invoke(getServer())));}catch(Exception ignored){}

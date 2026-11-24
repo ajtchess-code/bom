@@ -17,7 +17,13 @@ export function extractNpcNames(il:string){
   }
   return pools;
 }
+const visualCache=new Map<string,{expires:number;value:any}>();
 export async function wikiVisualData(wiki:GameWiki,section:string,images:(table:string,row:any)=>any[]){
+  const cacheKey=`${wiki.directory}:${section}`;
+  const cached=visualCache.get(cacheKey);
+  if(cached&&cached.expires>Date.now())return cached.value;
+  const ttl=section==='coverage'?300_000:60_000;
+  const store=(value:any)=>{if(visualCache.size>50)visualCache.clear();visualCache.set(cacheKey,{expires:Date.now()+ttl,value});return value;};
   const all=(name:string)=>wiki.all(name);
   if(section==='coverage'){
     const inventory=await all('Images'),groups=[];const missingFiles:string[]=[];
@@ -29,30 +35,30 @@ export async function wikiVisualData(wiki:GameWiki,section:string,images:(table:
     }
     const extractionIssues=await all('Extraction_Issues');
     const issueGroups=Array.from(new Set(extractionIssues.map(i=>String(i.Detail)))).map(detail=>({detail,count:extractionIssues.filter(i=>String(i.Detail)===detail).length}));
-    return {groups,imageFiles:inventory.length,missingFiles,issueGroups,knownGaps:[
+    return store({groups,imageFiles:inventory.length,missingFiles,issueGroups,knownGaps:[
       'Some ship construction material quantities still require gun-port model parsing.',
       'NPC name pools are available, but their assignment to particular hulls is unverified.',
       'The complete weapon/ammunition damage pipeline is not verified; armor alone cannot predict HP damage.',
       'Live market listings, stock, ownership, active spawns and player/event bonuses are outside this static export.',
       'Map models are not fully interpreted; plotted objects do not establish coastline geometry or current battle spawns.',
       '34 sail image links use texture-prefix candidates and remain explicitly inferred.'
-    ],scope:'Image references and actual files on this host. This does not establish that the original game/client extraction is complete.'};
+    ],scope:'Image references and actual files on this host. This does not establish that the original game/client extraction is complete.'});
   }
   if(section==='nodes'){
     const [levels,resources,bytes]=await Promise.all([all('Factory_Levels'),all('Resources'),readFile(resolve(wiki.directory,costFile)).catch(()=>null)]);
     const verified=Boolean(bytes&&createHash('sha256').update(bytes).digest('hex')==='84fd57e54be3f9a15405b9d066d2bf03d3438f0fed0c74f5f0e83a71eeb1eb0e');
-    return {...await wikiPlanningData(wiki,images),levels,resources:resources.map(r=>({...r,images:images('Resources',r)})),costs:verified?nodeCostSchedule:[],costVerified:verified,costSource:costFile,costNotes:'Base client schedule: initialization uses index 0; LevelUpCost uses its level argument directly. Transition labels assume that argument is the current level. Special island/estate entries are excluded. Live discounts and alternate build methods are separate.'};
+    return store({...await wikiPlanningData(wiki,images),levels,resources:resources.map(r=>({...r,images:images('Resources',r)})),costs:verified?nodeCostSchedule:[],costVerified:verified,costSource:costFile,costNotes:'Base client schedule: initialization uses index 0; LevelUpCost uses its level argument directly. Transition labels assume that argument is the current level. Special island/estate entries are excluded. Live discounts and alternate build methods are separate.'});
   }
   if(section==='atlas'){
     const [routes,ports,objects]=await Promise.all([all('TradingRoutesInfo'),all('WorldPorts'),all('Map_Objects')]);
     const placed=objects.map((o,row)=>({...o,row,position:wikiPosition(o.RawPosition)})).filter((o:any)=>o.SceneTable==='World_j'&&o.position);
-    return {routes:routes.map((r,row)=>{const points=(r.Value??[]).map(wikiPosition);if(points.some((p:any)=>!p))throw new Error(`Invalid coordinates in route ${row+1}`);return {row,id:r.SourceRecord??row+1,points,length:routeLength(points)};}),ports:ports.map((p,row)=>{const location=placed.find((o:any)=>String(o.Parameters).split(/[,\s]+/).includes(p.PortName));return {...p,row,position:location?.position??null};}),objects:placed.map((o:any)=>({row:o.row,position:o.position,path:o.Path,parameters:o.Parameters})),battleMaps:wikiBattleMaps};
+    return store({routes:routes.map((r,row)=>{const points=(r.Value??[]).map(wikiPosition);if(points.some((p:any)=>!p))throw new Error(`Invalid coordinates in route ${row+1}`);return {row,id:r.SourceRecord??row+1,points,length:routeLength(points)};}),ports:ports.map((p,row)=>{const location=placed.find((o:any)=>String(o.Parameters).split(/[,\s]+/).includes(p.PortName));return {...p,row,position:location?.position??null};}),objects:placed.map((o:any)=>({row:o.row,position:o.position,path:o.Path,parameters:o.Parameters})),battleMaps:wikiBattleMaps});
   }
-  if(section==='wind')return {profiles:await all('WindRoses'),hulls:await all('ShipsBasics'),ships:await all('ShipsToPlay')};
+  if(section==='wind')return store({profiles:await all('WindRoses'),hulls:await all('ShipsBasics'),ships:await all('ShipsToPlay')});
   if(section==='npcs'){
     const [ships,types,text,poolText]=await Promise.all([all('ShipsToPlay'),all('NPC_Types'),all('English_Text'),readFile(resolve(wiki.directory,nameFile),'utf8').catch(()=>null)]);
-    return {ships:ships.map((s,row)=>({...s,row,images:images('ShipsToPlay',s)})).filter((s:any)=>s.CanBeUsedForNpc===true),types:types.filter(t=>t.Type==='Common.Resources.NpcType'),categoryNames:text.filter(t=>String(t.Key).startsWith('npc_')),namePools:poolText?extractNpcNames(poolText):[],nameSource:nameFile};
+    return store({ships:ships.map((s,row)=>({...s,row,images:images('ShipsToPlay',s)})).filter((s:any)=>s.CanBeUsedForNpc===true),types:types.filter(t=>t.Type==='Common.Resources.NpcType'),categoryNames:text.filter(t=>String(t.Key).startsWith('npc_')),namePools:poolText?extractNpcNames(poolText):[],nameSource:nameFile});
   }
-  if(['combat','range','islands','craft-time','crew','chests','node-production'].includes(section))return wikiPlanningData(wiki,images);
+  if(['combat','range','islands','craft-time','crew','chests','node-production'].includes(section))return store(await wikiPlanningData(wiki,images));
   throw Object.assign(new Error('Unknown wiki tool'),{statusCode:404});
 }

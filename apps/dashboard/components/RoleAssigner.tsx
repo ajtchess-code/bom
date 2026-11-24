@@ -48,12 +48,23 @@ export default function RoleAssigner({
       setResults(null);
       return;
     }
+    let cancelled = false;
     const t = setTimeout(() => {
       call(`/members?q=${encodeURIComponent(term)}`)
-        .then((b) => setResults(b.members))
-        .catch((e) => setMsg({ ok: false, text: e.message }));
+        .then((b) => {
+          if (!cancelled) {
+            setResults(b.members);
+            setMsg(null);
+          }
+        })
+        .catch((e) => {
+          if (!cancelled) setMsg({ ok: false, text: e.message });
+        });
     }, 300);
-    return () => clearTimeout(t);
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+    };
   }, [q]);
 
   const byId = useMemo(() => new Map(roles.map((r) => [r.id, r])), [roles]);
@@ -103,6 +114,11 @@ export default function RoleAssigner({
           autoComplete="off"
         />
       </label>
+      {!member && msg && (
+        <p role="alert" className={msg.ok ? "raOk" : "raError"}>
+          {msg.text}
+        </p>
+      )}
       {results && !member && (
         <ul className="raResults">
           {results.length ? (

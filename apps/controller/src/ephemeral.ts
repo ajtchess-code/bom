@@ -33,8 +33,8 @@ export function startEphemeralJanitor(){
       const d:EphemeralRecord=JSON.parse(raw);
       try{
         const base=`https://discord.com/api/v10/webhooks/${d.applicationId}/${d.token}/messages`;
-        let res=d.messageId?await fetch(`${base}/${d.messageId}`,{method:"DELETE"}):await fetch(`${base}/@original`,{method:"DELETE"});
-        if(!res.ok && d.messageId) res=await fetch(`${base}/@original`,{method:"DELETE"});
+        let res=d.messageId?await fetch(`${base}/${d.messageId}`,{method:"DELETE",signal:AbortSignal.timeout(10_000)}):await fetch(`${base}/@original`,{method:"DELETE",signal:AbortSignal.timeout(10_000)});
+        if(!res.ok && d.messageId) res=await fetch(`${base}/@original`,{method:"DELETE",signal:AbortSignal.timeout(10_000)});
       }catch{}
       if(d.kind==="lyrics"&&d.roomId)await redis.srem(keys.lyricPanels(d.roomId),id).catch(()=>{});
       if(d.kind==="private"&&d.roomId&&d.userId){const k=keys.ephemeralUserRoom(d.userId,d.roomId);if(await redis.get(k)===id)await redis.del(k);}
@@ -55,7 +55,7 @@ export async function editEphemeral(id:string,payload:any){
     const base=`https://discord.com/api/v10/webhooks/${d.applicationId}/${d.token}/messages`;
     const url=d.messageId?`${base}/${d.messageId}`:`${base}/@original`;
     const body=replyEditPayload({components:payload.components});
-    const res=await fetch(url,{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify(body)});
+    const res=await fetch(url,{method:"PATCH",headers:{"content-type":"application/json"},body:JSON.stringify(body),signal:AbortSignal.timeout(10_000)});
     if(!res.ok&&res.status===404){if(d.roomId)await redis.srem(keys.lyricPanels(d.roomId),id).catch(()=>{});await redis.del(keys.ephemeralData(id));}
     return res.ok;
   }catch{return false;}

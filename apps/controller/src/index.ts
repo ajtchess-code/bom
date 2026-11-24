@@ -34,7 +34,7 @@ import { randomUUID } from "node:crypto";
 import { join } from "node:path";
 import sharp from "sharp";
 import { many, oneOrNone, db, pool } from "@bom/db";
-import { redis, keys, enqueue, dequeue, dequeueByRequestId, queueItems, getRoomState, publishWorkerCommand, setRoomState, streamTailId } from "@bom/redis";
+import { redis, keys, enqueue, dequeue, dequeueByRequestId, removeQueueAt, queueItems, getRoomState, publishWorkerCommand, setRoomState, streamTailId } from "@bom/redis";
 import { FILTER_PRESETS, SkipMode, tr, type MusicPermission, type QueueItem, type WorkerEvent } from "@bom/shared";
 import type { RoomRow } from "./types.js";
 import { allocateWorker, releaseWorker, renewRoomLease, quarantineWorker } from "./allocator.js";
@@ -136,7 +136,7 @@ function wikiCompactTable(data:any){const rows=data?.scenarioTable;if(Array.isAr
 /** The wiki page that best matches a question: a guide or tool for common topics, otherwise a wiki search. */
 const WIKI_TOPICS:[RegExp,string][]=[[/\b(port battles?|pbs?)\b/i,'?tool=guides&guide=new-player-port-battles'],[/\btension\b/i,'?tool=guides&guide=flags-pvp-and-tension'],[/\b(special crew|specialists?)\b/i,'?tool=crew'],[/\bboard(ing)?\b/i,'?tool=guides&guide=boarding'],[/\b(trade routes?|where to (buy|sell))\b/i,'?tool=trade'],[/\bcraft(ing)?\b/i,'?tool=crafting'],[/\b(mines?|farms?)\b/i,'?tool=nodes'],[/\b(wind|sailing)\b/i,'?tool=wind'],[/\b(jericho|long cannons?|which (gun|cannon))\b/i,'?tool=volleys'],[/\bnew player|getting started|beginner\b/i,'?tool=guides&guide=new-player-welcome']];
 export function wikiDeepLink(question:string,answer=''){const q=String(question??'').trim();for(const [re,path] of WIKI_TOPICS)if(re.test(q))return `/dashboard/wiki${path}`;const words=q.replace(/[^\p{L}\p{N}' -]/gu,' ').replace(/\b(what|whats|how|is|are|the|a|an|does|do|of|in|for|to|me|tell|about|which|best|much|many|can|i|my)\b/gi,' ').replace(/\s+/g,' ').trim().slice(0,60);return words?`/dashboard/wiki?tool=search&q=${encodeURIComponent(words)}`:'/dashboard/wiki';}
-function wikiComponents(x:any,question?:string){const body:any[]=[{type:10,content:`### ${wikiAnswerTitle(x?.intent)}`}];if(question)body.push({type:10,content:`-# ${String(question).slice(0,300)}`});body.push({type:10,content:String(x?.answer??'I could not produce an answer.').slice(0,3900)});const sourceNames=[...new Set((Array.isArray(x?.sources)?x.sources:[]).map((source:any)=>String(source?.name??'').trim()).filter(Boolean))];if(sourceNames.length&&x?.confidence==='confirmed')body.push({type:10,content:`-# Sources: ${sourceNames.slice(0,3).join(' · ')}`});const table=wikiCompactTable(x?.data);if(table){body.push({type:14,divider:true,spacing:1});body.push({type:10,content:table.slice(0,3900)});}if(Array.isArray(x?.suggestions)&&x.suggestions.length){body.push({type:14,divider:true,spacing:1});body.push({type:10,content:`**Useful follow-ups**\n${x.suggestions.slice(0,4).map((v:string)=>`• ${v}`).join('\n')}`});}const actions:any[]=[];if(x?.answerId){actions.push({type:2,style:2,label:'Suggest correction',custom_id:`wiki:correct:${x.answerId}`});actions.push({type:2,style:2,label:'Share',custom_id:`wiki:share:${x.answerId}`});}const dash=(process.env.PUBLIC_DASHBOARD_URL??'').replace(/\/$/,'');if(dash)actions.push({type:2,style:5,label:'Open in Wiki',url:`${dash}${wikiDeepLink(question??'',x?.answer??'')}`});if(actions.length)body.push({type:1,components:actions.slice(0,5)});return [{type:17,accent_color:x?.confidence==='unknown'?0x6B7280:0xD6A83A,components:body}] as any;}
+function wikiComponents(x:any,question?:string){const body:any[]=[];let budget=3850;const pushText=(text:string)=>{if(budget<=0)return;const clipped=text.length>budget?`${text.slice(0,Math.max(0,budget-1))}…`:text;if(!clipped)return;body.push({type:10,content:clipped});budget-=clipped.length;};pushText(`### ${wikiAnswerTitle(x?.intent)}`);if(question)pushText(`-# ${String(question).slice(0,300)}`);pushText(String(x?.answer??'I could not produce an answer.').slice(0,Math.min(3400,budget)));const sourceNames=[...new Set((Array.isArray(x?.sources)?x.sources:[]).map((source:any)=>String(source?.name??'').trim()).filter(Boolean))];if(sourceNames.length&&x?.confidence==='confirmed'&&budget>30)pushText(`-# Sources: ${sourceNames.slice(0,3).join(' · ')}`);const table=wikiCompactTable(x?.data);if(table&&budget>60){body.push({type:14,divider:true,spacing:1});pushText(table);}if(Array.isArray(x?.suggestions)&&x.suggestions.length&&budget>60){body.push({type:14,divider:true,spacing:1});pushText(`**Useful follow-ups**\n${x.suggestions.slice(0,4).map((v:string)=>`• ${v}`).join('\n')}`);}const actions:any[]=[];if(x?.answerId){actions.push({type:2,style:2,label:'Suggest correction',custom_id:`wiki:correct:${x.answerId}`});actions.push({type:2,style:2,label:'Share',custom_id:`wiki:share:${x.answerId}`});}const dash=(process.env.PUBLIC_DASHBOARD_URL??'').replace(/\/$/,'');if(dash)actions.push({type:2,style:5,label:'Open in Wiki',url:`${dash}${wikiDeepLink(question??'',x?.answer??'')}`});if(actions.length)body.push({type:1,components:actions.slice(0,5)});return [{type:17,accent_color:x?.confidence==='unknown'?0x6B7280:0xD6A83A,components:body}] as any;}
 function wikiCorrectionModal(answerId:string){const input=new TextInputBuilder().setCustomId('suggestion').setLabel('What should the Wiki say instead?').setStyle(TextInputStyle.Paragraph).setRequired(true).setMaxLength(2000).setPlaceholder('Example: The current value is 145, not 150.');const row=new ActionRowBuilder<TextInputBuilder>().addComponents(input);return new ModalBuilder().setCustomId(`wiki:correctmodal:${answerId}`).setTitle('Suggest a Wiki correction').addComponents(row);}
 function findWikiAnswerId(message:any){try{const raw=(message.components??[]).map((x:any)=>typeof x?.toJSON==='function'?x.toJSON():x);let found:string|null=null;const walk=(v:any)=>{if(found||v==null)return;if(Array.isArray(v)){for(const x of v)walk(x);return;}if(typeof v!=='object')return;const id=String(v.custom_id??v.customId??'');const m=id.match(/^wiki:(?:correct|share):([0-9a-f-]{20,40})$/i);if(m){found=m[1];return;}for(const x of Object.values(v))walk(x);};walk(raw);return found;}catch{return null;}}
 function isCasualWikiAck(text:string){return /^(?:thanks?|thank you|ty|thx|got it|cool|nice|ok(?:ay)?|perfect|awesome)[!. ]*$/i.test(text.trim());}
@@ -505,7 +505,7 @@ async function deliverPortBattleAssignmentDms(){if(!client.isReady())return;cons
 async function deliverPortBattleReminders(){await deliverBattleCancellations(client,guildId!).catch(e=>console.warn('[pb-cancel]',e));if(!client.isReady())return;const rows=await many<any>(`SELECT s.id signup_id,s.user_id,s.display_name,s.confirmed_ship,b.id battle_id,b.port_name,b.starts_at FROM pb_signups s JOIN pb_battles b ON b.id=s.battle_id WHERE b.guild_id=$1 AND b.status IN ('OPEN','CLOSED') AND s.user_id IS NOT NULL AND s.confirmed_ship IS NOT NULL AND b.starts_at>CURRENT_TIMESTAMP AND b.starts_at<=CURRENT_TIMESTAMP+INTERVAL '60 minutes'`,[guildId]);for(const row of rows){const mins=(new Date(row.starts_at).getTime()-Date.now())/60000;const threshold=mins>30?60:mins>15?30:15;const claimed=await oneOrNone<any>(`INSERT INTO pb_reminder_deliveries(battle_id,signup_id,user_id,minutes_before) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING RETURNING battle_id`,[row.battle_id,row.signup_id,row.user_id,threshold]);if(!claimed)continue;let error:string|null=null;try{if(!await canDiscordDm(String(row.user_id),'battles')){await db.query(`UPDATE pb_reminder_deliveries SET delivery_error='suppressed_by_preference' WHERE battle_id=$1 AND signup_id=$2 AND minutes_before=$3`,[row.battle_id,row.signup_id,threshold]);continue;}if(!(await oneOrNone<any>("SELECT id FROM pb_battles WHERE id=$1 AND status IN('OPEN','CLOSED')",[row.battle_id])))continue;const user=await client.users.fetch(String(row.user_id));await sendBotDm(user,`**Battle of ${row.port_name} — ${threshold}-minute reminder**\nYou are confirmed in **${row.confirmed_ship}**.\n${pbDate(row.starts_at)}${pbDashboardUrl()?`\n${pbDashboardUrl()}/dashboard/port-battles`:''}`);}catch(err:any){error=String(err?.message??err).slice(0,500);}if(error)await db.query(`UPDATE pb_reminder_deliveries SET delivery_error=$4 WHERE battle_id=$1 AND signup_id=$2 AND minutes_before=$3`,[row.battle_id,row.signup_id,threshold,error]);}}
 function xmlEscape(v:any){return String(v??'').replace(/[&<>"']/g,(c:string)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;'}[c]??c));}
 const pbOperations=createPBOperations(client,guildId!,wosbApi,pbManagerAllowed);
-async function portBattleSweep(){try{await processPbEmergencyReset();const reconcileKey=`pb:reconcile:requested:${guildId}`;const requested=await redis.get(reconcileKey).catch(()=>null);if(requested)await redis.del(reconcileKey).catch(()=>{});if(requested)pbLastOrphanScanAt=0;try{await syncPortBattleDiscord(Boolean(requested));if(requested)await redis.set(`pb:reconcile:last:${guildId}`,JSON.stringify({status:'DONE',at:new Date().toISOString()}),'EX',86400);}catch(err){if(requested)await redis.set(`pb:reconcile:last:${guildId}`,JSON.stringify({status:'FAILED',at:new Date().toISOString(),error:String(err).slice(0,200)}),'EX',86400);throw err;}await deliverBattleCancellations(client,guildId!);await pbOperations.sweep();}catch(err){console.warn('[port-battle] Discord synchronization failed',err);}}
+async function portBattleSweep(){try{await processPbEmergencyReset();const reconcileKey=`pb:reconcile:requested:${guildId}`;const requested=await redis.get(reconcileKey).catch(()=>null);if(requested)await redis.del(reconcileKey).catch(()=>{});if(requested)pbLastOrphanScanAt=0;try{await syncPortBattleDiscord(Boolean(requested));if(requested)await redis.set(`pb:reconcile:last:${guildId}`,JSON.stringify({status:'DONE',at:new Date().toISOString()}),'EX',86400);}catch(err){if(requested)await redis.set(`pb:reconcile:last:${guildId}`,JSON.stringify({status:'FAILED',at:new Date().toISOString(),error:String(err).slice(0,200)}),'EX',86400);throw err;}await deliverPortBattleAssignmentDms().catch(e=>console.warn('[pb-assignment-dm]',e));await deliverPortBattleReminders().catch(e=>console.warn('[pb-reminders]',e));await pbOperations.sweep();}catch(err){console.warn('[port-battle] Discord synchronization failed',err);}}
 
 async function roomById(id:string){ return oneOrNone<RoomRow>(`SELECT * FROM music_rooms WHERE guild_id=$1 AND id=$2 AND enabled=TRUE`,[guildId,id]); }
 async function ensureGuild(){ await db.query(`INSERT INTO guild_settings(guild_id) VALUES($1) ON CONFLICT DO NOTHING`,[guildId]); }
@@ -526,8 +526,8 @@ async function ensureVoiceRoom(voiceChannelId:string):Promise<RoomRow>{
   const settings=await oneOrNone<{autoplay_default:boolean}>(`SELECT autoplay_default FROM guild_settings WHERE guild_id=$1`,[guildId]);
   const id=randomUUID();
   try{
-    await db.query(`INSERT INTO music_rooms(id,guild_id,name,text_channel_id,voice_channel_id,autoplay,delete_requests,default_filter,enabled) VALUES($1,$2,$3,$4,$5,$6,TRUE,'flat',TRUE)`,[id,guildId,channel.name,voiceChannelId,voiceChannelId,false]);
-  }catch(err:any){if(err?.code!=="ER_DUP_ENTRY")throw err;}
+    await db.query(`INSERT INTO music_rooms(id,guild_id,name,text_channel_id,voice_channel_id,autoplay,delete_requests,default_filter,enabled) VALUES($1,$2,$3,$4,$5,$6,TRUE,'flat',TRUE)`,[id,guildId,String(channel.name??"Voice session").slice(0,80),voiceChannelId,voiceChannelId,false]);
+  }catch(err:any){if(!["23505","ER_DUP_ENTRY"].includes(String(err?.code)))throw err;}
   const room=await roomByVoice(voiceChannelId);if(!room)throw new Error("Unable to establish a music session for this voice channel");
   await redis.set(voiceRoomKey(voiceChannelId),room.id,"EX",24*3600);
   diag("music-session","created voice session",{roomId:room.id,voiceChannelId,voiceChannelName:channel.name});return room;
@@ -659,6 +659,10 @@ async function safeDeferUpdate(interaction:any){
 }
 async function sendEphemeral(interaction:any,payload:any){
   try{
+    if(interaction.deferred&&!interaction.replied&&(interaction as any)._bomDeferredReply){
+      const message=await editInteractionReply(interaction,payload);
+      return {messageId:message?.id as string|undefined,token:interaction.token as string};
+    }
     if(interaction.isMessageComponent?.()){
       if(!await safeDeferUpdate(interaction))return null;
       const message=await interaction.followUp(payload);
@@ -750,6 +754,7 @@ async function userMusicPermission(userId:string,permission:MusicPermission){
 // the only person listening (no one to annoy).
 async function canControlRoom(room:RoomRow,userId:string){
   if(await userMusicPermission(userId,"MANAGE_MUSIC")||await userMusicPermission(userId,"DJ"))return true;
+  if(!await userMusicPermission(userId,"USE_MUSIC"))return false;
   const vc=client.guilds.cache.get(guildId!)?.channels.cache.get(room.voice_channel_id);
   const humans=vc?.isVoiceBased()?[...vc.members.values()].filter(m=>!m.user.bot):[];
   return humans.length<=1&&humans.some(m=>m.id===userId);
@@ -1010,8 +1015,14 @@ client.on("interactionCreate",async interaction=>{
     if(interaction.isButton()&&interaction.customId.startsWith("wiki:correct:")){const answerId=interaction.customId.split(":").at(-1)!;return void await interaction.showModal(wikiCorrectionModal(answerId));}
     if(interaction.isButton()&&interaction.customId.startsWith("wiki:share:")){const answerId=interaction.customId.split(":").at(-1)!;await deferInteractionReply(interaction,{flags:MessageFlags.Ephemeral});try{const x=await wikiApi(`/answers/${answerId}/share`,interaction.user.id,{method:"POST",body:JSON.stringify({hours:168})});const base=(process.env.PUBLIC_DASHBOARD_URL??"").replace(/\/$/,"");return void await editInteractionReply(interaction,{content:base?`${base}${x.url}`:`Shared answer created: ${x.url}`});}catch(err:any){return void await editInteractionReply(interaction,{content:`Could not create a share link: ${String(err?.message??err).slice(0,1500)}`});}}
     if(interaction.isModalSubmit()&&interaction.customId.startsWith("music:addmodal:")){
-      const roomId=interaction.customId.split(":").at(-1)!; const room=await roomById(roomId); if(!room)return;
-      const query=interaction.fields.getTextInputValue("query"); if(!await hasMusicPermission(interaction,"USE_MUSIC"))return void await ephem(interaction,simpleEphemeral("Permission denied","You do not have permission to request music in this server.")); await renewPrivate(interaction,roomId);
+      await deferInteractionReply(interaction,{flags:MessageFlags.Ephemeral|MessageFlags.IsComponentsV2});
+      (interaction as any)._bomDeferredReply=true;
+      const roomId=interaction.customId.split(":").at(-1)!; const room=await roomById(roomId);
+      if(!room)return void await ephem(interaction,simpleEphemeral("Music","That voice session is no longer active."));
+      if(!await hasMusicPermission(interaction,"USE_MUSIC"))return void await ephem(interaction,simpleEphemeral("Permission denied","You do not have permission to request music in this server."));
+      const inRoomVoice=String((interaction.member as any)?.voice?.channelId??"")===String(room.voice_channel_id);
+      if(!inRoomVoice&&!await hasMusicPermission(interaction,"MANAGE_MUSIC")&&!await hasMusicPermission(interaction,"DJ"))return void await ephem(interaction,simpleEphemeral("Join voice first","Join this room's voice channel before adding songs to its queue."));
+      const query=interaction.fields.getTextInputValue("query"); await renewPrivate(interaction,roomId);
       if(!await claimRequestWindow(room.id,interaction.user.id))return void await ephem(interaction,simpleEphemeral("Slow down","Please wait a moment before sending another request."));
       await submit(room,query,interaction.user.id);
       const locale=await userLocale(interaction.user.id,room); return void await ephem(interaction,simpleEphemeral(tr(locale,"queue"),`**${query.slice(0,120)}** → ${room.name}`));
@@ -1032,6 +1043,7 @@ client.on("interactionCreate",async interaction=>{
     }
     if(interaction.isStringSelectMenu()&&interaction.customId==='console:music:menu'){
       await deferInteractionReply(interaction,{flags:MessageFlags.Ephemeral});
+      (interaction as any)._bomDeferredReply=true;
       const room=await chooseRoomForUser(interaction);if(!room)return void await editInteractionReply(interaction,{content:'Join a voice channel first.'});
       if(!await hasMusicPermission(interaction,'USE_MUSIC'))return void await editInteractionReply(interaction,{content:'You do not have permission to use music.'});
       const action=interaction.values[0],state=await getRoomState(room.id);
@@ -1047,7 +1059,9 @@ client.on("interactionCreate",async interaction=>{
       return void await editInteractionReply(interaction,{content:action==='stop'?'Playback stopped.':'Playback updated.'});
     }
     if(interaction.isButton()&&interaction.customId.startsWith("console:music:")){
-      const action=interaction.customId.split(":").at(-1);const room=await chooseRoomForUser(interaction);
+      const action=interaction.customId.split(":").at(-1);
+      if(action!=="add"){if(!await safeDeferUpdate(interaction))return;}
+      const room=await chooseRoomForUser(interaction);
       if(!room)return void await ephem(interaction,simpleEphemeral("BOM Music","Join a Discord voice channel first. The Control Desk will route you to the music bot serving that room."));
       if(!await hasMusicPermission(interaction,"USE_MUSIC"))return void await ephem(interaction,simpleEphemeral("Permission denied","You do not have permission to use music controls in this server."));
       if(action==="add"){try{await interaction.showModal(modalAdd(room.id,"en-US"));}catch(err:any){if(unknownInteraction(err)){diagWarn("interaction","control-desk music request expired",{roomId:room.id,userId:interaction.user?.id??null});return;}throw err;}return;}
@@ -1066,6 +1080,7 @@ client.on("interactionCreate",async interaction=>{
     }
     if(!await safeDeferUpdate(interaction))return;
     const room=await roomById(roomId); if(!room)return;
+    if(!await hasMusicPermission(interaction,"USE_MUSIC"))return void await ephem(interaction,simpleEphemeral("Permission denied","You do not have permission to use music controls in this server."));
     const locale=await userLocale(interaction.user.id,room);
     await renewPrivate(interaction,roomId);
     const state=await getRoomState(roomId);
@@ -1130,7 +1145,7 @@ async function controllerCommandLoop(){
         if(c.type==="REFRESH_ROOM"){await refreshPanel(room);continue;}
         if(c.type==="QUEUE"&&typeof c.query==="string")await submit(room,c.query,String(c.requesterId??"dashboard"),traceId,{origin:"USER",surface:"DASHBOARD"});
         else if(c.type==="QUEUE_CLEAR"){await redis.del(keys.roomQueue(room.id));await checkpointRoom(guildId!,room.id);await audit(guildId!,String(c.requesterId??"system"),"queue.clear",{roomId:room.id});await refreshPanel(room);}
-        else if(c.type==="QUEUE_REMOVE"&&Number.isInteger(c.index)){const items=await queueItems(room.id);if(c.index>=0&&c.index<items.length){const [removed]=items.splice(c.index,1);await redis.del(keys.roomQueue(room.id));for(const item of items)await enqueue(item);await checkpointRoom(guildId!,room.id);await audit(guildId!,String(c.requesterId??"system"),"queue.remove",{roomId:room.id,index:c.index,requestId:removed?.requestId});await refreshPanel(room);}}
+        else if(c.type==="QUEUE_REMOVE"&&Number.isInteger(c.index)){const removed=await removeQueueAt(room.id,c.index);if(removed){await checkpointRoom(guildId!,room.id);await audit(guildId!,String(c.requesterId??"system"),"queue.remove",{roomId:room.id,index:c.index,requestId:removed.requestId});await refreshPanel(room);}}
         else {
           const state=await getRoomState(room.id); if(!state.workerId){diagWarn("music-action","control ignored because room has no active worker",{traceId,type:c.type,roomId:room.id,status:state.status});continue;}
           if(c.type==="VOTE_SKIP"){await requestSkip(room,state,String(c.requesterId??""));continue;}

@@ -65,7 +65,7 @@ export class AccountManager {
     if (account.enabled) await this.start(account);
     return account.id;
   }); }
-  public remove(id: string): Promise<void> { return this.mutate(async () => { if (!this.accounts.some(a => a.id === id)) throw new Error('Account not found.'); await this.stop(id); const remaining = this.accounts.filter(a => a.id !== id); this.store.save(remaining); this.accounts = remaining; }); }
+  public remove(id: string): Promise<void> { return this.mutate(async () => { if (!this.accounts.some(a => a.id === id)) throw new Error('Account not found.'); await this.stop(id); const remaining = this.accounts.filter(a => a.id !== id); this.store.save(remaining); this.accounts = remaining; this.store.purgeRevisions(id); this.controlDb.purgeRevisions(id); }); }
   public toggle(id: string, enabled: boolean): Promise<void> { return this.mutate(async () => {
     const a = this.accounts.find(a => a.id === id); if (!a) throw new Error('Account not found.');
     await this.stop(id); a.enabled = enabled; this.store.save(this.accounts); if (enabled) await this.start(a);
@@ -73,7 +73,7 @@ export class AccountManager {
   private async start(a: Account): Promise<void> {
     this.logger.protect(a.token); this.logger.protect(a.webhook); this.logger.protect(a.voiceWebhook);
     const client = createDiscordClient();
-    client.on('ready',()=>{const sources=primarySourceGuilds(a,client);r.config.relayGuildIds=new Set(sources.length?sources:['0']);for(const route of [r,...r.children])for(const hook of route.hooks)hook.blockSourceGuilds([...sources,...(a.subRelays??[]).map(s=>s.guildId)]);const excluded=new Set((a.subRelays??[]).map(s=>s.guildId));const voices=(a.voiceGuilds.length?a.voiceGuilds:sources).filter(id=>!excluded.has(id));r.config.voiceGuildIds=new Set(voices.length?voices:['0']);if(a.monitoredGuildIds===undefined&&!a.guildId){a.monitoredGuildIds=sources;this.store.save(this.accounts);}});
+    client.on('ready',()=>{const sources=primarySourceGuilds(a,client);r.config.relayGuildIds=new Set(sources.length?sources:['0']);for(const route of [r,...r.children])for(const hook of route.hooks)hook.blockSourceGuilds([...sources,...(a.subRelays??[]).map(s=>s.guildId)]);const excluded=new Set((a.subRelays??[]).map(s=>s.guildId));const voices=(a.voiceGuilds.length?a.voiceGuilds:sources).filter(id=>!excluded.has(id));r.config.voiceGuildIds=new Set(voices.length?voices:['0']);if(a.monitoredGuildIds===undefined&&!a.guildId){a.monitoredGuildIds=sources;void this.mutate(async()=>{const cur=this.accounts.find(x=>x.id===a.id);if(cur&&cur.monitoredGuildIds===undefined&&!cur.guildId){cur.monitoredGuildIds=sources;this.store.save(this.accounts);}});}});
     const buildRoute=(route:{id:string;name:string;guildId?:string;webhook:string;voiceWebhook:string;channels:string[];excludedChannels:string[];autoChannels?:boolean;ignoreBots?:boolean;voiceGuilds?:string[]}):Runtime=>{
       this.logger.protect(route.webhook);this.logger.protect(route.voiceWebhook);
       const destination=createHash('sha256').update(route.webhook+'|'+route.voiceWebhook+'|'+(route.guildId??'')).digest('hex').slice(0,16);
@@ -158,7 +158,7 @@ export class AccountManager {
     const seen=new Set<string>();
     for(const group of Array.isArray(body.messages)?body.messages:[]){for(const m of Array.isArray(group)?group:[]){
       if(!m.hit||typeof m.id!=='string'||seen.has(m.id))continue;
-      const channel=guild?(guild.channels.cache.get(m.channel_id)??r.client.channels?.cache?.get(m.channel_id)??await r.client.channels?.fetch?.(m.channel_id).catch(()=>null)):m.channel_id===conversation?.id?conversation:null;
+      const channel=guild?(guild.channels?.cache?.get(m.channel_id)??r.client.channels?.cache?.get(m.channel_id)??await r.client.channels?.fetch?.(m.channel_id).catch(()=>null)):m.channel_id===conversation?.id?conversation:null;
       if(guild&&'guild' in (channel??{})&&(channel as any).guild.id!==guild.id)continue;
       if(!channel)continue;
       if(guild&&'permissionsFor' in channel){const permissions=channel.permissionsFor(member!);if(!permissions?.has('VIEW_CHANNEL')||!permissions.has('READ_MESSAGE_HISTORY'))continue;}
@@ -198,6 +198,7 @@ export class AccountManager {
       priority:z.coerce.number().int().min(0).max(2).optional(),
       status:z.enum(['queued','delivered','failed','deleted','paused']).optional(),
       before:z.coerce.number().int().positive().optional(),
+      beforeId:z.string().trim().min(1).max(64).optional(),
       limit:z.coerce.number().int().min(1).max(200).default(100),
     }).parse(raw??{});
     const routes=this.accounts.flatMap(a=>[{account:a,routeId:'primary',name:a.name},...(a.subRelays??[]).map(s=>({account:a,routeId:s.id,name:s.name}))]);
@@ -206,8 +207,8 @@ export class AccountManager {
       const key=`${r.account.id}:${r.routeId}`;
       if(f.relay&&f.relay!==key)continue;
       try{
-        const res=this.withRouteDb(r.account.id,r.routeId,db=>db.archiveHistory({query:f.query,guildId:f.guildId,channelId:f.channelId,status:f.status,before:f.before,limit:100}));
-        for(const row of res.rows)if(f.priority===undefined||Number(row.priority)===f.priority)rows.push({...row,fingerprint:undefined,relayKey:key,relayName:r.name,accountName:r.account.name});
+        const res=this.withRouteDb(r.account.id,r.routeId,db=>db.archiveHistory({query:f.query,guildId:f.guildId,channelId:f.channelId,priority:f.priority,status:f.status,before:f.before,beforeId:f.beforeId,limit:f.limit}));
+        for(const row of res.rows)rows.push({...row,fingerprint:undefined,relayKey:key,relayName:r.name,accountName:r.account.name});
       }catch(error){this.logger.warn('Live feed could not read a relay archive.',{relay:key});}
     }
     rows.sort((a,b)=>Number(b.source_at)-Number(a.source_at)||String(b.source_id).localeCompare(String(a.source_id)));

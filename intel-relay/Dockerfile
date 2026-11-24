@@ -4,6 +4,7 @@ COPY package*.json ./
 RUN npm ci --ignore-scripts
 COPY tsconfig.json ./
 COPY src ./src
+COPY assets ./assets
 COPY tests ./tests
 RUN npm run build
 
@@ -13,6 +14,7 @@ ENV NODE_ENV=production DASHBOARD_HOST=0.0.0.0 DASHBOARD_PORT=8196
 COPY package*.json ./
 RUN npm ci --omit=dev --ignore-scripts
 COPY --from=build /app/dist ./dist
+COPY --from=build /app/assets ./assets
 COPY --from=build /app/src/dashboard/index.html ./src/dashboard/index.html
 RUN mkdir -p /app/data && chown node:node /app/data
 USER node

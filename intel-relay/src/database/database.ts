@@ -195,8 +195,11 @@ export class RelayDatabase {
   public archiveHistory(filters:any={}) {
     const where:string[]=['1=1'],args:Array<string|number>=[];
     for(const [field,column] of [['channelId','channel_id'],['guildId','guild_id'],['status','status']] as const){if(filters[field]){where.push(column+'=?');args.push(String(filters[field]));}}
+    if(filters.priority!==undefined&&filters.priority!==null&&filters.priority!==''){where.push('priority=?');args.push(Number(filters.priority));}
     if(filters.query){where.push("(instr(lower(content),lower(?))>0 OR instr(lower(author),lower(?))>0 OR instr(lower(channel_name),lower(?))>0)");args.push(...Array(3).fill(String(filters.query)));}
-    if(filters.after){where.push('source_at>=?');args.push(Number(filters.after));}if(filters.before){where.push('source_at<=?');args.push(Number(filters.before));}
+    if(filters.after){where.push('source_at>=?');args.push(Number(filters.after));}
+    if(filters.before&&filters.beforeId){where.push('(source_at<? OR (source_at=? AND source_id<?))');args.push(Number(filters.before),Number(filters.before),String(filters.beforeId));}
+    else if(filters.before){where.push('source_at<=?');args.push(Number(filters.before));}
     const limit=Math.min(100,Math.max(1,Number(filters.limit)||50)),offset=Math.max(0,Number(filters.offset)||0);
     const total=(this.db.prepare('SELECT COUNT(*) AS n FROM intel_archive WHERE '+where.join(' AND ')).get(...args) as any).n;
     const rows=this.db.prepare('SELECT * FROM intel_archive WHERE '+where.join(' AND ')+' ORDER BY source_at DESC,source_id DESC LIMIT ? OFFSET ?').all(...args,limit,offset) as any[];
@@ -216,6 +219,7 @@ export class RelayDatabase {
   public addRevision(accountId:string,actor:string,snapshot:unknown){return Number(this.db.prepare('INSERT INTO config_revisions(account_id,actor,snapshot,created_at) VALUES(?,?,?,?)').run(accountId,actor,JSON.stringify(snapshot),Date.now()).lastInsertRowid);}
   public revisions(accountId:string){return this.db.prepare('SELECT id,actor,created_at FROM config_revisions WHERE account_id=? ORDER BY id DESC LIMIT 100').all(accountId);}
   public revision(accountId:string,id:number):any {const row=this.db.prepare('SELECT snapshot FROM config_revisions WHERE account_id=? AND id=?').get(accountId,id) as any;return row?JSON.parse(row.snapshot):null;}
+  public purgeRevisions(accountId:string):void {this.db.prepare('DELETE FROM config_revisions WHERE account_id=?').run(accountId);}
 
   public pendingDeletes(): string[] {
     return (this.db.prepare("SELECT key FROM settings WHERE key LIKE 'delete:%'").all() as {key: string}[]).map(row => row.key.slice(7));

@@ -3,6 +3,11 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  experimental: {
+    // Prevent Next.js from blocking headless host startups with interactive upgrade prompts.
+    // scripts/bootstrap.mjs handles non-interactive Next.js patch upgrades automatically.
+    agentUpgrade: false,
+  },
   turbopack: {
     // Yarn v1 hoists Next.js to the monorepo root on Novonode.
     // Explicitly include that root so Turbopack can resolve next/package.json

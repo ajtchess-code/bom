@@ -51,6 +51,16 @@ const internalToken=process.env.INTERNAL_API_TOKEN;
 const guildId=configuredGuildId();
 if(!internalToken)throw new Error("INTERNAL_API_TOKEN is required");
 
+// Preserve exact raw bytes for webhook HMAC verification and accept XML Atom feeds (YouTube WebSub).
+app.addContentTypeParser("application/json",{parseAs:"string"},(req:any,body:string,done)=>{
+  req.rawBody=body;
+  if(!body)return done(null,undefined);
+  try{done(null,JSON.parse(body));}catch(err:any){err.statusCode=400;done(err,undefined);}
+});
+app.addContentTypeParser(["application/atom+xml","application/xml","text/xml"],{parseAs:"string"},(req:any,body:string,done)=>{
+  req.rawBody=body;done(null,body);
+});
+
 app.addHook("onRequest",async(req,reply)=>{
   (req as any).bomStartedAt=performance.now();
   reply.header("x-request-id",String(req.id));
@@ -71,7 +81,8 @@ const PUBLIC_WIKI_PATHS=[/^\/v1\/game-wiki\/(catalog|search|asset|changes|eviden
 app.addHook('onRequest',async(req:any,reply:any)=>{
   if(req.headers['x-bom-public']!=='1')return;
   const path=String(req.url).split('?')[0];
-  if(req.method!=='GET'||!PUBLIC_WIKI_PATHS.some(re=>re.test(path)))return reply.code(403).send({error:'not_public',message:'That part of the wiki needs a BOM login.'});
+  const publicCraft=req.method==='POST'&&path==='/v1/game-wiki/craft';
+  if(!publicCraft&&(req.method!=='GET'||!PUBLIC_WIKI_PATHS.some(re=>re.test(path))))return reply.code(403).send({error:'not_public',message:'That part of the wiki needs a BOM login.'});
   delete req.headers['x-discord-user-id'];req._publicWiki=true;
 });
 const userVoiceKey=(uid:string)=>`music:user-voice:${uid}`;
@@ -205,8 +216,8 @@ async function ensureVoiceRoom(uid:string){
   const settings:any=await oneOrNone(`SELECT autoplay_default FROM guild_settings WHERE guild_id=$1`,[guildId]);
   const id=randomUUID();
   try{
-    await db.query(`INSERT INTO music_rooms(id,guild_id,name,text_channel_id,voice_channel_id,preferred_worker_id,language,autoplay,delete_requests,skip_mode,default_filter,enabled) VALUES($1,$2,$3,$4,$5,NULL,NULL,$6,TRUE,NULL,'flat',TRUE)`,[id,guildId,voice.name??"Voice session",voice.channelId,voice.channelId,Boolean(settings?.autoplay_default??true)]);
-  }catch(err:any){if(err?.code!=="ER_DUP_ENTRY")throw err;}
+    await db.query(`INSERT INTO music_rooms(id,guild_id,name,text_channel_id,voice_channel_id,preferred_worker_id,language,autoplay,delete_requests,skip_mode,default_filter,enabled) VALUES($1,$2,$3,$4,$5,NULL,NULL,$6,TRUE,NULL,'flat',TRUE)`,[id,guildId,String(voice.name??"Voice session").slice(0,80),voice.channelId,voice.channelId,Boolean(settings?.autoplay_default??true)]);
+  }catch(err:any){if(!["23505","ER_DUP_ENTRY"].includes(String(err?.code)))throw err;}
   room=await oneOrNone<any>(`SELECT * FROM music_rooms WHERE guild_id=$1 AND voice_channel_id=$2 AND enabled=TRUE LIMIT 1`,[guildId,voice.channelId]);
   if(!room)throw new Error("Unable to establish a music session for this voice channel");
   await redis.set(voiceRoomKey(voice.channelId),String(room.id),"EX",24*3600);

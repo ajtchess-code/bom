@@ -1,5 +1,5 @@
 import { execFileSync, spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync, chmodSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync, chmodSync, renameSync, unlinkSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { randomBytes } from "node:crypto";
 import process from "node:process";
@@ -54,7 +54,14 @@ function installRedis(){
   const url=`https://dl-cdn.alpinelinux.org/alpine/${pkg.branch}/community/${pkg.arch}/${apkName}`;
   console.log(`[redis] Installing official Alpine ${pkg.packageName} for Alpine ${pkg.alpine}/${pkg.arch}...`);
   if(!existsSync(apkFile)){
-    execFileSync("curl",["-fL","--retry","3","--connect-timeout","15","-o",apkFile,url],{stdio:"inherit"});
+    const tmpApk=`${apkFile}.download`;
+    try{
+      execFileSync("curl",["-fL","--retry","3","--connect-timeout","15","-o",tmpApk,url],{stdio:"inherit"});
+      renameSync(tmpApk,apkFile);
+    }catch(err){
+      try{unlinkSync(tmpApk);}catch{}
+      throw err;
+    }
     console.log(`[redis] Downloaded ${(statSync(apkFile).size/1024/1024).toFixed(2)} MB.`);
   }
   execFileSync("tar",["-xzf",apkFile,"-C",redisRoot],{stdio:"inherit"});
@@ -81,7 +88,7 @@ function writeConfig(password){
   const config=`# BOM-Bot local Redis - generated automatically\n`+
 `bind 127.0.0.1\nprotected-mode yes\nport ${port}\n`+
 `daemonize no\nsupervised no\nrequirepass ${password}\n`+
-`timeout 0\ntcp-keepalive 60\ndir ${dataDir}\n`+
+`timeout 0\ntcp-keepalive 60\ndir ${JSON.stringify(dataDir)}\n`+
 `appendonly yes\nappendfsync everysec\n`+
 `save 900 1\nsave 300 10\nsave 60 10000\n`+
 `stop-writes-on-bgsave-error yes\n`+
@@ -123,7 +130,12 @@ export async function startLocalRedis(){
   console.log(`[redis] Starting local Redis on 127.0.0.1:${port}...`);
   const child=spawn(redisServer,[configFile],{cwd:process.cwd(),env:process.env,stdio:"inherit"});
   child.once("error",err=>console.error(`[redis] Process error: ${err.message}`));
-  await waitForRedis(password,child);
+  try{
+    await waitForRedis(password,child);
+  }catch(err){
+    try{child.kill("SIGTERM");}catch{}
+    throw err;
+  }
   process.env.REDIS_URL=`redis://default:${password}@127.0.0.1:${port}/0`;
   console.log(`[redis] Local Redis healthy (PONG); REDIS_URL injected for BOM-Bot child services.`);
   return child;

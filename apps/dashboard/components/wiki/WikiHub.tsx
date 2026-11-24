@@ -443,6 +443,9 @@ const POPULAR = [
 ];
 
 let guideCache: Promise<{ categories: Category[]; articles: Article[] }> | null = null;
+export function forgetGuides() {
+  guideCache = null;
+}
 export function useGuides() {
   const [data, setData] = useState<{ categories: Category[]; articles: Article[] } | null>(null);
   const [error, setError] = useState("");

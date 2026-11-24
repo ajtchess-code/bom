@@ -34,7 +34,15 @@ async function leaveOnce(message:any,action:MisfitAction){
  const key=`leave:${message.id}`,actor=message.author.id;
  const claimed=await db.query(`INSERT INTO misfit_action_receipts(guild_id,request_key,actor_id,kind) VALUES($1,$2,$3,$4) ON CONFLICT DO NOTHING`,[guildId,key,actor,action.kind]);
  if(!claimed.rowCount){const old=await oneOrNone<any>('SELECT * FROM misfit_action_receipts WHERE guild_id=$1 AND request_key=$2',[guildId,key]);return old?.status==='DONE'?old.result?.message:'This request was already received. Check your leave status before sending it again; its outcome has not been verified.';}
- try{const response=action.kind==='returned'?await returnFromConversationalLeave(message):await submitConversationalLeave(message,action.days,action.until,action.reason);
+ try{
+  const result=action.kind==='returned'
+   ?await returnFromConversationalLeave({userId:message.author.id})
+   :await submitConversationalLeave({userId:message.author.id,when:action.until??(action.days?`${action.days} days`:undefined),reason:action.reason});
+  const response=typeof result==='string'
+   ?result
+   :action.kind==='returned'
+    ?'Welcome back! You are no longer marked away.'
+    :`Your leave of absence has been recorded${result?.returnAt?` until <t:${Math.floor(new Date(result.returnAt).getTime()/1000)}:D>`:''}.`;
   await db.query(`UPDATE misfit_action_receipts SET status='DONE',result=$3::jsonb,updated_at=NOW() WHERE guild_id=$1 AND request_key=$2`,[guildId,key,JSON.stringify({message:response})]);return response;
  }catch(e){await db.query(`UPDATE misfit_action_receipts SET status='UNCERTAIN',updated_at=NOW() WHERE guild_id=$1 AND request_key=$2`,[guildId,key]).catch(()=>{});throw e;}
 }
