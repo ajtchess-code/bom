@@ -1,5 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
+import { PGlite } from "@electric-sql/pglite";
 import {
   hasAllowedSecretSantaRole,
   solveSecretSantaMatching,
@@ -185,4 +187,32 @@ test("resolveSmart fast-paths high-confidence YouTube Music matches and builds t
   assert.equal(pl.resolution.strategy, "text-playlist");
   assert.equal(pl.selected.encoded, "enc-1");
   assert.equal(pl.remainder.length, 2);
+});
+
+test("127_secret_santa migration inserts and updates JSON-encoded allowed_role_ids into TEXT[] cleanly", async () => {
+  const pg = new PGlite();
+  try {
+    const sql = readFileSync(new URL("../../packages/db/migrations/127_secret_santa.sql", import.meta.url), "utf8");
+    await pg.exec(sql);
+    const roles = JSON.stringify(["1279444726277341184", "1517534973702438972"]);
+    await pg.query(
+      "INSERT INTO secret_santa_events(id,guild_id,title,allowed_role_ids,created_by) VALUES($1,$2,$3,ARRAY(SELECT jsonb_array_elements_text($4::jsonb)),$5)",
+      ["00000000-0000-0000-0000-000000000001", "g1", "BOM Secret Santa", roles, "admin1"],
+    );
+    const inserted = await pg.query("SELECT allowed_role_ids FROM secret_santa_events WHERE id=$1", [
+      "00000000-0000-0000-0000-000000000001",
+    ]);
+    assert.deepEqual(inserted.rows[0].allowed_role_ids, ["1279444726277341184", "1517534973702438972"]);
+
+    await pg.query(
+      "UPDATE secret_santa_events SET allowed_role_ids=ARRAY(SELECT jsonb_array_elements_text($2::jsonb)) WHERE id=$1",
+      ["00000000-0000-0000-0000-000000000001", "[]"],
+    );
+    const updated = await pg.query("SELECT allowed_role_ids FROM secret_santa_events WHERE id=$1", [
+      "00000000-0000-0000-0000-000000000001",
+    ]);
+    assert.deepEqual(updated.rows[0].allowed_role_ids, []);
+  } finally {
+    await pg.close();
+  }
 });

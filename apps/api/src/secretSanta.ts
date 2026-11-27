@@ -395,7 +395,7 @@ export function registerSecretSantaRoutes(
     const uid = userId(req);
     await db.query(
       `INSERT INTO secret_santa_events(id,guild_id,title,description,budget_note,status,allowed_role_ids,signup_closes_at,gift_deadline_at,channel_id,created_by)
-       VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)`,
+       VALUES($1,$2,$3,$4,$5,$6,ARRAY(SELECT jsonb_array_elements_text($7::jsonb)),$8,$9,$10,$11)`,
       [id, guildId, b.title, b.description, b.budgetNote, b.status, b.allowedRoleIds, b.signupClosesAt ?? null, b.giftDeadlineAt ?? null, b.channelId ?? null, uid],
     );
     await sentinelRecord({ source: "api", category: "secret-santa", action: "event.created", actorId: uid, targetId: id, metadata: { title: b.title, allowedRoles: b.allowedRoleIds.length } }).catch(() => {});
@@ -416,7 +416,7 @@ export function registerSecretSantaRoutes(
 
     await db.query(
       `UPDATE secret_santa_events
-       SET title=$3, description=$4, budget_note=$5, allowed_role_ids=$6, signup_closes_at=$7, gift_deadline_at=$8, channel_id=$9, status=$10, updated_at=NOW()
+       SET title=$3, description=$4, budget_note=$5, allowed_role_ids=ARRAY(SELECT jsonb_array_elements_text($6::jsonb)), signup_closes_at=$7, gift_deadline_at=$8, channel_id=$9, status=$10, updated_at=NOW()
        WHERE guild_id=$1 AND id=$2`,
       [
         guildId,
@@ -424,7 +424,7 @@ export function registerSecretSantaRoutes(
         b.title ?? existing.title,
         b.description ?? existing.description,
         b.budgetNote ?? existing.budget_note,
-        b.allowedRoleIds ?? existing.allowed_role_ids,
+        b.allowedRoleIds ?? (Array.isArray(existing.allowed_role_ids) ? existing.allowed_role_ids.map(String) : []),
         "signupClosesAt" in b ? (b.signupClosesAt ?? null) : existing.signup_closes_at,
         "giftDeadlineAt" in b ? (b.giftDeadlineAt ?? null) : existing.gift_deadline_at,
         "channelId" in b ? (b.channelId ?? null) : existing.channel_id,

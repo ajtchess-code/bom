@@ -57,8 +57,8 @@ export async function applyMisfitBranding(client:any,guildId:string){
   await guild.roles.fetch();
   const names=[P.name,...P.previousNames];
   let role=process.env.MISFIT_ROLE_ID?guild.roles.cache.get(process.env.MISFIT_ROLE_ID):guild.roles.cache.find((r:any)=>!r.managed&&names.includes(r.name));
-  if(!role)role=await guild.roles.create({name:P.name,color:P.roleColor,permissions:[],reason});
-  else if(role.name!==P.name||role.color!==P.roleColor)await role.edit({name:P.name,color:P.roleColor,reason});
+  if(!role)role=await guild.roles.create({name:P.name,colors:{primaryColor:P.roleColor},permissions:[],reason} as any);
+  else if(role.name!==P.name||role.color!==P.roleColor)await role.edit({name:P.name,colors:{primaryColor:P.roleColor},reason} as any);
   if(!me.roles.cache.has(role.id))await me.roles.add(role.id,reason);
   if(guild.features.includes('ROLE_ICONS')){const icon=await readFile(join(dir,P.roleIcon)),hash=digest(icon);if(state?.role_icon_sha!==hash||!role.icon){await role.edit({icon,reason});await db.query('UPDATE bot_branding_state SET role_icon_sha=$2 WHERE guild_id=$1',[guildId,hash]);}}
   else console.info('[misfit-branding] Server role icons are unavailable; the role icon is ready for when they are.');

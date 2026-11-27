@@ -50,8 +50,8 @@ let latestClient:any=null;
 let afterDeskMove:((channelId:string)=>Promise<void>)|undefined;
 let deskRefreshQueue:Promise<any>=Promise.resolve();
 let deskMapCache:any=null;
-async function deskBattleMap(detailed=false){
- if(!detailed&&deskMapCache&&Date.now()-deskMapCache.at<20000)return deskMapCache;
+async function deskBattleMap(detailed=false,force=false){
+ if(!detailed&&!force&&deskMapCache&&Date.now()-deskMapCache.at<180000)return deskMapCache;
  const base=(process.env.INTERNAL_API_URL??'http://127.0.0.1:4100').replace(/\/$/,'');
  const response=await fetch(`${base}/v1/wosb/territory/desk-image${detailed?'?detail=1':''}`,{headers:{'x-internal-token':process.env.INTERNAL_API_TOKEN??''},signal:AbortSignal.timeout(30000)});
  if(!response.ok)throw new Error(`Battle map API ${response.status}`);
@@ -230,7 +230,7 @@ async function refreshMemberConsoleNow(client:any,force=false){
   if(newer.some((m:any)=>!m.system&&!managedIds.has(String(m.id))&&!isHandledMusicMessage(String(m.id))))move=true;
  }
  if(old.every(Boolean)&&BigInt(old[0].id)>BigInt(old[1].id))move=true;
- let map;try{map=await deskBattleMap();}catch(e){await db.query('UPDATE wosb_territory_settings SET last_sync_error=$2 WHERE guild_id=$1',[guildId,String((e as any)?.message??e).slice(0,500)]).catch(()=>{});console.warn('[desk] retaining existing surfaces after map failure',e);if(old.some(Boolean))return old[1]??old[0];throw e;}
+ let map;try{map=await deskBattleMap(false,force);}catch(e){await db.query('UPDATE wosb_territory_settings SET last_sync_error=$2 WHERE guild_id=$1',[guildId,String((e as any)?.message??e).slice(0,500)]).catch(()=>{});console.warn('[desk] retaining existing surfaces after map failure',e);if(old.some(Boolean))return old[1]??old[0];throw e;}
  const names=[`battle-map-${map.hash}.png`,`alliance-chart-${map.hash}.png`];
  const bodies:any[]=[
   {...battleDiplomacyPayload(map.summary,names[0],names[1],dashboard),files:[new AttachmentBuilder(map.image,{name:names[0]}),new AttachmentBuilder(map.allianceImage,{name:names[1]})]},
