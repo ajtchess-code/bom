@@ -788,3 +788,487 @@ body:before { display: none !important; }
 .ppPlanHead button { min-height: 34px; padding: 0 12px; border: 1px solid var(--cc-border); border-radius: 8px; background: var(--cc-surface-2); color: var(--cc-text); cursor: pointer; }
 .ppVideo { display: grid; gap: 8px; margin-bottom: 12px; }
 .ppVideo label { display: grid; gap: 4px; font-size: 0.8rem; color: var(--cc-muted); }
+
+/* ==========================================================================
+ * Christmas BOM Seasonal Theme (toggleable via html[data-season="christmas"])
+ * ======================================================================== */
+html[data-season="christmas"][data-theme="dark"],
+html[data-season="christmas"]:not([data-theme="light"]) {
+  --cc-bg: #101917;
+  --cc-sidebar: #14211d;
+  --cc-topbar: #14211d;
+  --cc-surface: #182722;
+  --cc-surface-2: #1f312b;
+  --cc-surface-3: #273d35;
+  --cc-field: #121e1a;
+  --cc-border: #2c443c;
+  --cc-border-strong: #3d5d52;
+  --cc-text: #f5f7f4;
+  --cc-text-soft: #cbd7d1;
+  --cc-muted: #93aba0;
+  --cc-faint: #6c857a;
+  --cc-accent: #e5b84b;
+  --cc-accent-hover: #f1ca68;
+  --cc-accent-soft: rgba(229, 184, 75, 0.14);
+  --cc-xmas-red: #cf3843;
+  --cc-xmas-red-soft: rgba(207, 56, 67, 0.16);
+  --cc-xmas-pine: #2e8b5c;
+  --cc-xmas-pine-soft: rgba(46, 139, 92, 0.16);
+}
+
+html[data-season="christmas"][data-theme="light"] {
+  --cc-bg: #f4f7f5;
+  --cc-sidebar: #ffffff;
+  --cc-topbar: #ffffff;
+  --cc-surface: #ffffff;
+  --cc-surface-2: #f2f7f4;
+  --cc-surface-3: #e7f0eb;
+  --cc-field: #eef4f0;
+  --cc-border: #d2e0d8;
+  --cc-border-strong: #b6cbc0;
+  --cc-accent: #b88318;
+  --cc-accent-hover: #cf9724;
+  --cc-accent-soft: rgba(184, 131, 24, 0.11);
+  --cc-xmas-red: #b82934;
+  --cc-xmas-red-soft: rgba(184, 41, 52, 0.1);
+  --cc-xmas-pine: #1f7449;
+  --cc-xmas-pine-soft: rgba(31, 116, 73, 0.1);
+}
+
+html[data-season="christmas"] body {
+  background:
+    radial-gradient(circle at 12% 0%, rgba(207, 56, 67, 0.08), transparent 38rem),
+    radial-gradient(circle at 88% 4%, rgba(46, 139, 92, 0.1), transparent 40rem),
+    var(--cc-bg) !important;
+}
+
+html[data-season="christmas"] .commandTopbar {
+  border-bottom: 1px solid var(--cc-border) !important;
+  box-shadow: inset 0 2px 0 0 rgba(207, 56, 67, 0.55);
+}
+
+html[data-season="christmas"] .commandSidebar {
+  border-right: 1px solid var(--cc-border) !important;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--cc-xmas-red) 7%, var(--cc-sidebar)) 0%, var(--cc-sidebar) 28%, var(--cc-sidebar) 100%) !important;
+}
+
+html[data-season="christmas"] .commandNav a.active {
+  border-color: color-mix(in srgb, var(--cc-xmas-red) 45%, var(--cc-accent)) !important;
+  background: linear-gradient(120deg, var(--cc-xmas-red-soft), var(--cc-accent-soft)) !important;
+}
+
+html[data-season="christmas"] .commandBrand.floatingBrand .brandCrest {
+  width: 40px !important;
+  height: 40px !important;
+}
+
+.seasonBrandTag {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--cc-accent);
+}
+
+.sidebarCollapsed .seasonBrandTag {
+  display: none;
+}
+
+html[data-season="christmas"][data-theme="dark"] .commandDeck::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.22;
+  background-image:
+    radial-gradient(1.5px 1.5px at 18% 22%, #ffffffbb 50%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 46% 64%, #fff3d699 50%, transparent 100%),
+    radial-gradient(2px 2px at 78% 28%, #ffffffaa 50%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 88% 80%, #ffffff88 50%, transparent 100%);
+  background-size: 460px 460px;
+  animation: xmasDashSnow 34s linear infinite;
+}
+
+@keyframes xmasDashSnow {
+  from { background-position: 0 0; }
+  to { background-position: 120px 460px; }
+}
+
+.commandDeck.reducedMotion::before {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-season="christmas"] .commandDeck::before {
+    animation: none;
+  }
+}
+
+/* Home Secret Santa Spotlight */
+.xmasSpotlight {
+  border-color: color-mix(in srgb, var(--cc-xmas-red, #cf3843) 45%, var(--cc-accent)) !important;
+  background:
+    linear-gradient(135deg, var(--cc-xmas-red-soft, rgba(207, 56, 67, 0.14)), var(--cc-xmas-pine-soft, rgba(46, 139, 92, 0.12)) 55%, var(--cc-surface)) !important;
+}
+
+.xmasSpotlightBody {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 18px;
+}
+
+.xmasSpotlightBody > div {
+  flex: 1 1 240px;
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.xmasSpotlightAvatar {
+  width: 54px;
+  height: 54px;
+  border-radius: 14px;
+  object-fit: cover;
+  border: 2px solid var(--cc-accent);
+  flex: none;
+}
+
+/* ==========================================================================
+ * Secret Santa Page
+ * ======================================================================== */
+.ssPage {
+  display: grid;
+  gap: 18px;
+  max-width: 1200px;
+}
+
+.ssHero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 22px;
+  border-radius: var(--cc-radius-lg);
+  border: 1px solid color-mix(in srgb, var(--cc-xmas-red, #cf3843) 42%, var(--cc-accent));
+  background:
+    linear-gradient(135deg, var(--cc-xmas-red-soft, rgba(207, 56, 67, 0.15)), var(--cc-xmas-pine-soft, rgba(46, 139, 92, 0.14)) 55%, var(--cc-surface));
+  position: relative;
+  overflow: hidden;
+}
+
+.ssHeroAvatar {
+  width: 82px;
+  height: 82px;
+  border-radius: 18px;
+  object-fit: cover;
+  border: 2px solid var(--cc-accent);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.3);
+  flex: none;
+}
+
+.ssHeroInfo {
+  flex: 1 1 280px;
+  min-width: 0;
+  display: grid;
+  gap: 6px;
+}
+
+.ssHeroInfo h1 {
+  margin: 0 !important;
+}
+
+.ssHeroInfo p {
+  margin: 0;
+  color: var(--cc-text-soft);
+  line-height: 1.5;
+}
+
+.ssMetaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.ssPill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.74rem;
+  font-weight: 700;
+  border: 1px solid var(--cc-border-strong);
+  background: var(--cc-surface-2);
+  color: var(--cc-text);
+}
+
+.ssPill.open {
+  border-color: color-mix(in srgb, var(--cc-good) 55%, var(--cc-border));
+  background: color-mix(in srgb, var(--cc-good) 15%, var(--cc-surface));
+  color: var(--cc-good);
+}
+
+.ssPill.matched {
+  border-color: color-mix(in srgb, var(--cc-xmas-red, #cf3843) 60%, var(--cc-border));
+  background: var(--cc-xmas-red-soft, rgba(207, 56, 67, 0.16));
+  color: var(--cc-text);
+}
+
+.ssPill.revealed {
+  border-color: var(--cc-accent);
+  background: var(--cc-accent-soft);
+  color: var(--cc-accent);
+}
+
+.ssTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ssTabs button {
+  min-height: 36px;
+  padding: 0 14px;
+  border-radius: 999px;
+  border: 1px solid var(--cc-border);
+  background: var(--cc-surface);
+  color: var(--cc-muted);
+  font: inherit;
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ssTabs button.active {
+  border-color: var(--cc-accent);
+  background: var(--cc-accent-soft);
+  color: var(--cc-text);
+}
+
+.ssGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 360px), 1fr));
+  gap: 16px;
+  align-items: start;
+}
+
+.ssCard {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border-radius: var(--cc-radius-lg);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-surface);
+}
+
+.ssCard.highlight {
+  border-color: color-mix(in srgb, var(--cc-accent) 55%, var(--cc-border));
+  background: linear-gradient(160deg, var(--cc-accent-soft), var(--cc-surface) 45%);
+}
+
+.ssCardHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ssCardHead h2,
+.ssCardHead h3 {
+  margin: 0 !important;
+}
+
+.ssWishlistBox {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border-radius: var(--cc-radius);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-surface-2);
+}
+
+.ssWishlistField {
+  display: grid;
+  gap: 3px;
+}
+
+.ssWishlistField small {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--cc-muted);
+  font-weight: 700;
+}
+
+.ssWishlistField p {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  color: var(--cc-text);
+  line-height: 1.5;
+}
+
+.ssForm {
+  display: grid;
+  gap: 12px;
+}
+
+.ssForm label:not(.checkLine) {
+  display: grid;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--cc-text-soft);
+}
+
+.ssForm input:not([type="checkbox"]),
+.ssForm textarea,
+.ssForm select {
+  width: 100%;
+  padding: 9px 11px;
+  border-radius: var(--cc-radius-sm);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-field);
+  color: var(--cc-text);
+  font: inherit;
+  font-size: 0.85rem;
+}
+
+.ssForm textarea {
+  min-height: 86px;
+  resize: vertical;
+}
+
+.ssFormRow {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
+  gap: 10px;
+}
+
+.ssNotice {
+  padding: 11px 14px;
+  border-radius: var(--cc-radius);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-surface-2);
+  color: var(--cc-text);
+  font-size: 0.84rem;
+}
+
+.ssNotice.ok {
+  border-color: color-mix(in srgb, var(--cc-good) 50%, var(--cc-border));
+  background: color-mix(in srgb, var(--cc-good) 12%, var(--cc-surface));
+}
+
+.ssNotice.err {
+  border-color: color-mix(in srgb, var(--cc-danger) 55%, var(--cc-border));
+  background: color-mix(in srgb, var(--cc-danger) 12%, var(--cc-surface));
+}
+
+.ssRoleGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+  gap: 6px;
+  max-height: 200px;
+  overflow-y: auto;
+  padding: 8px;
+  border-radius: var(--cc-radius-sm);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-field);
+}
+
+.ssRoleChip {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  padding: 6px 8px;
+  border-radius: 7px;
+  background: var(--cc-surface-2);
+  border: 1px solid var(--cc-border);
+  font-size: 0.78rem !important;
+  cursor: pointer;
+}
+
+.ssParticipantGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 190px), 1fr));
+  gap: 8px;
+}
+
+.ssParticipantChip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 9px 11px;
+  border-radius: var(--cc-radius-sm);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-surface-2);
+  font-size: 0.82rem;
+}
+
+.ssParticipantChip small {
+  color: var(--cc-muted);
+  font-size: 0.7rem;
+}
+
+.ssTableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--cc-border);
+  border-radius: var(--cc-radius);
+}
+
+.ssTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.ssTable th,
+.ssTable td {
+  padding: 9px 11px;
+  text-align: left;
+  border-bottom: 1px solid var(--cc-border);
+  white-space: nowrap;
+}
+
+.ssTable th {
+  background: var(--cc-surface-2);
+  color: var(--cc-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ssStatStrip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 10px;
+}
+
+.ssStat {
+  padding: 12px 14px;
+  border-radius: var(--cc-radius);
+  border: 1px solid var(--cc-border);
+  background: var(--cc-surface-2);
+  display: grid;
+  gap: 2px;
+}
+
+.ssStat small {
+  color: var(--cc-muted);
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.ssStat b {
+  font-size: 1.35rem;
+  color: var(--cc-accent);
+}

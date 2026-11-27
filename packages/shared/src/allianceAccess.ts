@@ -1,6 +1,9 @@
 /** Default-deny API and page surface for a dashboard alliance-role account. */
-export function allianceDashboardPath(path:string){return ['/dashboard/music','/dashboard/port-battles','/dashboard/diplomacy'].includes(path.replace(/\/$/,''));}
+export function allianceDashboardPath(path:string){return ['/dashboard/music','/dashboard/port-battles','/dashboard/diplomacy','/dashboard/secret-santa'].includes(path.replace(/\/$/,''));}
 export function allianceApiAllowed(path:string,method:string){
+ if(path==='/v1/secret-santa/current'&&method==='GET')return true;
+ if(/^\/v1\/secret-santa\/[a-f0-9-]{36}\/signup$/i.test(path)&&['POST','DELETE'].includes(method))return true;
+ if(/^\/v1\/secret-santa\/[a-f0-9-]{36}\/(gift-sent|gift-received)$/i.test(path)&&method==='POST')return true;
  if(method==='GET'&&['/v1/access','/v1/event-tool','/v1/event-tool/summary','/v1/community/diplomacy','/v1/community/diplomacy/chart','/v1/wosb/map','/v1/wosb/catalogue','/v1/wosb/builds','/v1/wosb/pb-config','/v1/wosb/pb-access','/v1/wosb/port-battles','/v1/wosb/port-battle-templates'].includes(path))return true;
  if(method==='GET'&&/^\/v1\/wosb\/port-battles\/[a-f0-9-]{36}$/i.test(path))return true;
  if(/^\/v1\/wosb\/port-battles\/[a-f0-9-]{36}\/signup$/i.test(path))return ['POST','DELETE'].includes(method);

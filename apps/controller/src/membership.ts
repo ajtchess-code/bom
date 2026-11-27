@@ -2,7 +2,13 @@ import {samePBPanel} from './pbPresentation.js';
 import {redis,releaseLease} from '@bom/redis';
 import {installLeaveJobs,safelyEnsureLeaveThread,syncLeaveLifecycle} from './leaveLifecycle.js';
 import {installRejoinRecovery} from './rejoinRecovery.js';
-import {DESK_DESTINATIONS,deskPayload,musicDeskPayload,battleDiplomacyPayload} from './deskPresentation.js';
+import {
+  DESK_DESTINATIONS,
+  leaveCommandPayload,
+  personalRequestPayload,
+  musicDeskPayload,
+  battleDiplomacyPayload,
+} from './deskPresentation.js';
 import {sendBotDm} from './dmDelivery.js';
 import '@bom/shared/dist/mapFonts.js';
 import {welcomePanelPosition} from './welcomePosition.js';
@@ -26,6 +32,20 @@ const logoPath=join(process.cwd(),'apps/controller/assets/bom-logo.png');
 const welcomeTimers=new Map<string,NodeJS.Timeout>();
 const welcomePinCleanupDone=new Set<string>();
 const consoleTimers=new Map<string,NodeJS.Timeout>();
+const handledMusicMessages=new Map<string,number>();
+export function markHandledMusicMessage(messageId:string){
+  const now=Date.now();
+  handledMusicMessages.set(String(messageId),now);
+  if(handledMusicMessages.size>200){for(const [id,at] of handledMusicMessages)if(now-at>60_000)handledMusicMessages.delete(id);}
+}
+export function isHandledMusicMessage(messageId:string){
+  const at=handledMusicMessages.get(String(messageId));
+  return Boolean(at&&Date.now()-at<60_000);
+}
+export function cancelPendingConsoleMove(){
+  const old=consoleTimers.get(guildId);
+  if(old){clearTimeout(old);consoleTimers.delete(guildId);}
+}
 let latestClient:any=null;
 let afterDeskMove:((channelId:string)=>Promise<void>)|undefined;
 let deskRefreshQueue:Promise<any>=Promise.resolve();
@@ -46,12 +66,17 @@ const WELCOME_RENDERER_FILE='welcome-v437.png';
 const EXTENDED_LEAVE_NOTICE='For an extended leave, please apply in-game to the **BoM 2nd guild** so your place in the community is retained while you are away.';
 
 export const membershipCommands=[
+  new SlashCommandBuilder().setName('leave').setDescription('Manage your Leave of Absence, extend your return date, mark active, or view away crew'),
+  new SlashCommandBuilder().setName('role-req').setDescription('Request or update your personal custom Discord role'),
+  new SlashCommandBuilder().setName('emoji-req').setDescription('Request a custom static Discord emoji'),
+  new SlashCommandBuilder().setName('animated-emoji-req').setDescription('Request a custom animated Discord emoji'),
+  new SlashCommandBuilder().setName('sticker-req').setDescription('Request a custom Discord sticker'),
+  new SlashCommandBuilder().setName('soundboard-req').setDescription('Request a custom Discord soundboard clip'),
   new SlashCommandBuilder().setName('profile').setDescription('Open your Band of Misfits roster profile'),
-  new SlashCommandBuilder().setName('role-request').setDescription('Open the dashboard to request or update your personal custom role'),
   new SlashCommandBuilder().setName('leave-remove').setDescription('Mark a member as returned from leave').addUserOption(o=>o.setName('member').setDescription('Member to remove from active leave').setRequired(true)),
   new SlashCommandBuilder().setName('membership-admin').setDescription('Manage BOM membership automation')
     .addSubcommand(sc=>sc.setName('refresh-welcome').setDescription('Repair and move the Welcome panel to the bottom of its channel'))
-    .addSubcommand(sc=>sc.setName('refresh-console').setDescription('Repair the BOM Control Desk'))
+    .addSubcommand(sc=>sc.setName('refresh-console').setDescription('Repair the bots channel Battle Map and Music panels'))
     .addSubcommand(sc=>sc.setName('prefix').setDescription('Set or remove a Guild Prefix rule')
       .addRoleOption(o=>o.setName('role').setDescription('Discord role that receives the prefix').setRequired(true))
       .addStringOption(o=>o.setName('tag').setDescription('Prefix such as [BOM]; omit to remove').setRequired(false)))
@@ -189,35 +214,48 @@ async function deskMessage(channel:any,id:any){if(!id)return null;try{return awa
 async function refreshMemberConsoleNow(client:any,force=false){
  const s=await settings();if(!s?.member_console_channel_id)return null;const guild=client.guilds.cache.get(guildId);if(!guild)return null;
  const channel=await guild.channels.fetch(String(s.member_console_channel_id));if(!channel?.isTextBased()||channel.isDMBased?.())return null;
- const old=[await deskMessage(channel,s.music_desk_message_id),await deskMessage(channel,s.battle_map_message_id),await deskMessage(channel,s.member_console_message_id)];
+ // Retire the legacy Control Desk message from the bots channel if it still exists.
+ if(s.member_console_message_id){
+  const legacyDesk=await deskMessage(channel,s.member_console_message_id).catch(()=>null);
+  if(legacyDesk){if(legacyDesk.pinned)await legacyDesk.unpin('Control Desk retired').catch(()=>{});await legacyDesk.delete().catch(()=>{});}
+  await db.query('UPDATE membership_settings SET member_console_message_id=NULL,updated_at=now() WHERE guild_id=$1',[guildId]).catch(()=>{});
+ }
+ // Canonical bots-channel order: WoSB Battle Map on top, BOM Music directly below it.
+ const old=[await deskMessage(channel,s.battle_map_message_id),await deskMessage(channel,s.music_desk_message_id)];
  const rooms=await many<any>('SELECT controller_message_id FROM music_rooms WHERE guild_id=$1 AND text_channel_id=$2',[guildId,String(channel.id)]);
  const managedIds=new Set([...old.filter(Boolean).map(m=>String(m.id)),...rooms.map(r=>String(r.controller_message_id))]);
  let move=old.some(m=>!m||!m.flags?.has?.(32768));
- if(old[2]){const newer=await channel.messages.fetch({after:String(old[2].id),limit:100,cache:false});if(newer.some((m:any)=>!m.system&&!managedIds.has(String(m.id))))move=true;
-  // A newly started player must be above the persistent desk group.
-  if(rooms.some(r=>/^\d+$/.test(String(r.controller_message_id))&&BigInt(r.controller_message_id)>BigInt(old[2].id)))move=true;
+ if(old[1]){
+  const newer=await channel.messages.fetch({after:String(old[1].id),limit:100,cache:false});
+  if(newer.some((m:any)=>!m.system&&!managedIds.has(String(m.id))&&!isHandledMusicMessage(String(m.id))))move=true;
  }
- if(old.every(Boolean)&&!(BigInt(old[0].id)<BigInt(old[1].id)&&BigInt(old[1].id)<BigInt(old[2].id)))move=true;
- let map;try{map=await deskBattleMap();}catch(e){await db.query('UPDATE wosb_territory_settings SET last_sync_error=$2 WHERE guild_id=$1',[guildId,String((e as any)?.message??e).slice(0,500)]).catch(()=>{});console.warn('[desk] retaining existing surfaces after map failure',e);if(old.some(Boolean))return old[2];throw e;}
+ if(old.every(Boolean)&&BigInt(old[0].id)>BigInt(old[1].id))move=true;
+ let map;try{map=await deskBattleMap();}catch(e){await db.query('UPDATE wosb_territory_settings SET last_sync_error=$2 WHERE guild_id=$1',[guildId,String((e as any)?.message??e).slice(0,500)]).catch(()=>{});console.warn('[desk] retaining existing surfaces after map failure',e);if(old.some(Boolean))return old[1]??old[0];throw e;}
  const names=[`battle-map-${map.hash}.png`,`alliance-chart-${map.hash}.png`];
- const bodies:any[]=[musicDeskPayload(dashboard),{...battleDiplomacyPayload(map.summary,names[0],names[1],dashboard),files:[new AttachmentBuilder(map.image,{name:names[0]}),new AttachmentBuilder(map.allianceImage,{name:names[1]})]},deskPayload(dashboard,Boolean(s.leave_enabled))];
- const columns=['music_desk_message_id','battle_map_message_id','member_console_message_id'];
+ const bodies:any[]=[
+  {...battleDiplomacyPayload(map.summary,names[0],names[1],dashboard),files:[new AttachmentBuilder(map.image,{name:names[0]}),new AttachmentBuilder(map.allianceImage,{name:names[1]})]},
+  musicDeskPayload(dashboard),
+ ];
+ const columns=['battle_map_message_id','music_desk_message_id'];
  // Keep only verified missing messages replaceable. Permission/network failures propagate.
  const made:any[]=[];
  for(let i=0;i<bodies.length;i++){
   const body=bodies[i],existing=old[i];
-  if(existing?.pinned)await existing.unpin('Control Desk uses unpinned bottom placement');
-  if(!move&&existing){const wire=existing.components?.map((c:any)=>c.toJSON?.()??c)??[];
-   if(!samePBPanel(existing,body)||i===1&&!existing.attachments?.some((a:any)=>a.name===names[0]))await existing.edit({...body,content:null,embeds:[],...(i===1?{attachments:[]}: {})});made.push(existing);continue;}
+  if(existing?.pinned)await existing.unpin('Bots channel uses unpinned bottom placement').catch(()=>{});
+  if(!move&&existing){
+   if(!samePBPanel(existing,body)||(i===0&&!existing.attachments?.some((a:any)=>a.name===names[0])))await existing.edit({...body,content:null,embeds:[],...(i===0?{attachments:[]}:{})});
+   made.push(existing);continue;
+  }
   const message=await channel.send(body);
   try{await db.query(`UPDATE membership_settings SET ${columns[i]}=$2,updated_at=now() WHERE guild_id=$1`,[guildId,message.id]);}catch(e){await message.delete().catch(()=>{});throw e;}
   made.push(message);
-  if(existing&&String(existing.id)!==String(message.id))await existing.delete();
+  if(existing&&String(existing.id)!==String(message.id))await existing.delete().catch(()=>{});
  }
  await db.query('UPDATE wosb_territory_settings SET last_sync_at=now(),last_sync_error=NULL WHERE guild_id=$1',[guildId]);
- return made[2];
+ if(move&&afterDeskMove)await afterDeskMove(String(channel.id)).catch(e=>console.warn('[desk] afterDeskMove failed',e));
+ return made[1];
 }
-function scheduleConsoleMove(client:any,delay=1700){const old=consoleTimers.get(guildId);if(old)clearTimeout(old);const t=setTimeout(()=>void refreshMemberConsole(client,false).catch(e=>console.warn('[membership] control desk refresh failed',e)),delay);t.unref?.();consoleTimers.set(guildId,t);}
+function scheduleConsoleMove(client:any,delay=2600){const old=consoleTimers.get(guildId);if(old)clearTimeout(old);const t=setTimeout(()=>void refreshMemberConsole(client,false).catch(e=>console.warn('[membership] bots channel refresh failed',e)),delay);t.unref?.();consoleTimers.set(guildId,t);}
 
 function leaveModal(title='Leave of Absence',preset=''){return new ModalBuilder().setCustomId('membership:leave:modal').setTitle(title).addComponents(
   new ActionRowBuilder<TextInputBuilder>().addComponents(new TextInputBuilder().setCustomId('when').setLabel('Expected return (e.g. in 14 days)').setStyle(TextInputStyle.Short).setMaxLength(40).setRequired(true).setPlaceholder('in 14 days / August 6th / 16 August').setValue(preset)),
@@ -340,7 +378,7 @@ async function finishLeave(interaction:any,target:Date,reason:string|null,checki
  if(checkinId)await db.query("UPDATE membership_checkins SET status='AWAY',expected_return_at=$2,response_note=$3,responded_at=now(),updated_at=now() WHERE id=$1 AND user_id=$4 AND status='PENDING'",[checkinId,target,reason,interaction.user.id]);
  await safelyEnsureLeaveThread(interaction.client,result.id);
  const extended=target.getTime()-Date.now()>30*86400000;
- const content=`You're marked [AFK] until **<t:${Math.floor(target.getTime()/1000)}:F>**.${extended?' For leave longer than 30 days, leave the active in-game guild and apply to **BoM**.':''} You can return or extend your leave from the Control Desk or dashboard.`;
+ const content=`You're marked [AFK] until **<t:${Math.floor(target.getTime()/1000)}:F>**.${extended?' For leave longer than 30 days, leave the active in-game guild and apply to **BoM**.':''} You can return or extend your leave using \`/leave\` or the dashboard.`;
  await interaction.editReply({content,components:[]});
  await sendBotDm(interaction.user,{content,components:[new ActionRowBuilder<ButtonBuilder>().addComponents(new ButtonBuilder().setStyle(ButtonStyle.Success).setLabel('I Have Returned').setCustomId('membership:leave:dm-return'))]}).catch(()=>{});
 }
@@ -422,7 +460,7 @@ export function installMembership(client:any,options:{afterDeskMove?:(channelId:
   });
   client.on('guildMemberAdd',async(member:any)=>{if(member.guild.id!==guildId||member.user.bot)return;try{await settings();await db.query(`INSERT INTO member_profiles(guild_id,user_id,display_name,username,avatar_url,joined_at) VALUES($1,$2,$3,$4,$5,$6) ON CONFLICT(guild_id,user_id) DO UPDATE SET display_name=EXCLUDED.display_name,username=EXCLUDED.username,avatar_url=EXCLUDED.avatar_url,joined_at=COALESCE(member_profiles.joined_at,EXCLUDED.joined_at),updated_at=NOW()`,[guildId,member.id,member.displayName,member.user.username,member.displayAvatarURL({extension:'png',size:256}),member.joinedAt??new Date()]);await db.query(`UPDATE membership_settings SET welcome_last_joiner_id=$2,welcome_last_joiner_name=$3,welcome_last_joiner_avatar=$4,updated_at=NOW() WHERE guild_id=$1`,[guildId,member.id,member.displayName,member.displayAvatarURL({extension:'png',size:512})]);const s=await settings();if(s?.welcome_enabled&&s?.welcome_channel_id){const channel=await member.guild.channels.fetch(String(s.welcome_channel_id)).catch(()=>null);if(channel?.isTextBased())await channel.send({content:`Welcome ${member}! The Welcome panel below has the fastest routes to apply, trade, or contact diplomacy.`,allowedMentions:{users:[member.id]}}).catch(()=>{});await refreshWelcomePanel(client,member,true);}await reconcileMember(member);}catch(e){console.warn('[membership] join workflow failed',e);}});
   client.on('guildMemberUpdate',async(_before:any,after:any)=>{try{await reconcileMember(after);}catch(e){console.warn('[membership] member automation failed',e);}});
-  client.on('messageCreate',async(message:any)=>{if(message.guildId!==guildId||message.system)return;const s=await settings().catch(()=>null);if(s?.welcome_enabled&&String(message.channelId)===String(s.welcome_channel_id)&&String(message.id)!==String(s.welcome_panel_message_id))scheduleWelcomeMove(client);if(!message.author?.bot&&s?.member_console_channel_id&&String(message.channelId)===String(s.member_console_channel_id)&&String(message.id)!==String(s.member_console_message_id))scheduleConsoleMove(client);});
+  client.on('messageCreate',async(message:any)=>{if(message.guildId!==guildId||message.system)return;const s=await settings().catch(()=>null);if(s?.welcome_enabled&&String(message.channelId)===String(s.welcome_channel_id)&&String(message.id)!==String(s.welcome_panel_message_id))scheduleWelcomeMove(client);if(!message.author?.bot&&s?.member_console_channel_id&&String(message.channelId)===String(s.member_console_channel_id)&&!isHandledMusicMessage(String(message.id)))scheduleConsoleMove(client);});
   let sweepRunning=false;const sweep=setInterval(async()=>{if(sweepRunning)return;sweepRunning=true;try{const s=await settings();if(s?.welcome_enabled)await refreshWelcomePanel(client,null,false);if(s?.member_console_channel_id)await refreshMemberConsole(client,false);await leaveReminderSweep(client);}catch(e){console.warn('[membership] membership surface repair failed',e);}finally{sweepRunning=false;}},30_000);sweep.unref();setTimeout(()=>{void refreshWelcomePanel(client,null,false).catch(()=>{});void refreshMemberConsole(client,false).catch(()=>{});},3500);const startupReconcile=async(attempt=0):Promise<void>=>{
     try{
       const guild=client.guilds.cache.get(guildId);if(!guild)return;
@@ -450,7 +488,7 @@ export async function handleMembershipInteraction(interaction:any){
   if(interaction.isButton?.()&&interaction.customId.startsWith('membership:leave:list:')){const p=interaction.customId.split(':');await showLeaveList(interaction,p[3],Number(p[4]));return true;}
   if(interaction.isStringSelectMenu?.()&&interaction.customId==='membership:navigate'){
    const destination=DESK_DESTINATIONS.find(d=>d.value===interaction.values[0]);
-   if(!destination){await interaction.reply({content:'Choose a tool from the current Control Desk.',flags:MessageFlags.Ephemeral});return true;}
+   if(!destination){await interaction.reply({content:'Open tools directly from the BOM Dashboard.',flags:MessageFlags.Ephemeral});return true;}
    await interaction.reply({content:`Open ${destination.label}:`,components:[{type:1,components:[{type:2,style:5,label:destination.label,url:dashboardLink(destination.path)}]}],flags:MessageFlags.Ephemeral});return true;
   }
   if(interaction.isStringSelectMenu?.()&&interaction.customId==='membership:services'){
@@ -461,7 +499,7 @@ export async function handleMembershipInteraction(interaction:any){
    await interaction.reply({content:'Record the resources, items, or chests you deposited in the fort. An officer will verify the donation.',components:[{type:1,components:[{type:2,style:5,label:'Submit Donation',url:dashboardLink('/dashboard/guild-ledger?new=donation')}]}],flags:MessageFlags.Ephemeral});return true;
   }
   if(interaction.isButton?.()&&/^membership:leave:(confirm|cancel):/.test(interaction.customId)){
-   const [, ,action,key]=interaction.customId.split(':'),raw=await redis.get('leave:confirm:'+key);if(!raw){await interaction.reply({content:'This confirmation expired. Request leave again from the Control Desk.',flags:MessageFlags.Ephemeral});return true;}
+   const [, ,action,key]=interaction.customId.split(':'),raw=await redis.get('leave:confirm:'+key);if(!raw){await interaction.reply({content:'This confirmation expired. Run `/leave` again to submit your leave.',flags:MessageFlags.Ephemeral});return true;}
    const pending=JSON.parse(raw);if(pending.userId!==interaction.user.id)throw Error('This leave belongs to another member');
    await interaction.deferUpdate();await redis.del('leave:confirm:'+key);if(action==='cancel')await interaction.editReply({content:'Leave request cancelled.',components:[]});else await finishLeave(interaction,new Date(pending.when),pending.reason,pending.checkinId??null);return true;
   }
@@ -519,11 +557,20 @@ export async function handleMembershipInteraction(interaction:any){
     return true;
   }
   if(interaction.isChatInputCommand?.()){
+    if(interaction.commandName==='leave'){
+      const [s,active]=await Promise.all([settings(),leaveRecord(interaction.user.id)]);
+      await interaction.reply(leaveCommandPayload(dashboard,Boolean(s?.leave_enabled),active));
+      return true;
+    }
+    if(interaction.commandName==='role-req'||interaction.commandName==='role-request'){await interaction.reply(personalRequestPayload('role',dashboard));return true;}
+    if(interaction.commandName==='emoji-req'){await interaction.reply(personalRequestPayload('emoji',dashboard));return true;}
+    if(interaction.commandName==='animated-emoji-req'){await interaction.reply(personalRequestPayload('animated_emoji',dashboard));return true;}
+    if(interaction.commandName==='sticker-req'){await interaction.reply(personalRequestPayload('sticker',dashboard));return true;}
+    if(interaction.commandName==='soundboard-req'){await interaction.reply(personalRequestPayload('soundboard',dashboard));return true;}
     if(interaction.commandName==='profile'){await interaction.reply({content:`Open **My Profile & Ships**: ${dashboardLink('/dashboard/members?view=profile')}`,flags:MessageFlags.Ephemeral});return true;}
-    if(interaction.commandName==='role-request'){await interaction.reply({content:`Open the **Discord Role Request** page: ${dashboardLink('/dashboard/members?view=role')}`,flags:MessageFlags.Ephemeral});return true;}
     if(interaction.commandName==='leave-remove'){const s=await settings();const target=interaction.options.getUser('member',true);const allowed=Boolean(interaction.member?.permissions?.has?.(PermissionFlagsBits.ManageGuild)||s?.leave_officer_role_id&&interaction.member?.roles?.cache?.has?.(String(s.leave_officer_role_id)));if(!allowed){await interaction.reply({content:'Only configured leave officers or server managers can remove a member from leave.',flags:MessageFlags.Ephemeral});return true;}await interaction.deferReply({flags:MessageFlags.Ephemeral});await markReturned(interaction.guild,target.id,interaction.user.id);await interaction.editReply(`${target.username} is no longer marked away.`);return true;}
     if(interaction.commandName==='membership-admin'){
-      if(!interaction.member?.permissions?.has?.(PermissionFlagsBits.ManageGuild)){await interaction.reply({content:'Manage Server is required.',flags:MessageFlags.Ephemeral});return true;}const sub=interaction.options.getSubcommand();if(sub==='refresh-welcome'){await interaction.deferReply({flags:MessageFlags.Ephemeral});await refreshWelcomePanel(interaction.client,null,true);await interaction.editReply('Welcome panel refreshed. It only moves when a newer message is below it.');return true;}if(sub==='refresh-console'){await interaction.deferReply({flags:MessageFlags.Ephemeral});await refreshMemberConsole(interaction.client,true);await interaction.editReply('BOM Control Desk refreshed and moved to the bottom.');return true;}
+      if(!interaction.member?.permissions?.has?.(PermissionFlagsBits.ManageGuild)){await interaction.reply({content:'Manage Server is required.',flags:MessageFlags.Ephemeral});return true;}const sub=interaction.options.getSubcommand();if(sub==='refresh-welcome'){await interaction.deferReply({flags:MessageFlags.Ephemeral});await refreshWelcomePanel(interaction.client,null,true);await interaction.editReply('Welcome panel refreshed. It only moves when a newer message is below it.');return true;}if(sub==='refresh-console'){await interaction.deferReply({flags:MessageFlags.Ephemeral});await refreshMemberConsole(interaction.client,true);await interaction.editReply('Bots channel Battle Map and BOM Music panels refreshed.');return true;}
       if(sub==='prefix'){const role=interaction.options.getRole('role',true),tag=interaction.options.getString('tag',false)?.trim()??null;if(tag&&!/^\[[^\[\]\n]{1,12}\]$/.test(tag)){await interaction.reply({content:'Use a bracketed prefix such as `[BOM]`, up to 12 characters inside.',flags:MessageFlags.Ephemeral});return true;}await interaction.deferReply({flags:MessageFlags.Ephemeral});const previous=await oneOrNone<any>(`SELECT prefix FROM guild_prefix_rules WHERE guild_id=$1 AND role_id=$2`,[guildId,role.id]);if(tag)await db.query(`INSERT INTO guild_prefix_rules(guild_id,role_id,prefix,updated_by) VALUES($1,$2,$3,$4) ON CONFLICT(guild_id,role_id) DO UPDATE SET prefix=EXCLUDED.prefix,updated_by=EXCLUDED.updated_by,updated_at=NOW()`,[guildId,role.id,tag,interaction.user.id]);else await db.query(`DELETE FROM guild_prefix_rules WHERE guild_id=$1 AND role_id=$2`,[guildId,role.id]);for(const m of role.members.values())await reconcileMember(m,previous?.prefix?[String(previous.prefix)]:[]);await sentinelRecord({source:'bom',category:'membership',action:tag?'guild_prefix.saved':'guild_prefix.removed',actorId:interaction.user.id,targetId:role.id,metadata:{prefix:tag}});await interaction.editReply(tag?`${role} now uses **${tag}**.`:`Guild Prefix removed from ${role}.`);return true;}
       if(sub==='connect'){const source=interaction.options.getRole('source',true),dest=['first','second','third','fourth','fifth'].map(x=>interaction.options.getRole(x,false)).filter(Boolean);const ids=[...new Set(dest.map((r:any)=>String(r.id)))].filter(id=>id!==String(source.id));await interaction.deferReply({flags:MessageFlags.Ephemeral});if(ids.length)await db.query(`INSERT INTO role_connections(guild_id,source_role_id,destination_role_ids,updated_by) VALUES($1,$2,$3::jsonb,$4) ON CONFLICT(guild_id,source_role_id) DO UPDATE SET destination_role_ids=EXCLUDED.destination_role_ids,updated_by=EXCLUDED.updated_by,updated_at=NOW()`,[guildId,source.id,JSON.stringify(ids),interaction.user.id]);else await db.query(`DELETE FROM role_connections WHERE guild_id=$1 AND source_role_id=$2`,[guildId,source.id]);for(const m of source.members.values())await reconcileMember(m);await sentinelRecord({source:'bom',category:'membership',action:ids.length?'role_connection.saved':'role_connection.removed',actorId:interaction.user.id,targetId:source.id,metadata:{destinationRoleIds:ids}});await interaction.editReply(ids.length?`${source} now grants ${dest.join(', ')}.`:`Role connection removed from ${source}. Existing linked roles are left in place.`);return true;}
     }
@@ -568,7 +615,7 @@ export async function submitConversationalLeave(...args:any[]):Promise<any>{
   if(!/^\d{15,22}$/.test(uid)||!dateInput)throw new Error('A Discord member ID and expected return date are required.');
   const until=dateInput instanceof Date?dateInput:parseLeaveDate(String(dateInput));
   if(!Number.isFinite(until.getTime())||until.getTime()<=Date.now())throw new Error('Expected return must be a future date.');
-  if(until.getTime()-Date.now()>30*86400000&&!obj?.extendedAcknowledged)throw Error('For leave longer than 30 days, confirm the in-game BoM transfer guidance through the Control Desk or dashboard.');
+  if(until.getTime()-Date.now()>30*86400000&&!obj?.extendedAcknowledged)throw Error('For leave longer than 30 days, confirm the in-game BoM transfer guidance using /leave or the dashboard.');
   const result=await startAfk(uid,until,String(obj?.reason??'').trim()||null,uid);
   await safelyEnsureLeaveThread(latestClient,result.id);
   return {ok:true,...result,returnAt:until.toISOString(),notice:EXTENDED_LEAVE_NOTICE};

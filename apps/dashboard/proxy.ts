@@ -40,7 +40,7 @@ export async function proxy(req:NextRequest){
   return new NextResponse('Service temporarily unavailable. Please refresh in a moment.',{status:503,headers:{'content-type':'text/plain; charset=utf-8'}});
  }
  if(!r.ok)return NextResponse.redirect(new URL('/?auth=member',req.url));
- const access=await r.json();if(access.guestOnly&&req.nextUrl.pathname!=='/dashboard/recruitment')return NextResponse.redirect(new URL('/dashboard/recruitment',req.url));if(access.allianceOnly&&!allianceDashboardPath(req.nextUrl.pathname))return NextResponse.redirect(new URL('/dashboard/port-battles',req.url));if(access.pbOnly&&req.nextUrl.pathname!=='/dashboard/port-battles')return NextResponse.redirect(new URL('/dashboard/port-battles',req.url));
+ const access=await r.json();if(access.guestOnly&&req.nextUrl.pathname!=='/dashboard/recruitment'&&req.nextUrl.pathname!=='/dashboard/secret-santa')return NextResponse.redirect(new URL('/dashboard/recruitment',req.url));if(access.allianceOnly&&!allianceDashboardPath(req.nextUrl.pathname))return NextResponse.redirect(new URL('/dashboard/port-battles',req.url));if(access.pbOnly&&req.nextUrl.pathname!=='/dashboard/port-battles'&&req.nextUrl.pathname!=='/dashboard/secret-santa')return NextResponse.redirect(new URL('/dashboard/port-battles',req.url));
  return NextResponse.next();
 }
 export const config={matcher:['/((?!_next/static|_next/image|api/).*)']};

@@ -1,6 +1,7 @@
 import {createPBOperations} from './pbOperations.js';
 import {handleEventDonationRequests} from './eventDonationRequests.js';
 import {compendiumCommands,compendiumCommandNames,handleCompendiumAutocomplete,handleCompendiumCommand} from "./compendium.js";
+import {secretSantaCommands,installSecretSanta,handleSecretSantaInteraction} from "./secretSanta.js";
 import {ensureEventTrophyEmojis} from './eventEmojis.js';
 import {handleEventDonations} from './eventDonations.js';
 import {installDashboardRoleAudit} from './dashboardRoleAudit.js';
@@ -14,7 +15,8 @@ import {selectDraftShips,detailedSignupBody} from './pbSignupDraft.js';
 import {buildSignupModal,parseSignupForm,type SignupDefaults} from './pbSignupForm.js';
 import {installMisfitAssistant} from './misfitAssistant.js';
 import {correctionStatement,factualCorrection} from './assistantIntent.js';
-import {maintainDeskOrderForChannel,refreshMembershipSurfaces} from './membership.js';
+import {maintainDeskOrderForChannel,refreshMembershipSurfaces,markHandledMusicMessage,cancelPendingConsoleMove} from './membership.js';
+import {parseMusicMessageRequest} from './musicMessageParser.js';
 import {applyMisfitBranding} from './misfitBranding.js';
 import {ensurePBEmojis} from './pbEmojis.js';
 import {legacyPanel,signupPanel,rosterPanel,indexPanel,schedulePanel,schedulePanels,pbRow,pbButton,pbLink,samePBPanel} from './pbPresentation.js';
@@ -88,6 +90,7 @@ installPBInvitations(client,async(interaction,battleId)=>{
 
 installRecruitment(client);
 installBanter(client);
+installSecretSanta(client);
 installMisfitAssistant(client,wosbApi,()=>syncPortBattleDiscord(true));
 const commands=[
   new SlashCommandBuilder().setName("ask").setDescription("Ask Sentinel about recorded server actions").addStringOption(o=>o.setName("question").setDescription("Your audit question").setRequired(true)),
@@ -119,7 +122,8 @@ const commands=[
   ...membershipCommands,
   ...recruitmentCommands,
   ...banterCommands,
-  ...compendiumCommands
+  ...compendiumCommands,
+  ...secretSantaCommands
 ].map(x=>x.toJSON());
 
 async function syncCommands(){ const rest=new REST({version:"10"}).setToken(token!); await rest.put(Routes.applicationGuildCommands(clientId!,guildId!),{body:commands}); }
@@ -620,11 +624,19 @@ async function workerAccent(workerId?:string){
 }
 function currentLyricLine(lyrics:any,position:number){const lines=Array.isArray(lyrics?.lines)?lyrics.lines:[];let current="";for(const l of lines){const t=Number(l?.timestamp??l?.time??0);if(t<=position)current=String(l?.line??l?.text??"");else break;}return current||null;}
 const roomPanelQueues=new Map<string,Promise<void>>();
+let botsChannelCache:{id:string|null;until:number}|null=null;
+async function getBotsChannelId():Promise<string|null>{
+  if(botsChannelCache&&botsChannelCache.until>Date.now())return botsChannelCache.id;
+  const row=await oneOrNone<any>('SELECT member_console_channel_id FROM membership_settings WHERE guild_id=$1',[guildId]).catch(()=>null);
+  const id=row?.member_console_channel_id?String(row.member_console_channel_id):null;
+  botsChannelCache={id,until:Date.now()+15_000};
+  return id;
+}
 function refreshPanel(room:RoomRow,repost=false){const previous=roomPanelQueues.get(room.id)??Promise.resolve();const run=previous.catch(()=>{}).then(async()=>{const current=await roomById(room.id);if(current)await refreshPanelNow(current,repost);});roomPanelQueues.set(room.id,run);void run.finally(()=>{if(roomPanelQueues.get(room.id)===run)roomPanelQueues.delete(room.id);}).catch(()=>{});return run;}
 async function refreshPanelNow(room:RoomRow,repost=false){
   try{
-    const deskSettings=await oneOrNone<any>('SELECT member_console_channel_id FROM membership_settings WHERE guild_id=$1',[guildId]);
-    if(deskSettings?.member_console_channel_id&&room.text_channel_id===room.voice_channel_id){await db.query('UPDATE music_rooms SET text_channel_id=$2 WHERE id=$1',[room.id,deskSettings.member_console_channel_id]);room.text_channel_id=deskSettings.member_console_channel_id;}
+    const botsId=await getBotsChannelId();
+    if(botsId&&room.text_channel_id===room.voice_channel_id){await db.query('UPDATE music_rooms SET text_channel_id=$2 WHERE id=$1',[room.id,botsId]);room.text_channel_id=botsId;}
     const channel=await client.channels.fetch(room.text_channel_id);if(!channel?.isTextBased()||!channel.isSendable()||!("messages" in channel))return;
     const [state,queue,metadataRaw,lyricsRaw]=await Promise.all([getRoomState(room.id),queueItems(room.id),redis.get(`music:room:${room.id}:metadata`),redis.get(`music:room:${room.id}:lyrics`)]);const locale=room.language??await guildLocale();const metadata=metadataRaw?JSON.parse(metadataRaw):null,lyrics=lyricsRaw?JSON.parse(lyricsRaw):null;
     if(!state.track||['IDLE','STOPPED'].includes(String(state.status))){
@@ -638,7 +650,7 @@ async function refreshPanelNow(room:RoomRow,repost=false){
     const editExisting=async()=>{if(!room.controller_message_id||repost)return false;let m:any;try{m=await channel.messages.fetch(room.controller_message_id);}catch(err:any){if(Number(err.code)===10008)return false;throw err;}if(samePBPanel(m,payload))return true;try{await m.edit({...payload,content:null,embeds:[]});}catch(err:any){if(Number(err.code)!==50035)throw err;diagWarn("discord-player","media render rejected; using text-safe fallback",{roomId:room.id,error:err.message});await m.edit({...fallback,content:null,embeds:[]});}return true;};
     if(await editExisting())return;
     if(room.controller_message_id&&repost){try{const old=await channel.messages.fetch(room.controller_message_id);if(old.pinned)await old.unpin("Repositioning BOM-Bot music player").catch(()=>{});await old.delete();}catch{}}
-    let m:any;try{m=await channel.send(payload);}catch(err){diagWarn("discord-player","initial media render rejected; using text-safe fallback",{roomId:room.id,error:(err as any)?.message??String(err)});m=await channel.send(fallback);}await db.query(`UPDATE music_rooms SET controller_message_id=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1`,[room.id,m.id]);room.controller_message_id=m.id;void maintainDeskOrderForChannel(client,room.text_channel_id).catch(()=>{});
+    let m:any;try{m=await channel.send(payload);}catch(err){diagWarn("discord-player","initial media render rejected; using text-safe fallback",{roomId:room.id,error:(err as any)?.message??String(err)});m=await channel.send(fallback);}await db.query(`UPDATE music_rooms SET controller_message_id=$2,updated_at=CURRENT_TIMESTAMP WHERE id=$1`,[room.id,m.id]);room.controller_message_id=m.id;
   }catch(err){console.error("player refresh failed",err);}
 }
 async function deleteTrackAnnouncement(room:RoomRow){
@@ -906,27 +918,53 @@ client.on("messageCreate",async message=>{try{await maybeWikiConversationReply(m
 
 client.on("messageCreate",async message=>{
   if(message.author.bot||message.guildId!==guildId||!message.member)return;
-  // Requests typed directly into a Discord voice channel's built-in chat are
-  // automatically attached to that voice session. We intentionally do not
-  // treat ordinary server chat as music queries.
   const voiceChannelId=message.member.voice.channelId;
-  if(!voiceChannelId)return;
-  const deskSettings=await oneOrNone<any>('SELECT member_console_channel_id FROM membership_settings WHERE guild_id=$1',[guildId]);
-  if(String(message.channelId)!==String(voiceChannelId)&&String(message.channelId)!==String(deskSettings?.member_console_channel_id??''))return;
-  if(!await messageMusicPermission(message,"USE_MUSIC"))return;
-  const content=message.content.trim();if(!content&&!message.attachments.size)return;
-  // People chat in voice-channel text too. Only treat a message as a request when
-  // it is a link, an audio attachment, or starts with "play" (e.g. "play daft punk").
+  const botsId=await getBotsChannelId();
+  const isBotsChannel=Boolean(botsId&&String(message.channelId)===botsId);
+  const isVoiceTextChannel=Boolean(voiceChannelId&&String(message.channelId)===String(voiceChannelId));
+  if(!isBotsChannel&&!isVoiceTextChannel)return;
+
   const firstAttachment=message.attachments.first();
-  const prefixed=/^[!/]?(?:play|p)\s+(.+)$/i.exec(content)?.[1]?.trim();
-  const link=/^https?:\/\/\S+$/i.test(content)?content:undefined;
-  const query=firstAttachment?.url??prefixed??link;if(!query)return;
+  const botId=client.user?.id??"";
+  const mentionsBot=Boolean(botId&&(message.mentions?.users?.has?.(botId)||message.content.includes(`<@${botId}>`)||message.content.includes(`<@!${botId}>`)));
+  const parsed=parseMusicMessageRequest({
+    content:message.content,
+    attachmentUrl:firstAttachment?.url??null,
+    attachmentContentType:firstAttachment?.contentType??null,
+    isBotsChannel,
+    isVoiceTextChannel,
+    mentionsBot,
+  });
+  if(!parsed)return;
+
+  if(isBotsChannel){
+    markHandledMusicMessage(message.id);
+    cancelPendingConsoleMove();
+  }
+  if(!await messageMusicPermission(message,"USE_MUSIC"))return;
+  if(!voiceChannelId){
+    const notice=await message.reply({content:"Join a voice channel first, then drop your song or playlist here!",allowedMentions:{repliedUser:false}}).catch(()=>null);
+    if(notice)setTimeout(()=>void notice.delete().catch(()=>{}),6000);
+    if(isBotsChannel&&message.deletable)setTimeout(()=>void message.delete().catch(()=>{}),6000);
+    return;
+  }
+
+  const queryToSubmit=parsed.isPlaylistRequest&&!/^https?:\/\//i.test(parsed.query)
+    ? `playlist:${parsed.query}`
+    : parsed.query;
+
   try{
+    void ensureVoiceQuality(String(voiceChannelId));
     const room=await ensureVoiceRoom(String(voiceChannelId));
     if(!await claimRequestWindow(room.id,message.author.id))return;
-    await submit(room,query,message.author.id);
-    if(room.delete_requests&&message.deletable)setTimeout(()=>void message.delete().catch(()=>{}),2500);
-  }catch(err:any){await message.reply({content:`Could not queue that request: ${err.message}`,allowedMentions:{repliedUser:false}}).then(m=>setTimeout(()=>void m.delete().catch(()=>{}),8000));}
+    await submit(room,queryToSubmit,message.author.id);
+    await message.react("🎵").catch(()=>{});
+    if((isBotsChannel||room.delete_requests)&&message.deletable)setTimeout(()=>void message.delete().catch(()=>{}),1400);
+  }catch(err:any){
+    const reply=await message.reply({content:`Could not queue that request: ${err.message}`,allowedMentions:{repliedUser:false}}).catch(()=>null);
+    if(reply)setTimeout(()=>void reply.delete().catch(()=>{}),8000);
+    if(isBotsChannel&&message.deletable)setTimeout(()=>void message.delete().catch(()=>{}),8000);
+  }
 });
 
 // When everyone leaves a voice channel, stop its music after two minutes so the
@@ -971,6 +1009,7 @@ client.on("interactionCreate",async interaction=>{
     if(interaction.guildId!==guildId)return;
     if(await handleEventDonationRequests(interaction))return;
     if(await handleEventDonations(interaction,redis))return;
+    if(await handleSecretSantaInteraction(interaction,client))return;
     if(interaction.isAutocomplete()&&compendiumCommandNames.has(interaction.commandName))return void await handleCompendiumAutocomplete(interaction);
     if(interaction.isChatInputCommand()){
       if(compendiumCommandNames.has(interaction.commandName))return void await handleCompendiumCommand(interaction);
@@ -1260,6 +1299,7 @@ async function eventLoop(){
     }catch(err){console.error("[worker-event-error] worker event stream processing failed",{stream:keys.events,lastStreamId:last,error:err});await new Promise(r=>setTimeout(r,1200));}
   }
 }
+const leaseRenewAt=new Map<string,number>();
 async function onWorkerEvent(e:WorkerEvent){
   if('roomId' in e&&e.roomId&&e.type!=='PLAYER_UPDATE'){
     if(e.type==='METRIC'&&e.metric==='lavalink_resolve_ms')await musicTrace(e.roomId,'RESOLVE',{durationMs:e.valueMs,requestId:e.requestId});
@@ -1307,7 +1347,10 @@ async function onWorkerEvent(e:WorkerEvent){
     void enrichTrack(e.track).then(async metadata=>{await redis.set(`music:room:${e.roomId}:metadata`,JSON.stringify(metadata),"EX",6*3600);const rr=await roomById(e.roomId);if(rr)await refreshPanel(rr);}).catch(()=>{});
   } else if(e.type==="PLAYER_UPDATE"){
     const s=await getRoomState(e.roomId); if(s.workerId&&s.workerId!==e.workerId)return;
-    await setRoomState(e.roomId,{...s,workerId:e.workerId,position:e.position,updatedAt:Date.now()}); await renewRoomLease(e.roomId,e.workerId); void refreshLyricsPanels(e.roomId);
+    const now=Date.now();
+    await setRoomState(e.roomId,{...s,workerId:e.workerId,position:e.position,updatedAt:now});
+    if(now-(leaseRenewAt.get(e.roomId)??0)>=15_000){leaseRenewAt.set(e.roomId,now);await renewRoomLease(e.roomId,e.workerId);}
+    void refreshLyricsPanels(e.roomId);
   } else if(e.type==="STATE"){
     const s=await getRoomState(e.roomId); if(s.workerId&&s.workerId!==e.workerId)return;
     await setRoomState(e.roomId,{...s,workerId:e.workerId,status:e.status,updatedAt:Date.now()}); const room=await roomById(e.roomId); if(room)await refreshPanel(room);

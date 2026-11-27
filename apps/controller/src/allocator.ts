@@ -10,6 +10,8 @@ function scoreHeartbeat(h:any){
   score-=Math.min(25,Math.max(0,Number(h.eventLoopLagMs??0))/4);
   score-=Math.min(25,Math.max(0,Number(h.recentFailures??0))*6);
   score-=Math.min(15,Math.max(0,Number(h.reconnects??0))*2);
+  if(Number.isFinite(Number(h.frameLossPct))&&Number(h.frameLossPct)>0)score-=Math.min(40,Number(h.frameLossPct)*10);
+  if(Number.isFinite(Number(h.systemCpuPct))&&Number(h.systemCpuPct)>=75)score-=Math.min(20,(Number(h.systemCpuPct)-75));
   if(h.nodeReady===false)score-=80;
   return Math.round(score);
 }

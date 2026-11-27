@@ -189,7 +189,14 @@ async function play(cmd:Extract<WorkerCommand,{type:"PLAY"}>){
     const shardId=client.guilds.cache.get(guildId)?.shardId??0;
     const nodes=[...(shoukaku as any).nodes?.values?.()??[]];
     const isNodeConnected=(n:any)=>Boolean(n&&(n.state===1||n.state===2||n.state==="CONNECTED"||readyNodes.has(n.name)));
-    const node:any=nodes.find(isNodeConnected)??(shoukaku as any).nodes?.get?.("primary")??nodes[0];
+    const nodeScore=(n:any)=>{
+      const st=n?.stats,f=st?.frameStats,cpu=st?.cpu??{};
+      const exp=f?Number(f.sent??0)+Number(f.nulled??0)+Number(f.deficit??0):0;
+      const loss=f&&exp>0?(Number(f.nulled??0)+Number(f.deficit??0))/exp:0;
+      return loss*100 + Number(cpu.systemLoad??0)*10 + Number(st?.playingPlayers??0)*0.5;
+    };
+    const connectedNodes=nodes.filter(isNodeConnected).sort((a:any,b:any)=>nodeScore(a)-nodeScore(b));
+    const node:any=connectedNodes[0]??(shoukaku as any).nodes?.get?.("primary")??nodes[0];
     if(!node)throw new Error("Lavalink node is not ready");
 
     // Voice negotiation and Lavalink search are independent. Doing them in
@@ -227,20 +234,28 @@ async function play(cmd:Extract<WorkerCommand,{type:"PLAY"}>){
     diag("voice","joined Discord voice channel",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,voiceChannelId:cmd.voiceChannelId,joinAndResolveMs:Date.now()-startedAt,coldJoin,settleMs:coldJoin?voiceJoinSettleMs:0});
     const workerVoice=client.guilds.cache.get(guildId)?.members.me?.voice;
     diag("voice","Discord worker voice state",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,channelId:workerVoice?.channelId??null,selfMute:Boolean(workerVoice?.selfMute),serverMute:Boolean(workerVoice?.serverMute),selfDeaf:Boolean(workerVoice?.selfDeaf),serverDeaf:Boolean(workerVoice?.serverDeaf),suppress:Boolean(workerVoice?.suppress)});
-    const resolvedOrigin=(resolved as any).resolution?.strategy==="direct-playlist"?"PLAYLIST":(cmd as any).origin;
+    const resolvedOrigin=["direct-playlist","text-playlist"].includes(String((resolved as any).resolution?.strategy??""))?"PLAYLIST":(cmd as any).origin;
     runtime={roomId:cmd.roomId,guildId,requesterId:cmd.requesterId,requestId:cmd.requestId,traceId:cmd.traceId,player,transitionMode:cmd.transitionMode,transitionMs:cmd.transitionMs,fallbackTracks:(resolved as any).fallbacks??[],fallbackAttempts:0,origin:resolvedOrigin,surface:(cmd as any).surface,originalQuery:(cmd as any).originalQuery??cmd.query,voiceChannelId:cmd.voiceChannelId,baseVolume:roomVolume.get(cmd.roomId)??100,ducked:false};
     wirePlayer(player);
     const selected=resolved.selected;
     if(resolved.remainder.length){
       void (async()=>{
         let queuedCount=0;
-        for(const t of resolved.remainder){
+        const CHUNK=25;
+        for(let i=0;i<resolved.remainder.length;i+=CHUNK){
           if(runtime?.requestId!==cmd.requestId)break;
-          const inf=toInfo(t);
-          const item:QueueItem={requestId:randomUUID(),roomId:cmd.roomId,guildId:cmd.guildId,voiceChannelId:cmd.voiceChannelId,query:`${inf.author} ${inf.title}`,display:`${inf.author} — ${inf.title}`,encoded:t.encoded,trackInfo:inf,requesterId:cmd.requesterId,requestedAt:Date.now(),traceId:cmd.traceId,source:"PLAYLIST",surface:(cmd as any).surface??"DISCORD",originalQuery:(cmd as any).originalQuery??cmd.query};
-          await enqueue(item);queuedCount++;
+          const batch=resolved.remainder.slice(i,i+CHUNK);
+          await Promise.all(batch.map(t=>{
+            const inf=toInfo(t);
+            const item:QueueItem={requestId:randomUUID(),roomId:cmd.roomId,guildId:cmd.guildId,voiceChannelId:cmd.voiceChannelId,query:`${inf.author} ${inf.title}`,display:`${inf.author} — ${inf.title}`,encoded:t.encoded,trackInfo:inf,requesterId:cmd.requesterId,requestedAt:Date.now(),traceId:cmd.traceId,source:"PLAYLIST",surface:(cmd as any).surface??"DISCORD",originalQuery:(cmd as any).originalQuery??cmd.query};
+            queuedCount++;
+            return enqueue(item);
+          }));
         }
         diag("music-queue","playlist remainder queued",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,queued:queuedCount});
+        if(queuedCount>0&&runtime?.requestId===cmd.requestId){
+          await redis.xadd(keys.controllerCommands,"MAXLEN","~",1000,"*","payload",JSON.stringify({type:"REFRESH_ROOM",roomId:cmd.roomId,guildId:cmd.guildId})).catch(()=>{});
+        }
       })().catch(err=>diagWarn("music-queue","playlist remainder queue failed",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,error:err?.message??String(err)}));
     }
     const info=toInfo(selected);
@@ -249,24 +264,36 @@ async function play(cmd:Extract<WorkerCommand,{type:"PLAY"}>){
     diag("playback","sending track to Lavalink player",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,title:info.title,author:info.author,source:info.sourceName,lengthMs:info.length,elapsedMs:Date.now()-startedAt});
     const transitionMs=Math.max(0,Number(cmd.transitionMs??0));
     const fadeIn=Boolean(cmd.transitionMode&&cmd.transitionMode!=="OFF"&&cmd.transitionMode!=="GAPLESS"&&transitionMs>0);
-    // Shoukaku/Lavalink volume must be asserted after playTrack.  Setting it only
-    // before the player update can be lost when Lavalink replaces the current
-    // track/player state, which presents in Discord as a speaking bot with
-    // effectively silent audio.  Pre-mute only when a fade-in is requested,
-    // then always establish the intended volume after the track is loaded.
+    // Send track, volume and unpaused state in a single Lavalink v4 PATCH so
+    // playback starts faster and avoids mid-intro hiccups from redundant PATCHes.
+    // At volume 100 with flat filters, Lavalink passes Opus straight through.
     skippedEndPlayers.delete(player);
-    if(fadeIn)try{await player.setGlobalVolume?.(0);}catch{}
-    await player.playTrack({track:{encoded:selected.encoded,userData:{roomId:cmd.roomId,requesterId:cmd.requesterId,requestId:cmd.requestId,traceId:cmd.traceId}}});
-    // A reused Lavalink player can retain paused/volume state from the previous
-    // session. Explicitly unpause and assert volume after replacing the track.
-    // This is intentionally on the critical path because Discord can show the
-    // worker as speaking even when stale player state makes the track inaudible.
-    try{await player.setPaused?.(false);}catch(err:any){diagWarn("audio-state","unable to force player unpaused",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,message:err?.message??String(err)});}
     const initialVolume=fadeIn?0:Number(runtime?.baseVolume??100);
-    try{await player.setGlobalVolume?.(initialVolume);diag("audio-volume","Lavalink volume asserted after track load",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,targetVolume:initialVolume,reportedVolume:Number(player.volume??initialVolume),fadeIn,paused:Boolean(player.paused)});}catch(err:any){diagWarn("audio-volume","volume assertion failed",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,message:err?.message??String(err)});}
+    await player.playTrack({
+      track:{encoded:selected.encoded,userData:{roomId:cmd.roomId,requesterId:cmd.requesterId,requestId:cmd.requestId,traceId:cmd.traceId}},
+      volume:initialVolume,
+      paused:false,
+    });
+    if(player.paused){
+      try{await player.setPaused?.(false);}catch(err:any){diagWarn("audio-state","unable to force player unpaused",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,message:err?.message??String(err)});}
+    }
+    if(Number(player.volume??initialVolume)!==initialVolume){
+      try{await player.setGlobalVolume?.(initialVolume);}catch(err:any){diagWarn("audio-volume","volume assertion failed",{traceId:cmd.traceId,requestId:cmd.requestId,roomId:cmd.roomId,message:err?.message??String(err)});}
+    }
     if(!fadeIn){
       const requestId=cmd.requestId;
-      const timer=setTimeout(()=>{void (async()=>{if(runtime?.requestId!==requestId)return;try{await player.setPaused?.(false);await player.setGlobalVolume?.(Number(runtime?.baseVolume??100));diag("audio-state","post-start audio state verified",{traceId:cmd.traceId,requestId,roomId:cmd.roomId,targetVolume:Number(runtime?.baseVolume??100),reportedVolume:Number(player.volume??runtime?.baseVolume??100),paused:Boolean(player.paused)});}catch(err:any){diagWarn("audio-state","post-start verification failed",{traceId:cmd.traceId,requestId,roomId:cmd.roomId,message:err?.message??String(err)});}})();},350);timer.unref?.();
+      const timer=setTimeout(()=>{void (async()=>{
+        if(runtime?.requestId!==requestId)return;
+        const targetVol=Number(runtime?.baseVolume??100);
+        // Only issue a corrective PATCH if Lavalink actually drifted into paused/wrong volume.
+        if(player.paused||Number(player.volume??targetVol)!==targetVol){
+          try{
+            if(player.paused)await player.setPaused?.(false);
+            if(Number(player.volume??targetVol)!==targetVol)await player.setGlobalVolume?.(targetVol);
+            diag("audio-state","post-start audio state corrected",{traceId:cmd.traceId,requestId,roomId:cmd.roomId,targetVolume:targetVol,reportedVolume:Number(player.volume??targetVol),paused:Boolean(player.paused)});
+          }catch(err:any){diagWarn("audio-state","post-start verification failed",{traceId:cmd.traceId,requestId,roomId:cmd.roomId,message:err?.message??String(err)});}
+        }
+      })();},350);timer.unref?.();
     }
     if(cmd.startPositionMs&&cmd.startPositionMs>0)await player.seekTo(cmd.startPositionMs).catch(()=>{});
     if(fadeIn){

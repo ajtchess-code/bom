@@ -1,1 +1,240 @@
-.deck{min-height:100svh;display:flex;flex-direction:column;position:relative;isolation:isolate;background:#080f19;color:#f0f1f4;font-family:Arial,sans-serif}.backdrop{position:absolute;inset:0;z-index:-1;background:linear-gradient(90deg,#080f1900 30%,#080f1930 60%,#080f19a0),url('/branding/defaults/login-crest-v2.png') center/cover no-repeat}.header{padding:30px 5vw;display:flex;align-items:center}.header a{display:flex;gap:12px;align-items:center;color:#f2e4bb;text-decoration:none;font-weight:700;letter-spacing:.8px;font-size:15px}.header img{width:42px;height:44px;object-fit:contain}.content{flex:1;display:flex;align-items:center;justify-content:flex-end;padding:50px 9vw}.card{width:min(400px,100%);padding:44px 36px;border-radius:20px;border:1px solid #d8b05e35;background:linear-gradient(145deg,#182231e8,#0c1420ed);backdrop-filter:blur(18px);box-shadow:0 30px 100px #0006}.eyebrow{color:#d8b96c;font-size:10px;letter-spacing:3px;font-weight:700}.card h1{font-size:32px;letter-spacing:-1.2px;line-height:1.2;margin:22px 0 12px}.card p{color:#a4afbd;font-size:14px;margin-bottom:34px}.signIn{padding:16px 18px;display:flex;align-items:center;gap:12px;border-radius:10px;background:linear-gradient(120deg,#e4c67a,#c59b46);color:#141c28!important;text-decoration:none;font-size:14px;font-weight:700;box-shadow:0 7px 25px #bd8d2520}.signIn>span{margin-left:auto}.signIn:hover{filter:brightness(1.08)}.signIn:focus-visible,.header a:focus-visible{outline:3px solid #f4d58f;outline-offset:5px}.card small{display:block;text-align:center;font-size:11px;color:#8391a5;margin-top:22px}.wikiLink{display:block;text-align:center;margin-top:18px;color:#e4c67a!important;font-size:13px;font-weight:700;text-decoration:none}.wikiLink:hover{text-decoration:underline}.footer{padding:28px 5vw;font-size:11px;color:#8291a3}@media(max-width:760px){.backdrop{background:linear-gradient(#080f1950,#080f19ee 70%),url('/branding/defaults/login-crest-v2.png') 25% top/auto 70vh no-repeat}.content{justify-content:center;padding:210px 20px 45px}.card{padding:32px 26px;box-sizing:border-box}.header{padding:22px}.card h1{font-size:29px}.footer{text-align:center}}
+.deck {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  background: #071310;
+  color: #f4f7f5;
+  font-family: Inter, Arial, sans-serif;
+}
+
+.backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: -2;
+  background:
+    radial-gradient(circle at 18% 12%, rgba(200, 50, 60, 0.16), transparent 44%),
+    radial-gradient(circle at 78% 18%, rgba(44, 134, 90, 0.18), transparent 48%),
+    linear-gradient(90deg, rgba(7, 19, 16, 0.15) 28%, rgba(7, 19, 16, 0.42) 58%, rgba(7, 19, 16, 0.84) 100%),
+    url('/branding/christmas/login-crest-christmas.webp') center/cover no-repeat;
+}
+
+.snowLayer {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.42;
+  background-image:
+    radial-gradient(2px 2px at 14% 18%, #ffffffcc 50%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 32% 62%, #ffffffaa 50%, transparent 100%),
+    radial-gradient(2.5px 2.5px at 54% 26%, #fff3d6cc 50%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 76% 42%, #ffffffbb 50%, transparent 100%),
+    radial-gradient(2px 2px at 88% 76%, #ffffffaa 50%, transparent 100%),
+    radial-gradient(1.5px 1.5px at 22% 84%, #ffffff99 50%, transparent 100%),
+    radial-gradient(2px 2px at 66% 88%, #fff3d699 50%, transparent 100%);
+  background-size: 420px 420px;
+  animation: loginSnowDrift 26s linear infinite;
+}
+
+@keyframes loginSnowDrift {
+  from {
+    background-position: 0 0;
+  }
+  to {
+    background-position: 140px 420px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .snowLayer {
+    animation: none;
+  }
+}
+
+.header {
+  padding: 28px 5vw;
+  display: flex;
+  align-items: center;
+}
+
+.header a {
+  display: flex;
+  gap: 13px;
+  align-items: center;
+  color: #f6e7c1;
+  text-decoration: none;
+  letter-spacing: 0.5px;
+}
+
+.header img {
+  width: 50px;
+  height: 50px;
+  object-fit: contain;
+  filter: drop-shadow(0 6px 16px rgba(0, 0, 0, 0.55));
+}
+
+.brandText {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.15;
+}
+
+.brandText strong {
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.brandText small {
+  font-size: 10px;
+  letter-spacing: 2.2px;
+  text-transform: uppercase;
+  color: #e6b85c;
+  margin-top: 3px;
+}
+
+.content {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 46px 9vw;
+}
+
+.card {
+  width: min(420px, 100%);
+  padding: 44px 36px;
+  border-radius: 22px;
+  position: relative;
+  border: 1px solid rgba(230, 184, 92, 0.36);
+  background:
+    linear-gradient(155deg, rgba(22, 41, 34, 0.92), rgba(11, 22, 19, 0.95));
+  backdrop-filter: blur(18px);
+  box-shadow:
+    0 30px 100px rgba(0, 0, 0, 0.55),
+    0 0 0 1px rgba(200, 50, 60, 0.16) inset;
+}
+
+.card::before {
+  content: "";
+  position: absolute;
+  left: 24px;
+  right: 24px;
+  top: 0;
+  height: 3px;
+  border-radius: 0 0 6px 6px;
+  background: linear-gradient(90deg, #b82934, #e5b84b, #2c865a);
+}
+
+.eyebrow {
+  color: #e8c36c;
+  font-size: 10px;
+  letter-spacing: 2.8px;
+  font-weight: 800;
+}
+
+.card h1 {
+  font-size: 32px;
+  letter-spacing: -1px;
+  line-height: 1.15;
+  margin: 18px 0 12px;
+  color: #fbfaf5;
+}
+
+.card p {
+  color: #b5c6be;
+  font-size: 14px;
+  margin-bottom: 32px;
+  line-height: 1.5;
+}
+
+.signIn {
+  padding: 16px 18px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 12px;
+  background: linear-gradient(125deg, #d1343e 0%, #a8222d 55%, #8f1d28 100%);
+  border: 1px solid rgba(244, 213, 143, 0.45);
+  color: #fffaf0 !important;
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 700;
+  box-shadow: 0 10px 30px rgba(176, 36, 48, 0.35);
+  transition: transform 0.15s ease, filter 0.15s ease;
+}
+
+.signIn > span {
+  margin-left: auto;
+}
+
+.signIn:hover {
+  filter: brightness(1.09);
+  transform: translateY(-1px);
+}
+
+.signIn:focus-visible,
+.header a:focus-visible {
+  outline: 3px solid #f4d58f;
+  outline-offset: 5px;
+}
+
+.card small {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: #93aba0;
+  margin-top: 22px;
+}
+
+.wikiLink {
+  display: block;
+  text-align: center;
+  margin-top: 18px;
+  color: #e8c36c !important;
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.wikiLink:hover {
+  text-decoration: underline;
+}
+
+.footer {
+  padding: 26px 5vw;
+  font-size: 11px;
+  color: #8ea69b;
+}
+
+@media (max-width: 760px) {
+  .backdrop {
+    background:
+      linear-gradient(rgba(7, 19, 16, 0.38), rgba(7, 19, 16, 0.94) 68%),
+      url('/branding/christmas/login-crest-christmas.webp') 28% top/auto 68vh no-repeat;
+  }
+
+  .content {
+    justify-content: center;
+    padding: 190px 20px 44px;
+  }
+
+  .card {
+    padding: 32px 26px;
+    box-sizing: border-box;
+  }
+
+  .header {
+    padding: 22px;
+  }
+
+  .card h1 {
+    font-size: 28px;
+  }
+
+  .footer {
+    text-align: center;
+  }
+}

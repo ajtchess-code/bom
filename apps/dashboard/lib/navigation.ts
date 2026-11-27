@@ -30,6 +30,12 @@ export type NavSection = {
 export const NAV_SECTIONS: NavSection[] = [
   { key: "home", label: "Home", icon: "home", tabs: [{ href: "/dashboard", label: "Home", exact: true }] },
   {
+    key: "secretSanta",
+    label: "Secret Santa",
+    icon: "gift",
+    tabs: [{ href: "/dashboard/secret-santa", label: "Secret Santa" }],
+  },
+  {
     key: "battles",
     label: "Port Battles",
     icon: "battle",

@@ -32,6 +32,7 @@ import {bootstrapFeedbackCenter,registerFeedbackRoutes} from "./feedback.js";
 import {registerMembershipRoutes} from "./membership.js";
 import {registerRecruitmentRoutes} from "./recruitment.js";
 import {registerPlatformOpsRoutes,startPlatformJobRunner,emitPlatformEvent} from "./platformOps.js";
+import {registerSecretSantaRoutes} from "./secretSanta.js";
 // A rejected background promise (Discord event handler, timer, cache refresh) must not take
 // the whole service down; the supervisor restart would drop every in-flight request.
 process.on("unhandledRejection",reason=>{console.error("[api] unhandled promise rejection",reason);});
@@ -142,11 +143,12 @@ async function requireAdmin(req:any,reply:any){
 app.addHook('preHandler',async(req:any,reply:any)=>{const uid=userId(req);if(!uid)return;const access=await discordAccess(uid),cfg=await oneOrNone<any>('SELECT * FROM membership_settings WHERE guild_id=$1',[guildId]),admin=await hasDashboardAdminAccess(uid);req._pbGrant=await getAlliedGrant(guildId,uid);req._pbGrantLoaded=true;
  if(!access.member)return reply.code(403).send({error:'not_a_member'});
  const scope=dashboardRoleScope(access.roles,cfg,admin);if(scope==='MEMBER'&&(admin||cfg?.member_role_id||cfg?.bom2_member_role_id||cfg?.afk_role_id||cfg?.bom2_afk_role_id||cfg?.leave_member_role_ids?.length||cfg?.officer_role_ids?.length))req._pbGrant=null;
- if(scope==='GUEST'&&!req._pbGrant){req._dashboardScope={...access,guestOnly:true};const path=String(req.url).split('?')[0];if(path!=='/v1/access'&&!path.startsWith('/v1/recruitment/'))return reply.code(403).send({error:'member_or_alliance_role_required',message:'You need a configured Member or Alliance role to use this tool. Ask an Officer to check your Discord roles and the dashboard membership settings.'});return;}
- if(scope==='ALLIANCE'){req._dashboardScope={...access,allianceOnly:true};if(!allianceApiAllowed(String(req.url).split('?')[0],req.method))return reply.code(403).send({error:'alliance_dashboard_restricted'});return;}
+ if(scope==='GUEST'&&!req._pbGrant){req._dashboardScope={...access,guestOnly:true};const path=String(req.url).split('?')[0];if(path!=='/v1/access'&&!path.startsWith('/v1/recruitment/')&&!(path.startsWith('/v1/secret-santa')&&!path.startsWith('/v1/secret-santa/admin')))return reply.code(403).send({error:'member_or_alliance_role_required',message:'You need a configured Member or Alliance role to use this tool. Ask an Officer to check your Discord roles and the dashboard membership settings.'});return;}
+ if(scope==='ALLIANCE'){req._dashboardScope={...access,allianceOnly:true};const path=String(req.url).split('?')[0];if(!allianceApiAllowed(path,req.method)&&!(path.startsWith('/v1/secret-santa')&&!path.startsWith('/v1/secret-santa/admin')))return reply.code(403).send({error:'alliance_dashboard_restricted'});return;}
  if(req._pbGrant&&!admin&&!pbAllyPathAllowed(String(req.url).split('?')[0],req.method))return reply.code(403).send({error:'port_battles_only'});
 });
 registerBrandingRoutes(app,{guildId,requireAdmin,userId});
+registerSecretSantaRoutes(app,{guildId,requireAdmin,userId});
 registerFeatureRoutes(app,{guildId,requireMember,requireAdmin,requirePermission,userId});
 registerSentinelRoutes(app,requireAdmin,userId);
 registerMusicDiscoveryRoutes(app,{guildId,requireMember,requireAdmin,userId});

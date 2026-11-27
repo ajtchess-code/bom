@@ -9,18 +9,18 @@ import {db,oneOrNone} from '@bom/db';
  * folder) for the next season; music workers keep their own branding.
  */
 export const MISFIT_PERSONA={
- name:'Thankful Misfit',
+ name:'Jolly Misfit',
  /** Older persona names: an existing role with one of these names is renamed rather than duplicated. */
- previousNames:['Evil Misfit'],
- season:'Thanksgiving',
- assetDir:'branding/thanksgiving',
- avatar:'thankful-misfit-avatar.png',
- banner:'thankful-misfit-banner.png',
- roleIcon:'thankful-misfit-role-icon.png',
- roleColor:0xd9741f,
+ previousNames:['Evil Misfit','Thankful Misfit'],
+ season:'Christmas',
+ assetDir:'branding/christmas',
+ avatar:'jolly-misfit-avatar.png',
+ banner:'jolly-misfit-banner.png',
+ roleIcon:'jolly-misfit-role-icon.png',
+ roleColor:0xc82333,
  /** Server icon: the seasonal logo. */
  serverIcon:'server-icon.png',
- /** Server banner: the video with the logo overlay when animated banners are unlocked (boost level 3), otherwise a still frame (level 2). */
+ /** Server banner: optional animated GIF when boost level 3 is unlocked, otherwise still PNG (level 2). */
  serverBannerAnimated:'server-banner.gif',
  serverBanner:'server-banner.png',
 };
@@ -48,7 +48,7 @@ export async function applyMisfitBranding(client:any,guildId:string){
   if(state?.guild_icon_sha!==hash){await guild.setIcon(icon,`${P.season} server icon`);await db.query('UPDATE bot_branding_state SET guild_icon_sha=$2 WHERE guild_id=$1',[guildId,hash]);console.info(`[misfit-branding] Server icon set to the ${P.season} logo.`);}
  }catch(e){warn('Server icon',e);}
  try{
-  const animated=guild.features.includes('ANIMATED_BANNER');
+  const animated=guild.features.includes('ANIMATED_BANNER')&&existsSync(join(dir,P.serverBannerAnimated));
   if(!animated&&!guild.features.includes('BANNER'))console.info('[misfit-branding] Server banners need boost level 2 (animated: level 3); the banner is ready for when it unlocks.');
   else{const banner=await readFile(join(dir,animated?P.serverBannerAnimated:P.serverBanner)),hash=digest(banner);
    if(state?.guild_banner_sha!==hash){await guild.setBanner(banner,`${P.season} server banner`);await db.query('UPDATE bot_branding_state SET guild_banner_sha=$2 WHERE guild_id=$1',[guildId,hash]);console.info(`[misfit-branding] Server banner set to the ${P.season} ${animated?'animated video':'still'} banner.`);}}

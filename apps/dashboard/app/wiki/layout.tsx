@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "BOM Wiki",
     description: "World of Sea Battle guides, calculators and ship data.",
-    images: ["/branding/defaults/bom-logo.png"],
+    images: ["/branding/christmas/bom-logo-christmas.png"],
   },
 };
 

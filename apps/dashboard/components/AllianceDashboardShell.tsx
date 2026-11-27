@@ -15,6 +15,7 @@ export default function AllianceDashboardShell({ children }: { children: React.R
             ["/dashboard/music", "Music"],
             ["/dashboard/port-battles", "Port Battles"],
             ["/dashboard/diplomacy", "Guilds & Alliances"],
+            ["/dashboard/secret-santa", "Secret Santa"],
           ].map(([href, label]) => (
             <Link key={href} href={href} aria-current={path === href ? "page" : undefined}>
               {label}

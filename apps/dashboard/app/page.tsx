@@ -20,17 +20,21 @@ export default async function Home() {
   return (
     <main className={styles.deck}>
       <div className={styles.backdrop} />
+      <div className={styles.snowLayer} aria-hidden="true" />
       <header className={styles.header}>
         <a href="/" aria-label="Band of Misfits">
-          <img src="/branding/defaults/bom-logo.png" alt="" />
-          <span>Band of Misfits</span>
+          <img src="/branding/christmas/bom-logo-christmas.png" alt="" />
+          <span className={styles.brandText}>
+            <strong>Band of Misfits</strong>
+            <small>Christmas Edition</small>
+          </span>
         </a>
       </header>
       <section className={styles.content}>
         <div className={styles.card}>
-          <span className={styles.eyebrow}>BAND OF MISFITS</span>
-          <h1>Welcome Aboard.</h1>
-          <p>Your Crew. Your Dashboard.</p>
+          <span className={styles.eyebrow}>BAND OF MISFITS · CHRISTMAS</span>
+          <h1>Merry Christmas, Misfits.</h1>
+          <p>Your Crew. Your Dashboard. Your Secret Santa.</p>
           {session ? (
             crossOriginDash ? (
               <a className={styles.signIn} href={dashboardHref}>
@@ -52,13 +56,13 @@ export default async function Home() {
               Continue With Discord <span aria-hidden="true">→</span>
             </a>
           )}
-          <small>Secure Discord Sign-In</small>
+          <small>Secure Discord Sign-In · Secret Santa Now Live</small>
           <a className={styles.wikiLink} href={(process.env.PUBLIC_WIKI_REDIRECT ?? "").trim() || "/wiki"}>
             Open the WoSB Wiki <span aria-hidden="true">→</span>
           </a>
         </div>
       </section>
-      <footer className={styles.footer}>© Band of Misfits</footer>
+      <footer className={styles.footer}>© Band of Misfits · Happy Holidays from Jolly Misfit</footer>
     </main>
   );
 }

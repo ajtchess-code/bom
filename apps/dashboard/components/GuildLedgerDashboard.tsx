@@ -1,8 +1,9 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { operationsApi, displayDate, downloadCsv } from "./operationsApi";
 import "./CommunityOperations.css";
 export default function GuildLedgerDashboard() {
+  const fortInputRef = useRef<HTMLInputElement | null>(null);
   const [data, setData] = useState<any>(null),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
@@ -25,6 +26,9 @@ export default function GuildLedgerDashboard() {
     setDonationKey(crypto.randomUUID());
     setTreasuryKey(crypto.randomUUID());
     void load().catch((e) => setNotice(e.message));
+    if (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("new") === "donation") {
+      setTimeout(() => fortInputRef.current?.focus(), 80);
+    }
   }, []);
   async function perform(fn: () => Promise<void>) {
     setBusy(true);
@@ -63,7 +67,7 @@ export default function GuildLedgerDashboard() {
           </p>
           <label>
             Fort / port
-            <input value={fort} maxLength={100} onChange={(e) => setFort(e.target.value)} required />
+            <input ref={fortInputRef} value={fort} maxLength={100} onChange={(e) => setFort(e.target.value)} required />
           </label>
           {lines.map((line, i) => (
             <div className="opsRow" key={i}>

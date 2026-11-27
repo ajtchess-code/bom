@@ -62,6 +62,8 @@ async function experienceApi(path: string, init: RequestInit = {}) {
   return body;
 }
 function sectionFor(pathname: string) {
+  if (pathname.startsWith("/dashboard/secret-santa"))
+    return { title: "Secret Santa", subtitle: "Christmas gift exchange, wishlists and anonymous matches" };
   if (pathname.startsWith("/dashboard/sentinel"))
     return { title: "Sentinel", subtitle: "Audit, recovery and server history" };
   if (pathname.startsWith("/dashboard/recruitment"))
@@ -580,6 +582,13 @@ export default function DashboardShell({
       : []),
     {
       kind: "Action",
+      label: "Open Secret Santa",
+      detail: "Join the Christmas exchange, edit your wishlist, or view your match",
+      href: "/dashboard/secret-santa",
+      key: "secret-santa",
+    },
+    {
+      kind: "Action",
       label: "Create A Ship Build",
       detail: "Open the Build Library",
       href: "/dashboard/ship-builder?new=1",
@@ -712,10 +721,11 @@ export default function DashboardShell({
           aria-label="Band of Misfits dashboard"
         >
           <span className="brandCrest">
-            <img src="/branding/defaults/bom-logo.png" alt="BOM" />
+            <img src="/branding/christmas/bom-logo-christmas.png" alt="BOM" />
           </span>
           <span className="brandWords">
             <b>Band of Misfits</b>
+            <small className="seasonBrandTag">Christmas Edition</small>
           </span>
         </Link>
         <nav className="commandNav" aria-label="Primary navigation">
@@ -1333,10 +1343,11 @@ export default function DashboardShell({
             <div className="mobileNavSheetHead">
               <div className="mobileNavIdentity">
                 <span className="brandCrest">
-                  <img src="/branding/defaults/bom-logo.png" alt="BOM" />
+                  <img src="/branding/christmas/bom-logo-christmas.png" alt="BOM" />
                 </span>
                 <span>
                   <b>Band of Misfits</b>
+                  <small className="seasonBrandTag">Christmas Edition</small>
                 </span>
               </div>
               <button

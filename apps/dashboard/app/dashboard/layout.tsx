@@ -14,7 +14,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
     return (
       <div className="pbAlliedShell">
         <header>
-          <b>Band of Misfits · Applications</b>
+          <b>Band of Misfits · Holiday Portal</b>
+          <a href="/dashboard/recruitment">Applications</a>
+          <a href="/dashboard/secret-santa">Secret Santa</a>
           <a href="/api/auth/logout">Sign out</a>
         </header>
         <main>{children}</main>
@@ -27,6 +29,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
         <header>
           <b>Allied Port Battles</b>
           <a href="/dashboard/port-battles">Port Battles</a>
+          <a href="/dashboard/secret-santa">Secret Santa</a>
           <a href="/api/auth/logout">Sign out</a>
         </header>
         <main>{children}</main>

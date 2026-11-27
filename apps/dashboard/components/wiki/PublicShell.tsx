@@ -80,7 +80,7 @@ export default function PublicShell({ settings, children }: { settings: Settings
     <div className="pwShell">
       <header className="pwBar">
         <a className="pwBrand" href={home}>
-          <img src="/branding/defaults/bom-logo.png" alt="" width={34} height={34} />
+          <img src="/branding/christmas/bom-logo-christmas.png" alt="" width={34} height={34} />
           <span>
             <b>BOM Wiki</b>
             <small>World of Sea Battle</small>
